@@ -1,20 +1,32 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import Joi from 'joi';
-import User from '../models/User';
+import { pool } from '../config/db';
+import { RowDataPacket } from 'mysql2';
 
 const loginSchema = Joi.object({
   username: Joi.string().required(),
   password: Joi.string().required(),
 });
 
+interface User extends RowDataPacket{
+  id_usuario: number;
+  username: string;
+  password: string;
+  fk_id_rol: 'admin' | 'user';
+}
+
 export const login = async (username: string, password: string) => {
   // Validar datos de entrada
   const { error } = loginSchema.validate({ username, password });
   if (error) throw new Error(error.details[0].message);
 
-  // Buscar usuario en la base de datos
-  const user = await User.findOne({ where: { username } });
+  // Consultar usuario con SQL crudo
+  const [rows] = await pool.query<User[]>(
+    'SELECT id_usuario, username, password, fk_id_rol FROM usuario WHERE username = ?',
+    [username] 
+  );
+  const user = rows[0];
   if (!user) throw new Error('Usuario o contraseña inválidos');
 
   // Verificar contraseña
@@ -23,17 +35,17 @@ export const login = async (username: string, password: string) => {
 
   // Generar token JWT
   const token = jwt.sign(
-    { id: user.id, rolId: user.rolId },
+    { id_usuario: user.id_usuario, fk_id_rol: user.fk_id_rol },
     process.env.JWT_SECRET!,
     { expiresIn: '1h' }
   );
 
   return {
     token,
-    user: {
-      id: user.id,
+    user: { 
+      id_usuario: user.id_usuario,
       username: user.username,
-      rolId: user.rolId,
+      fk_id_rol: user.fk_id_rol,
     },
   };
 };

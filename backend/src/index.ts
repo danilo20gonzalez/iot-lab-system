@@ -1,8 +1,9 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import sequelize from './config/db';
 import authRoutes from './routes/authRoutes';
+import userRoutes from './routes/userRoutes';
+import {pool} from './config/db';
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 
 // Rutas
 app.use('/api', authRoutes);
+app.use('/api', userRoutes);
 
 // Ruta raíz
 app.get('/', (req: Request, res: Response) => {
@@ -25,15 +27,14 @@ const PORT = process.env.PORT || 4000;
 
 const startServer = async () => {
   try {
-    await sequelize.authenticate();
-    console.log('✅ Conexión a MySQL establecida');
-    await sequelize.sync({ alter: true }); // Sincroniza modelos, ajusta tabla si es necesario
-    console.log('✅ Tablas sincronizadas');
+    const connection = await pool.getConnection();
+    console.log('Conexión a MySQL establecida');
+    connection.release();
     app.listen(PORT, () => {
-      console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);
+      console.log(`Servidor corriendo en http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error('❌ Error al iniciar el servidor:', error);
+    console.error('Error al iniciar el servidor:', error);
   }
 };
 

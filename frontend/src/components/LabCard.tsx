@@ -1,5 +1,4 @@
-import { Thermometer, Droplets, ChevronRight, Activity } from "lucide-react";
-// import { Link } from "react-router-dom"; // Simulado como div clickeable
+import { Thermometer, Droplets, ChevronRight, Activity, Wifi, Cctv, Trash2 } from "lucide-react";
 
 interface LabCardProps {
   id: number;
@@ -8,30 +7,34 @@ interface LabCardProps {
   humidity: number;
   devices: number;
   status: "activo" | "alerta" | "mantenimiento";
+  onDelete?: () => void;
 }
 
-export default function LabCard({ id, name, temperature, humidity, devices, status }: LabCardProps) {
+export default function LabCard({ id, name, temperature, humidity, devices, status, onDelete }: LabCardProps) {
   const getStatusConfig = (status: string) => {
     switch (status) {
       case "activo":
         return {
-          bg: "bg-gradient-to-r from-green-50 to-lime-50",
-          text: "text-green-700",
-          border: "border-green-200",
-          dot: "#267e1b"
+          bg: "bg-gradient-to-r from-emerald-500 to-green-500",
+          text: "text-white",
+          border: "border-emerald-200",
+          glow: "shadow-lg shadow-emerald-500/20",
+          dot: "#10b981"
         };
       case "alerta":
         return {
-          bg: "bg-gradient-to-r from-amber-50 to-yellow-50",
-          text: "text-amber-700",
+          bg: "bg-gradient-to-r from-amber-500 to-orange-500",
+          text: "text-white",
           border: "border-amber-200",
-          dot: "#ff6b35"
+          glow: "shadow-lg shadow-amber-500/20",
+          dot: "#f59e0b"
         };
       default:
         return {
-          bg: "bg-gradient-to-r from-gray-50 to-slate-50",
-          text: "text-gray-600",
+          bg: "bg-gradient-to-r from-slate-500 to-gray-500",
+          text: "text-white",
           border: "border-gray-200",
+          glow: "shadow-lg shadow-gray-500/20",
           dot: "#6b7280"
         };
     }
@@ -39,84 +42,153 @@ export default function LabCard({ id, name, temperature, humidity, devices, stat
 
   const statusConfig = getStatusConfig(status);
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete();
+    }
+  };
+
   return (
-    <div className="bg-white rounded-2xl border-1 border-[#367c29] hover:border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 p-6 flex flex-col gap-5 group hover:-translate-y-1 relative overflow-hidden">
-      {/* Decorative gradient overlay */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-600 via-emerald-600 to-lime-600" style={{background: 'linear-gradient(90deg, #267e1b 0%, #427a35 50%, #004e00 100%)'}}></div>
+    <div className="bg-white rounded-3xl border border-gray-100 hover:border-gray-200 shadow-xl hover:shadow-2xl transition-all duration-500 p-6 flex flex-col gap-6 group hover:-translate-y-2 relative overflow-hidden">
       
-      {/* Header con título y estado */}
-      <div className="flex justify-between items-start">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br rounded-xl flex items-center justify-center border-2" style={{background: 'linear-gradient(135deg, #427a35 0%, #267e1b 100%)', borderColor: '#267e1b'}}>
-            <Activity size={20} className="text-white" />
+      {/* Background gradient effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-emerald-50 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      
+      {/* Status indicator line */}
+      <div 
+        className={`absolute top-0 left-0 w-1 h-full ${status === 'activo' ? 'bg-gradient-to-b from-emerald-500 to-green-500' : status === 'alerta' ? 'bg-gradient-to-b from-amber-500 to-orange-500' : 'bg-gradient-to-b from-gray-500 to-slate-500'}`}
+      />
+      
+      {/* Botón de eliminar */}
+      {onDelete && (
+        <button
+          onClick={handleDelete}
+          className="absolute top-4 right-4 z-20 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg"
+          title="Eliminar laboratorio"
+        >
+          <Trash2 size={14} />
+        </button>
+      )}
+      
+      {/* Header section */}
+      <div className="flex justify-between items-start relative z-10">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <Activity size={24} className="text-white" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full border-2 border-white flex items-center justify-center">
+              <Wifi size={12} className="text-emerald-600" />
+            </div>
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-800 group-hover:text-gray-900 transition-colors">{name}</h3>
-            <p className="text-sm text-gray-500">Laboratorio #{id}</p>
+            <h3 className="text-2xl font-bold text-gray-900 group-hover:text-gray-800 transition-colors">
+              {name}
+            </h3>
+            <p className="text-sm text-gray-500 font-medium">Lab #{id.toString().padStart(2, '0')}</p>
           </div>
         </div>
         
-        <div className={`px-4 py-2 rounded-xl border-2 ${statusConfig.bg} ${statusConfig.border} flex items-center gap-2`}>
-          <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: statusConfig.dot}}></div>
+        <div className={`px-4 py-2 rounded-2xl ${statusConfig.bg} ${statusConfig.glow} flex items-center gap-2 backdrop-blur-sm`}>
+          <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>
           <span className={`text-sm font-semibold capitalize ${statusConfig.text}`}>
             {status}
           </span>
         </div>
       </div>
 
-      {/* Métricas con diseño mejorado */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-4 border-2 border-red-100 hover:border-red-200 transition-colors">
-          <div className="flex items-center justify-between mb-2">
-            <Thermometer className="text-red-500" size={22} />
-            <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-1 rounded-full">TEMP</span>
+      {/* Metrics grid */}
+      <div className="grid grid-cols-2 gap-4 relative z-10">
+        {/* Temperature Card */}
+        <div className="bg-gradient-to-br from-white to-red-50 rounded-2xl p-4 border border-red-100 hover:border-red-200 transition-all duration-300 group/metric hover:shadow-lg">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+              <Thermometer className="text-red-600" size={20} />
+            </div>
+            <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-full border border-red-200">
+              TEMP
+            </span>
           </div>
-          <div className="text-2xl font-bold text-red-700">{temperature}°C</div>
-          <div className="text-xs text-red-600 mt-1">Temperatura actual</div>
+          <div className="text-3xl font-bold text-gray-900 mb-1">{temperature}°C</div>
+          <div className="text-xs text-gray-600 font-medium">Temperatura</div>
+          
+          {/* Temperature indicator */}
+          <div className="mt-3 w-full bg-gray-200 rounded-full h-1.5">
+            <div 
+              className={`h-1.5 rounded-full ${
+                temperature > 30 ? 'bg-red-500' : 
+                temperature > 25 ? 'bg-orange-500' : 'bg-green-500'
+              }`}
+              style={{ width: `${Math.min((temperature / 40) * 100, 100)}%` }}
+            />
+          </div>
         </div>
         
-        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 border-2 border-blue-100 hover:border-blue-200 transition-colors">
-          <div className="flex items-center justify-between mb-2">
-            <Droplets className="text-blue-500" size={22} />
-            <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-full">HUM</span>
+        {/* Humidity Card */}
+        <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl p-4 border border-blue-100 hover:border-blue-200 transition-all duration-300 group/metric hover:shadow-lg">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+              <Droplets className="text-blue-600" size={20} />
+            </div>
+            <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-200">
+              HUM
+            </span>
           </div>
-          <div className="text-2xl font-bold text-blue-700">{humidity}%</div>
-          <div className="text-xs text-blue-600 mt-1">Humedad relativa</div>
+          <div className="text-3xl font-bold text-gray-900 mb-1">{humidity}%</div>
+          <div className="text-xs text-gray-600 font-medium">Humedad</div>
+          
+          {/* Humidity indicator */}
+          <div className="mt-3 w-full bg-gray-200 rounded-full h-1.5">
+            <div 
+              className={`h-1.5 rounded-full ${
+                humidity > 80 ? 'bg-blue-600' : 
+                humidity > 60 ? 'bg-blue-500' : 'bg-blue-400'
+              }`}
+              style={{ width: `${humidity}%` }}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Información adicional */}
-      <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-4 border-2 border-gray-100">
+      {/* Devices info */}
+      <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-2xl p-4 border border-gray-100 relative z-10">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full" style={{backgroundColor: '#267e1b'}}></div>
-            <span className="text-gray-700 font-medium">{devices} dispositivos conectados</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Cctv size={16} className="text-emerald-600" />
+              <span className="text-gray-700 font-semibold text-sm">
+                {devices} dispositivos
+              </span>
+            </div>
+            <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+            <span className="text-xs text-gray-500 font-medium">Conectados</span>
           </div>
-          <div className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
-            ONLINE
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+            <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-200">
+              ONLINE
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Botón Ver más mejorado */}
+      {/* Action button */}
       <div
-        className="flex justify-between items-center text-white rounded-xl p-4 cursor-pointer transition-all duration-300 group/button hover:shadow-lg"
+        className="relative z-10 flex justify-between items-center text-white rounded-2xl p-4 cursor-pointer transition-all duration-500 group/button hover:shadow-2xl overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, #267e1b 0%, #427a35 50%, #004e00 100%)',
-          boxShadow: '0 4px 15px rgba(38, 126, 27, 0.25)'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'linear-gradient(135deg, #1e6b14 0%, #3a6b2d 50%, #003d00 100%)';
-          e.currentTarget.style.boxShadow = '0 8px 25px rgba(38, 126, 27, 0.4)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'linear-gradient(135deg, #267e1b 0%, #427a35 50%, #004e00 100%)';
-          e.currentTarget.style.boxShadow = '0 4px 15px rgba(38, 126, 27, 0.25)';
+          background: 'linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)',
         }}
         onClick={() => console.log(`Navegando a laboratorio ${id}`)}
       >
-        <span className="font-semibold">Ver detalles completos</span>
-        <ChevronRight className="group-hover/button:translate-x-1 transition-transform duration-300" size={20} />
+        {/* Hover effect background */}
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-green-600 opacity-0 group-hover/button:opacity-100 transition-opacity duration-500" />
+        
+        <span className="font-semibold text-sm relative z-10">Controlar laboratorio</span>
+        <div className="relative z-10 flex items-center gap-1">
+          <span className="text-sm font-medium opacity-90">Ver detalles</span>
+          <ChevronRight className="group-hover/button:translate-x-1 transition-transform duration-300" size={18} />
+        </div>
       </div>
     </div>
   );
