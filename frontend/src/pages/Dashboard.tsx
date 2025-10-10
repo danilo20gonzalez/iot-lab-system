@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect  } from "react";
 import Navbar from "../components/Navbar";
 import SummaryCard from "../components/SummaryCard";
 import LabCard from "../components/LabCard";
@@ -34,24 +34,53 @@ export default function Dashboard() {
     { id: 2, message: "Sistema de ventilación en mantenimiento", time: "hace 1 hora", type: "info" },
     { id: 3, message: "Nivel de humedad óptimo alcanzado en Lab 1", time: "hace 2 horas", type: "success" },
   ];
-
-  // Crear nuevo laboratorio
-  const createLab = () => {
-    if (!newLabName.trim()) return;
-
-    const newLab: Lab = {
-      id: Date.now(), // Usamos timestamp como ID único
-      name: newLabName,
-      devices: 0,
-      status: "activo",
-      temperature: 22.0,
-      humidity: 50
+    useEffect(() => {
+    const fetchLabs = async () => {
+      try {
+        const res = await fetch("http://localhost:4000/api/getLaboratorios");
+        if (!res.ok) throw new Error("Error al cargar laboratorios");
+        const data = await res.json();
+        setLabs(data);
+      } catch (error) {
+        console.error(error);
+        alert("❌ Error al cargar laboratorios");
+      }
     };
 
-    setLabs([...labs, newLab]);
-    setNewLabName("");
-    setShowCreateForm(false);
+    fetchLabs();
+  }, []);
+
+
+  // Crear nuevo laboratorio
+  const createLab = async () => {
+    if (!newLabName.trim()) return;
+
+    try {
+      const res = await fetch("http://localhost:4000/api/createLaboratorio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newLabName,
+          description: "Laboratorio creado desde el panel",
+          estadoId: 1, // Activo
+        }),
+      });
+
+      if (!res.ok) throw new Error("Error al crear laboratorio");
+      const result = await res.json();
+
+      // Agregar el nuevo laboratorio a la lista
+      setLabs((prev) => [...prev, result.laboratorio]);
+
+      setNewLabName("");
+      setShowCreateForm(false);
+      alert("✅ Laboratorio creado correctamente");
+    } catch (error) {
+      console.error(error);
+      alert("❌ No se pudo crear el laboratorio");
+    }
   };
+
 
   // Eliminar laboratorio
   const deleteLab = (id: number) => {
