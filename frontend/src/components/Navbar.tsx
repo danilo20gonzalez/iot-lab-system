@@ -1,11 +1,14 @@
+// En tu Navbar.tsx
 import { Activity, User, Clock, Settings, LogOut, Menu, X, FileText, BarChart3 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ComponentPanel from './ComponentPanel'; // Ajusta la ruta según tu estructura
 
 export default function Navbar() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isAdmin] = useState(true); // Simulado para demo
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isComponentsPanelOpen, setIsComponentsPanelOpen] = useState(false); // Nuevo estado para el panel
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -41,6 +44,17 @@ export default function Navbar() {
   const handleNavigation = (path: string) => {
     navigate(path);
     setIsMenuOpen(false);
+  };
+
+  // Función para abrir el panel de componentes
+  const handleOpenComponentsPanel = () => {
+    setIsComponentsPanelOpen(true);
+    setIsMenuOpen(false); // Cerrar el menú principal al abrir el panel
+  };
+
+  // Función para cerrar el panel de componentes
+  const handleCloseComponentsPanel = () => {
+    setIsComponentsPanelOpen(false);
   };
 
   return (
@@ -232,12 +246,13 @@ export default function Navbar() {
                 <span className="text-white font-semibold text-sm">Configuración de Usuarios</span>
               </button>
             )}
+            {/* BOTÓN DE COMPONENTES ACTUALIZADO */}
             <button
               className="w-full flex items-center gap-3 p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all duration-300"
-              onClick={() => handleNavigation('/sensors')}
+              onClick={handleOpenComponentsPanel}
             >
               <Activity size={18} className="text-white" />
-              <span className="text-white font-semibold text-sm">Sensores</span>
+              <span className="text-white font-semibold text-sm">Componentes</span>
             </button>
             <button
               className="w-full flex items-center gap-3 p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all duration-300"
@@ -300,12 +315,13 @@ export default function Navbar() {
                 <span className="text-white font-semibold text-sm">Configuración de Usuarios</span>
               </button>
             )}
+            {/* BOTÓN DE COMPONENTES ACTUALIZADO PARA MOBILE */}
             <button
               className="w-full flex items-center gap-3 p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all duration-300"
-              onClick={() => handleNavigation('/sensors')}
+              onClick={handleOpenComponentsPanel}
             >
               <Activity size={18} className="text-white" />
-              <span className="text-white font-semibold text-sm">Sensores</span>
+              <span className="text-white font-semibold text-sm">Componentes</span>
             </button>
             <button
               className="w-full flex items-center gap-3 p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all duration-300"
@@ -338,6 +354,12 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+
+      {/* Panel de Componentes */}
+      <ComponentPanel 
+        isOpen={isComponentsPanelOpen} 
+        onClose={handleCloseComponentsPanel} 
+      />
 
       {/* Overlay para cerrar el menú al hacer clic fuera */}
       {isMenuOpen && (
