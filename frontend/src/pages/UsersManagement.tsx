@@ -14,14 +14,29 @@ export default function UsersManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
+    // Cargar usuarios desde el backend
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch('http://localhost:4000/api/getUsers');
+        const data = await res.json();
+        setUsers(data);
+      } catch (error) {
+        console.error('Error al cargar usuarios:', error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
   // Filtros
   useEffect(() => {
     let result = users;
 
     if (searchTerm) {
       result = result.filter(user =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+        user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 

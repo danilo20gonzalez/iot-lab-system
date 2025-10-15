@@ -50,7 +50,7 @@ export default function UserCard({ user, onEdit, onDelete }: UserCardProps) {
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-            {user.name.charAt(0).toUpperCase()}
+            {(user.name ?? user.username ?? 'U').charAt(0).toUpperCase()}
           </div>
           <div>
             <h3 className="font-semibold text-gray-900 text-lg">{user.name}</h3>
