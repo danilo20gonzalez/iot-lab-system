@@ -95,7 +95,7 @@ export default function Dashboard() {
 
       <main className="p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-gray-800">Panel de Control</h2>
+          <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-green-700 to-green-700 bg-clip-text text-transparent">Panel de Control</h2>
           
           {/* Botón para crear nuevo laboratorio */}
           <button

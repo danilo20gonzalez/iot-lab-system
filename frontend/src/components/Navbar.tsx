@@ -71,59 +71,31 @@ export default function Navbar() {
           }}
         ></div>
 
-        <div className="relative z-10 px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-          {/* Desktop Layout CORREGIDO */}
-          <div className="hidden lg:flex items-center justify-between">
-            {/* Izquierda: Menú hamburguesa Y usuario juntos */}
-            <div className="flex items-center gap-4 flex-1">
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="group relative h-12 w-12 bg-white/10 backdrop-blur-sm hover:bg-white/20 rounded-2xl transition-all duration-300 border border-white/20 hover:border-white/40 shadow-xl hover:scale-105"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-2xl"></div>
-                {isMenuOpen ? (
-                  <X size={20} className="text-white m-auto transition-transform duration-300" />
-                ) : (
-                  <Menu size={20} className="text-white m-auto transition-transform duration-300" />
-                )}
-              </button>
-
-              {/* Usuario - AHORA ESTÁ A LA IZQUIERDA */}
-              <div className="group flex items-center gap-3 h-12 bg-white/10 backdrop-blur-sm rounded-2xl px-5 border border-white/20 hover:bg-white/20 hover:border-white/40 transition-all duration-300 shadow-xl">
-                <div className="h-8 w-8 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                  <User size={16} className="text-white" />
-                </div>
-                <div>
-                  <span className="font-bold text-white text-sm block truncate">
-                    {isAdmin ? 'Administrador' : 'Operador'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Centro: Logo y título - ABSOLUTO CENTRADO */}
-            <div className="flex items-center gap-4 flex-shrink-0 absolute left-1/2 transform -translate-x-1/2 cursor-pointer" onClick={() => handleNavigation('/dashboard')}>
-              <div className="relative h-14 w-14">
+        {/* Desktop Layout */}
+          <div className="hidden lg:flex items-center justify-between shadow-xl px-6 py-2">
+            {/* Izquierda: Logo y título */}
+            <div className="flex items-center gap-4 cursor-pointer" onClick={() => handleNavigation('/dashboard')}>
+              <div className="relative h-12 w-12">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-white/5 rounded-2xl"></div>
                 <div className="relative h-full w-full bg-white/15 backdrop-blur-md rounded-2xl border border-white/30 flex items-center justify-center shadow-2xl">
                   <Activity size={28} className="text-white filter drop-shadow-lg" />
                 </div>
               </div>
               <div>
-                <h1 className="text-2xl font-black text-white tracking-tight filter drop-shadow-lg">
+                <h1 className="text-xl font-black text-white tracking-tight filter drop-shadow-lg">
                   LabControl Pro
                 </h1>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
-                  <span className="text-xs font-semibold text-green-200 tracking-wider">
+                  <span className="text-xs font-semibold text-white tracking-wider z-10">
                     UNIVERSIDAD DE LA AMAZONIA
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Derecha: Controles */}
-            <div className="flex items-center gap-3 flex-1 justify-end">
+            {/* Derecha: Reloj, Usuario y Menú */}
+            <div className="flex items-center gap-3">
               <div className="h-12 bg-white/10 backdrop-blur-sm rounded-2xl px-4 border border-white/20 shadow-xl">
                 <div className="flex items-center gap-3 h-full">
                   <Clock size={16} className="text-green-300 flex-shrink-0" />
@@ -138,86 +110,36 @@ export default function Navbar() {
                 </div>
               </div>
 
+              <div className="group flex items-center gap-3 h-12 bg-white/10 backdrop-blur-sm rounded-2xl px-5 border border-white/20 hover:bg-white/20 hover:border-white/40 transition-all duration-300 shadow-xl">
+                <div className="h-8 w-8 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                  <User size={16} className="text-white" />
+                </div>
+                <div>
+                  <span className="font-bold text-white text-sm block truncate">
+                    {isAdmin ? 'Administrador' : 'Operador'}
+                  </span>
+                </div>
+              </div>
+
               <button
-                onClick={handleLogout}
-                className="group relative h-12 w-12 bg-white/10 backdrop-blur-sm hover:bg-red-500/80 rounded-2xl transition-all duration-300 border border-white/20 hover:border-red-400/50 shadow-xl hover:shadow-2xl hover:scale-105"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="group relative h-12 w-12 bg-white/10 backdrop-blur-sm hover:bg-white/20 rounded-2xl transition-all duration-300 border border-white/20 hover:border-white/40 shadow-xl hover:scale-105"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-2xl"></div>
-                <LogOut size={20} className="text-white m-auto transition-all duration-300 group-hover:translate-x-1" />
+                {isMenuOpen ? (
+                  <X size={20} className="text-white m-auto transition-transform duration-300" />
+                ) : (
+                  <Menu size={20} className="text-white m-auto transition-transform duration-300" />
+                )}
               </button>
             </div>
           </div>
 
-          {/* Mobile & Tablet Layout - SIN CAMBIOS */}
-          <div className="lg:hidden">
-            {/* Top Bar Mobile */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="relative h-10 w-10 sm:h-12 sm:w-12">
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-white/5 rounded-xl sm:rounded-2xl"></div>
-                  <div className="relative h-full w-full bg-white/15 backdrop-blur-md rounded-xl sm:rounded-2xl border border-white/30 flex items-center justify-center shadow-2xl">
-                    <Activity size={20} className="sm:hidden text-white filter drop-shadow-lg" />
-                    <Activity size={24} className="hidden sm:block text-white filter drop-shadow-lg" />
-                  </div>
-                </div>
-                <div>
-                  <h1 className="text-lg sm:text-xl font-black text-white tracking-tight filter drop-shadow-lg">
-                    LabControl Pro
-                  </h1>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
-                    <span className="text-[10px] sm:text-xs font-semibold text-green-200 tracking-wider">
-                      UNIAMAZONIA
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="h-10 sm:h-12 bg-white/10 backdrop-blur-sm rounded-xl sm:rounded-2xl px-3 border border-white/20 shadow-xl">
-                  <div className="flex items-center gap-2 h-full">
-                    <Clock size={14} className="text-green-300 flex-shrink-0 sm:hidden" />
-                    <Clock size={16} className="text-green-300 flex-shrink-0 hidden sm:block" />
-                    <div className="text-right">
-                      <div className="text-xs sm:text-sm font-bold text-white font-mono">
-                        {formatTime(currentTime)}
-                      </div>
-                      <div className="text-[10px] sm:text-xs text-green-200 font-medium hidden sm:block">
-                        {formatDate(currentTime)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="group relative h-10 w-10 sm:h-12 sm:w-12 bg-white/10 backdrop-blur-sm hover:bg-white/20 rounded-xl sm:rounded-2xl transition-all duration-300 border border-white/20 hover:border-white/40 shadow-xl"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-xl sm:rounded-2xl"></div>
-                  {isMenuOpen ? (
-                    <>
-                      <X size={18} className="sm:hidden text-white m-auto" />
-                      <X size={20} className="hidden sm:block text-white m-auto" />
-                    </>
-                  ) : (
-                    <>
-                      <Menu size={18} className="sm:hidden text-white m-auto" />
-                      <Menu size={20} className="hidden sm:block text-white m-auto" />
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 shadow-lg opacity-80"></div>
-        <div className="absolute -bottom-4 left-0 right-0 h-4 bg-gradient-to-b from-black/20 to-transparent"></div>
-      </nav>
+        </nav>
 
       {/* Desktop Menu Dropdown - Flotante */}
       <div
-        className={`hidden lg:block fixed left-4 top-20 z-40 transition-all duration-300 ease-in-out ${
+        className={`hidden lg:block fixed right-4 top-20 z-40 transition-all duration-300 ease-in-out ${
           isMenuOpen
             ? 'opacity-100 translate-y-0 pointer-events-auto'
             : 'opacity-0 -translate-y-4 pointer-events-none'
