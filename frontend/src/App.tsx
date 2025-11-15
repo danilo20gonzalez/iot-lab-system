@@ -7,6 +7,7 @@ import Laboratory from "./pages/Laboratory"
 import Stands from "./pages/Stands"
 import AirConditionerControl from "./components/deviceControl/AirConditionerControl";
 import LaboratoriesManagement from "./pages/LaboratoriesManagement";
+import Estantes3D from "./pages/Estantes3D";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/air" element={<AirConditionerControl/>} />
           <Route path="/stands" element={<Stands/>} />
           <Route path="/laboratories-management" element={<LaboratoriesManagement/>} />
+          <Route path="/estante-3d" element={<Estantes3D/ >} />
           
           {/* Ruta detalle de laboratorio */}
           <Route path="/laboratorios/:id" element={<h1>Detalle de laboratorio</h1>} />

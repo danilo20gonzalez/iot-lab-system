@@ -150,7 +150,7 @@ export default function Dashboard() {
       icon: Building2,
       label: "Gestión de Laboratorios",
       description: "Administrar laboratorios y configuraciones",
-      action: () => navigate('/laboratories'),
+      action: () => navigate('/laboratories-management'),
       color: "bg-blue-500"
     },
     {
