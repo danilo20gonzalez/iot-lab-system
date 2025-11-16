@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Navbar from "../components/Navbar";
 import ComponentPanel from "../components/ComponentPanel";
 import AirConditionerControl from "../components/deviceControl/AirConditionerControl";
+import SmartLightControl from "../components/deviceControl/SmartLightControl";
 import { useComponentContext } from "../components/ComponentContext";
 import type { ComponentData } from "../components/ComponentContext";
 import { ReactSortable } from 'react-sortablejs';
@@ -68,19 +69,8 @@ const Laboratory = () => {
         );
       case 'light':
         return (
-          <div key={component.id} className="bg-white rounded-xl shadow-lg p-4 border h-48 flex flex-col justify-between">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
-                <span className="text-xl">💡</span>
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900 text-sm">Control de Luces</h3>
-                <p className="text-xs text-gray-500">Sala Principal</p>
-              </div>
-            </div>
-            <button className="w-full py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition-colors text-sm">
-              Encender Luces
-            </button>
+          <div className="h-48">
+            <SmartLightControl />
           </div>
         );
       case 'camera':
