@@ -1,123 +1,191 @@
-import { Thermometer, Droplets, ChevronRight, Activity } from "lucide-react";
-// import { Link } from "react-router-dom"; // Simulado como div clickeable
+import {
+  Thermometer,
+  Droplets,
+  ChevronRight,
+  Activity,
+  Trash2,
+  Users,
+  Power, // Para el estado de automatización
+  ShieldOff, // Para Inhabilitar Zonas
+  Microscope, // Ícono principal para Laboratorio
+  Wifi,
+} from "lucide-react";
 
+import { useNavigate } from 'react-router-dom';
+
+
+// NUEVAS PROPS BASADAS EN LOS REQUERIMIENTOS
 interface LabCardProps {
-  id: number;
-  name: string;
-  temperature: number;
-  humidity: number;
-  devices: number;
-  status: "activo" | "alerta" | "mantenimiento";
+  id: number; // Código del laboratorio (HU-06)
+  name: string; // Nombre del laboratorio (HU-06)
+  temperature: number; // Temperatura ambiente (HU-17)
+  humidity: number; // Humedad general/promedio (HU-25)
+  activeSensors: number; // Sensores activos (Conteo de dispositivos)
+  associatedUsers: number; // Usuarios asociados (HU-06)
+  status: "activo" | "alerta" | "mantenimiento"; // Estado de Monitoreo (HU-40)
+  automationStatus: "on" | "off"; // Estado de Automatización (HU-36)
+  isZoneDisabled: boolean; // Estado de Habilitación de Zona (HU-45)
+  onDelete?: () => void; // Botón de eliminar (HU-08)
 }
 
-export default function LabCard({ id, name, temperature, humidity, devices, status }: LabCardProps) {
+export default function LabCard({
+  id,
+  name,
+  temperature,
+  humidity,
+  activeSensors,
+  associatedUsers,
+  status,
+  automationStatus,
+  isZoneDisabled,
+  onDelete,
+}: LabCardProps) {
+  // Configuración de estado con colores 
+  // 
+  const navigate = useNavigate();
   const getStatusConfig = (status: string) => {
     switch (status) {
       case "activo":
         return {
-          bg: "bg-gradient-to-r from-green-50 to-lime-50",
-          text: "text-green-700",
-          border: "border-green-200",
-          dot: "#267e1b"
+          bg: "bg-emerald-50",
+          text: "text-emerald-700",
+          dot: "bg-emerald-400",
+          border: "border-emerald-200",
         };
       case "alerta":
         return {
-          bg: "bg-gradient-to-r from-amber-50 to-yellow-50",
+          bg: "bg-amber-50",
           text: "text-amber-700",
+          dot: "bg-amber-400",
           border: "border-amber-200",
-          dot: "#ff6b35"
         };
       default:
         return {
-          bg: "bg-gradient-to-r from-gray-50 to-slate-50",
+          bg: "bg-gray-50",
           text: "text-gray-600",
+          dot: "bg-gray-400",
           border: "border-gray-200",
-          dot: "#6b7280"
         };
     }
   };
 
   const statusConfig = getStatusConfig(status);
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete();
+    }
+  };
+
   return (
-    <div className="bg-white rounded-2xl border-1 border-[#367c29] hover:border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 p-6 flex flex-col gap-5 group hover:-translate-y-1 relative overflow-hidden">
-      {/* Decorative gradient overlay */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-600 via-emerald-600 to-lime-600" style={{background: 'linear-gradient(90deg, #267e1b 0%, #427a35 50%, #004e00 100%)'}}></div>
+    // Base de tarjeta: Borde definido, esquinas redondeadas (xl) y sombra sutil.
+    <div className="bg-white rounded-xl border border-green-600 shadow-md hover:shadow-lg transition-all duration-300 p-5 flex flex-col gap-5 group hover:border-gray-300 relative cursor-pointer">
       
-      {/* Header con título y estado */}
-      <div className="flex justify-between items-start">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br rounded-xl flex items-center justify-center border-2" style={{background: 'linear-gradient(135deg, #427a35 0%, #267e1b 100%)', borderColor: '#267e1b'}}>
-            <Activity size={20} className="text-white" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-800 group-hover:text-gray-900 transition-colors">{name}</h3>
-            <p className="text-sm text-gray-500">Laboratorio #{id}</p>
-          </div>
+      {/* Botón de eliminar (HU-08) */}
+      {onDelete && (
+        <button
+          onClick={handleDelete}
+          className="absolute top-4 right-4 z-10 p-2 text-gray-400 hover:text-red-500 bg-white rounded-full transition-colors duration-300 ring-1 ring-gray-100 hover:ring-red-100"
+          title="Eliminar laboratorio (HU-08)"
+        >
+          <Trash2 size={16} />
+        </button>
+      )}
+      
+      {/* --- Encabezado y Título --- */}
+      <div className="flex items-start gap-4 pr-12">
+        {/* Ícono de actividad */}
+        <div className={`w-12 h-12 ${statusConfig.bg} rounded-lg flex items-center justify-center border ${statusConfig.border}`}>
+            <Microscope size={22} className={statusConfig.text} />
         </div>
         
-        <div className={`px-4 py-2 rounded-xl border-2 ${statusConfig.bg} ${statusConfig.border} flex items-center gap-2`}>
-          <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: statusConfig.dot}}></div>
-          <span className={`text-sm font-semibold capitalize ${statusConfig.text}`}>
-            {status}
-          </span>
+        <div>
+          <h3 className="text-xl font-bold text-gray-900 leading-tight">
+            {name}
+          </h3>
+          <p className="text-sm text-gray-500 font-medium mt-0.5">Código: **{id}**</p>
         </div>
       </div>
 
-      {/* Métricas con diseño mejorado */}
+      {/* --- Panel de Estado y Habilitación (HU-40, HU-45) --- */}
+      <div className={`flex items-center justify-between p-3 rounded-lg border ${statusConfig.border} ${statusConfig.bg}`}>
+        
+        {/* Etiqueta de estado de monitoreo (HU-40) */}
+        <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${statusConfig.dot} ${status === 'activo' ? 'animate-pulse' : ''}`}></div>
+            <span className={`text-sm font-semibold uppercase ${statusConfig.text}`}>
+                {status}
+            </span>
+        </div>
+
+        {/* Indicador de Zona Inhabilitada (HU-45) */}
+        {isZoneDisabled ? (
+            <div className="flex items-center gap-2 px-2 py-0.5 rounded-md bg-red-100 text-red-600 border border-red-200">
+                 <ShieldOff size={14} />
+                 <span className="text-xs font-semibold">INHABILITADO</span>
+            </div>
+        ) : (
+             <div className="flex items-center gap-1 text-emerald-500">
+                <Wifi size={14} /> 
+                <span className="text-xs font-semibold">Conectado</span>
+            </div>
+        )}
+      </div>
+
+      {/* --- Métricas clave (Temperatura y Humedad) --- */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-4 border-2 border-red-100 hover:border-red-200 transition-colors">
+        
+        {/* Temperatura Ambiente (HU-17, HU-34) */}
+        <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-red-300 transition-colors duration-300">
           <div className="flex items-center justify-between mb-2">
-            <Thermometer className="text-red-500" size={22} />
-            <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-1 rounded-full">TEMP</span>
+            <Thermometer className="text-red-500" size={18} />
+             <span className="text-xs font-semibold text-red-600">TEMP</span>
           </div>
-          <div className="text-2xl font-bold text-red-700">{temperature}°C</div>
-          <div className="text-xs text-red-600 mt-1">Temperatura actual</div>
+          <div className="text-2xl font-extrabold text-gray-900 mb-0.5">{temperature}°C</div>
+          <div className="text-xs text-gray-500">Temperatura Amb.</div>
         </div>
         
-        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 border-2 border-blue-100 hover:border-blue-200 transition-colors">
+        {/* Humedad General (HU-25) */}
+        <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-colors duration-300">
           <div className="flex items-center justify-between mb-2">
-            <Droplets className="text-blue-500" size={22} />
-            <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-full">HUM</span>
+            <Droplets className="text-blue-500" size={18} />
+             <span className="text-xs font-semibold text-blue-600">HUM</span>
           </div>
-          <div className="text-2xl font-bold text-blue-700">{humidity}%</div>
-          <div className="text-xs text-blue-600 mt-1">Humedad relativa</div>
+          <div className="text-2xl font-extrabold text-gray-900 mb-0.5">{humidity}%</div>
+          <div className="text-xs text-gray-500">Humedad Prom.</div>
+        </div>
+
+      </div>
+
+      {/* --- Resumen de Gestión (Usuarios y Automatización) --- */}
+      <div className="flex justify-between items-center text-sm pt-2 border-t border-gray-100">
+        
+        {/* Usuarios Asociados (HU-06) */}
+        <div className="flex items-center gap-2 text-gray-600">
+          <Users size={16} className="text-gray-400" />
+          <span className="font-semibold">{associatedUsers}</span>
+          <span className="text-xs text-gray-500">Usuarios Asoc.</span>
+        </div>
+
+        {/* Estado de Automatización (HU-36) */}
+        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold capitalize ${automationStatus === 'on' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'}`}>
+          <Power size={14} />
+          {automationStatus === 'on' ? 'Automatizado' : 'Manual'}
         </div>
       </div>
 
-      {/* Información adicional */}
-      <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-4 border-2 border-gray-100">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full" style={{backgroundColor: '#267e1b'}}></div>
-            <span className="text-gray-700 font-medium">{devices} dispositivos conectados</span>
-          </div>
-          <div className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
-            ONLINE
-          </div>
-        </div>
-      </div>
-
-      {/* Botón Ver más mejorado */}
-      <div
-        className="flex justify-between items-center text-white rounded-xl p-4 cursor-pointer transition-all duration-300 group/button hover:shadow-lg"
-        style={{
-          background: 'linear-gradient(135deg, #267e1b 0%, #427a35 50%, #004e00 100%)',
-          boxShadow: '0 4px 15px rgba(38, 126, 27, 0.25)'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'linear-gradient(135deg, #1e6b14 0%, #3a6b2d 50%, #003d00 100%)';
-          e.currentTarget.style.boxShadow = '0 8px 25px rgba(38, 126, 27, 0.4)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'linear-gradient(135deg, #267e1b 0%, #427a35 50%, #004e00 100%)';
-          e.currentTarget.style.boxShadow = '0 4px 15px rgba(38, 126, 27, 0.25)';
-        }}
-        onClick={() => console.log(`Navegando a laboratorio ${id}`)}
-      >
-        <span className="font-semibold">Ver detalles completos</span>
-        <ChevronRight className="group-hover/button:translate-x-1 transition-transform duration-300" size={20} />
-      </div>
+      {/* --- Botón de Acción (Detalles / Control) --- */}
+      <button
+  onClick={() => navigate('/laboratory')}
+  className="mt-1 w-full flex items-center justify-between p-3 text-sm font-semibold text-gray-800 bg-gray-100 border border-gray-300 rounded-xl hover:bg-gray-200 transition-colors duration-300"
+>
+  <span className="flex items-center gap-2">
+    <Activity size={16} />
+    <span>Controlar Laboratorio ({activeSensors} Sensores)</span>
+  </span>
+  <ChevronRight className="group-hover:translate-x-0.5 transition-transform duration-300 text-gray-500" size={16} />
+</button>
     </div>
   );
 }
