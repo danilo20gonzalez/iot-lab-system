@@ -1,10 +1,11 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ComponentProvider } from "./components/ComponentContext"; // Asegúrate de que la ruta sea correcta
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import UsersManagement from "./pages/UsersManagement";
 import Laboratory from "./pages/Laboratory"
 import Project from "./pages/Projects"
-import Stand from "./pages/Stands"
+import Stand from "./pages/Stands"  
 import Row from "./pages/Rows"
 
 

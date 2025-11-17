@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface LabRoomCardProps {
   nombre: string;
@@ -31,8 +32,20 @@ const LabRoomCard = ({
     }
   };
 
+  const navigate = useNavigate();
+
   // Calculate temperature percentage for the progress ring (assuming 0-50°C range)
   const tempPercentage = Math.min((temperatura / 50) * 100, 100);
+
+  // Función para navegar directamente a la vista 3D estática para pruebas
+  const handleViewDetails = (e: React.MouseEvent) => {
+    // *** IMPORTANTE: Prevenir la propagación del evento ***
+    e.stopPropagation();
+    e.preventDefault();
+    
+    console.log(`Navigating from ${nombre} to /estante-3d`);
+    navigate(`/estante-3d`);
+  };
 
   return (
     <motion.div
@@ -110,11 +123,15 @@ const LabRoomCard = ({
         </div>
       </div>
 
-      {/* Interactive button */}
+      {/* Interactive button - VERSIÓN CORREGIDA */}
       <motion.button
-        className="mt-6 w-full bg-blue-500 text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors"
+        className="mt-6 w-full bg-blue-500 text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors relative z-10" // Agregado relative z-10
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
+        onClick={handleViewDetails}
+        // Agregar estas props para asegurar que el click funcione
+        onMouseDown={(e) => e.stopPropagation()}
+        onMouseUp={(e) => e.stopPropagation()}
       >
         Ver Detalles
       </motion.button>

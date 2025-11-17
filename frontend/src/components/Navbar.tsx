@@ -1,14 +1,14 @@
-// En tu Navbar.tsx
+// components/Navbar.tsx
 import { Activity, User, Clock, Settings, LogOut, Menu, X, FileText, BarChart3 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ComponentPanel from './ComponentPanel'; // Ajusta la ruta según tu estructura
+import ComponentPanel from './ComponentPanel';
 
 export default function Navbar() {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isAdmin] = useState(true); // Simulado para demo
+  const [isAdmin] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isComponentsPanelOpen, setIsComponentsPanelOpen] = useState(false); // Nuevo estado para el panel
+  const [isComponentsPanelOpen, setIsComponentsPanelOpen] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -28,9 +28,10 @@ export default function Navbar() {
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('es-ES', {
-      weekday: 'short',
+      weekday: 'long',
       day: 'numeric',
-      month: 'short',
+      month: 'long',
+      year: 'numeric'
     });
   };
 
@@ -46,13 +47,11 @@ export default function Navbar() {
     setIsMenuOpen(false);
   };
 
-  // Función para abrir el panel de componentes
   const handleOpenComponentsPanel = () => {
     setIsComponentsPanelOpen(true);
-    setIsMenuOpen(false); // Cerrar el menú principal al abrir el panel
+    setIsMenuOpen(false);
   };
 
-  // Función para cerrar el panel de componentes
   const handleCloseComponentsPanel = () => {
     setIsComponentsPanelOpen(false);
   };
@@ -103,7 +102,7 @@ export default function Navbar() {
                     <div className="text-sm font-bold text-white font-mono tracking-wider">
                       {formatTime(currentTime)}
                     </div>
-                    <div className="text-xs text-green-200 font-medium">
+                    <div className="text-xs text-gray-400">
                       {formatDate(currentTime)}
                     </div>
                   </div>
@@ -135,9 +134,11 @@ export default function Navbar() {
             </div>
           </div>
 
-        </nav>
+        {/* Línea decorativa inferior */}
+        <div className="h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500"></div>
+      </nav>
 
-      {/* Desktop Menu Dropdown - Flotante */}
+      {/* Desktop Menu Dropdown */}
       <div
         className={`hidden lg:block fixed right-4 top-20 z-40 transition-all duration-300 ease-in-out ${
           isMenuOpen
@@ -145,133 +146,159 @@ export default function Navbar() {
             : 'opacity-0 -translate-y-4 pointer-events-none'
         }`}
       >
-        <div className="bg-gradient-to-br from-green-800/95 via-green-700/95 to-emerald-700/95 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl p-4 w-72">
-          <div className="flex items-center gap-3 p-3 bg-white/10 rounded-xl border border-white/20 mb-3">
-            <div className="h-10 w-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+        <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-2xl p-4 w-64 backdrop-blur-sm">
+          {/* Información del usuario */}
+          <div className="flex items-center gap-3 p-3 bg-gray-700/50 rounded-lg border border-gray-600 mb-3">
+            <div className="h-10 w-10 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow">
               <User size={18} className="text-white" />
             </div>
             <div>
-              <span className="font-bold text-white text-sm block">
+              <span className="font-semibold text-white text-sm block">
                 {isAdmin ? 'Administrador' : 'Operador'}
               </span>
-              <span className="text-xs text-green-200">Sesión activa</span>
+              <span className="text-xs text-emerald-400">Sesión activa</span>
             </div>
           </div>
 
+          {/* Menú de opciones */}
           <div className="space-y-2">
             {isAdmin && (
               <button
-                className="w-full flex items-center gap-3 p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all duration-300"
+                className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200"
                 onClick={() => handleNavigation('/users')}
               >
-                <User size={18} className="text-white" />
-                <span className="text-white font-semibold text-sm">Configuración de Usuarios</span>
+                <User size={18} className="text-emerald-400" />
+                <span className="font-medium text-sm">Gestión de Usuarios</span>
               </button>
             )}
-            {/* BOTÓN DE COMPONENTES ACTUALIZADO */}
+            
             <button
-              className="w-full flex items-center gap-3 p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all duration-300"
+              className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200"
               onClick={handleOpenComponentsPanel}
             >
-              <Activity size={18} className="text-white" />
-              <span className="text-white font-semibold text-sm">Componentes</span>
+              <Activity size={18} className="text-emerald-400" />
+              <span className="font-medium text-sm">Componentes</span>
             </button>
+            
             <button
-              className="w-full flex items-center gap-3 p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all duration-300"
+              className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200"
               onClick={() => handleNavigation('/reports')}
             >
-              <BarChart3 size={18} className="text-white" />
-              <span className="text-white font-semibold text-sm">Reportes y Análisis</span>
+              <BarChart3 size={18} className="text-emerald-400" />
+              <span className="font-medium text-sm">Reportes y Análisis</span>
             </button>
+            
             <button
-              className="w-full flex items-center gap-3 p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all duration-300"
+              className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200"
               onClick={() => handleNavigation('/settings')}
             >
-              <Settings size={18} className="text-white" />
-              <span className="text-white font-semibold text-sm">Configuración General</span>
+              <Settings size={18} className="text-emerald-400" />
+              <span className="font-medium text-sm">Configuración</span>
             </button>
+            
             <button
-              className="w-full flex items-center gap-3 p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all duration-300"
+              className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200"
               onClick={() => window.open('/docs', '_blank')}
             >
-              <FileText size={18} className="text-white" />
-              <span className="text-white font-semibold text-sm">Documentación</span>
+              <FileText size={18} className="text-emerald-400" />
+              <span className="font-medium text-sm">Documentación</span>
             </button>
+
+            {/* Separador */}
+            <div className="border-t border-gray-700 my-2"></div>
+            
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 p-3 bg-red-500/20 hover:bg-red-500/40 rounded-xl border border-red-400/30 hover:border-red-400/50 transition-all duration-300"
+              className="w-full flex items-center gap-3 p-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg border border-transparent hover:border-red-400/30 transition-all duration-200"
             >
-              <LogOut size={18} className="text-white" />
-              <span className="text-white font-semibold text-sm">Cerrar Sesión</span>
+              <LogOut size={18} />
+              <span className="font-medium text-sm">Cerrar Sesión</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown - Dentro del navbar */}
+      {/* Mobile Menu Dropdown */}
       <div
-        className={`lg:hidden px-4 sm:px-6 transition-all duration-300 ease-in-out overflow-hidden ${
-          isMenuOpen ? 'max-h-[32rem] opacity-100 pb-4' : 'max-h-0 opacity-0'
+        className={`lg:hidden transition-all duration-300 ease-in-out overflow-hidden ${
+          isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl p-4 space-y-3">
-          <div className="flex items-center gap-3 p-3 bg-white/10 rounded-xl border border-white/20">
-            <div className="h-10 w-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-              <User size={18} className="text-white" />
-            </div>
-            <div>
-              <span className="font-bold text-white text-sm block">
-                {isAdmin ? 'Administrador' : 'Operador'}
-              </span>
-              <span className="text-xs text-green-200">Sesión activa</span>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            {isAdmin && (
-              <button
-                className="w-full flex items-center gap-3 p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all duration-300"
-                onClick={() => handleNavigation('/users')}
-              >
+        <div className="bg-gray-800 border-b border-gray-700 shadow-xl">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 space-y-3">
+            {/* Información del usuario móvil */}
+            <div className="flex items-center gap-3 p-3 bg-gray-700/50 rounded-lg border border-gray-600">
+              <div className="h-10 w-10 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center">
                 <User size={18} className="text-white" />
-                <span className="text-white font-semibold text-sm">Configuración de Usuarios</span>
+              </div>
+              <div>
+                <span className="font-semibold text-white text-sm block">
+                  {isAdmin ? 'Administrador' : 'Operador'}
+                </span>
+                <span className="text-xs text-emerald-400">Sesión activa</span>
+              </div>
+            </div>
+
+            {/* Menú móvil */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200"
+                onClick={() => handleNavigation('/dashboard')}
+              >
+                <Activity size={16} className="text-emerald-400" />
+                <span className="text-sm font-medium">Dashboard</span>
               </button>
-            )}
-            {/* BOTÓN DE COMPONENTES ACTUALIZADO PARA MOBILE */}
-            <button
-              className="w-full flex items-center gap-3 p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all duration-300"
-              onClick={handleOpenComponentsPanel}
-            >
-              <Activity size={18} className="text-white" />
-              <span className="text-white font-semibold text-sm">Componentes</span>
-            </button>
-            <button
-              className="w-full flex items-center gap-3 p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all duration-300"
-              onClick={() => handleNavigation('/reports')}
-            >
-              <BarChart3 size={18} className="text-white" />
-              <span className="text-white font-semibold text-sm">Reportes y Análisis</span>
-            </button>
-            <button
-              className="w-full flex items-center gap-3 p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all duration-300"
-              onClick={() => handleNavigation('/settings')}
-            >
-              <Settings size={18} className="text-white" />
-              <span className="text-white font-semibold text-sm">Configuración General</span>
-            </button>
-            <button
-              className="w-full flex items-center gap-3 p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all duration-300"
-              onClick={() => window.open('/docs', '_blank')}
-            >
-              <FileText size={18} className="text-white" />
-              <span className="text-white font-semibold text-sm">Documentación</span>
-            </button>
+              
+              <button
+                className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200"
+                onClick={() => handleNavigation('/laboratories')}
+              >
+                <Activity size={16} className="text-emerald-400" />
+                <span className="text-sm font-medium">Laboratorios</span>
+              </button>
+              
+              <button
+                className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200"
+                onClick={handleOpenComponentsPanel}
+              >
+                <Activity size={16} className="text-emerald-400" />
+                <span className="text-sm font-medium">Componentes</span>
+              </button>
+              
+              <button
+                className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200"
+                onClick={() => handleNavigation('/reports')}
+              >
+                <BarChart3 size={16} className="text-emerald-400" />
+                <span className="text-sm font-medium">Reportes</span>
+              </button>
+
+              {isAdmin && (
+                <button
+                  className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200"
+                  onClick={() => handleNavigation('/users')}
+                >
+                  <User size={16} className="text-emerald-400" />
+                  <span className="text-sm font-medium">Usuarios</span>
+                </button>
+              )}
+              
+              <button
+                className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200"
+                onClick={() => handleNavigation('/settings')}
+              >
+                <Settings size={16} className="text-emerald-400" />
+                <span className="text-sm font-medium">Configuración</span>
+              </button>
+            </div>
+
+            {/* Cerrar sesión móvil */}
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 p-3 bg-red-500/20 hover:bg-red-500/40 rounded-xl border border-red-400/30 hover:border-red-400/50 transition-all duration-300"
+              className="w-full flex items-center gap-2 p-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg border border-red-400/30 transition-all duration-200 mt-2"
             >
-              <LogOut size={18} className="text-white" />
-              <span className="text-white font-semibold text-sm">Cerrar Sesión</span>
+              <LogOut size={16} />
+              <span className="text-sm font-medium">Cerrar Sesión</span>
             </button>
           </div>
         </div>
