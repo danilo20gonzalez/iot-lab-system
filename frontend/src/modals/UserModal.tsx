@@ -1,201 +1,189 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import type { User, UserRole, UserStatus } from '../types/index';
-import axios from 'axios';
+import type { User } from '../types/index';
+import api from '../api/api';
 
-const api = axios.create({
-    baseURL: 'http://localhost:4000/api'
-  });
 
 interface UserModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (userData: Omit<User, 'id' | 'createdAt'>) => void;
-    user?: User | null;
+    user?: User | null; // Si viene un usuario, estamos en modo "Editar"
 }
 
 export default function UserModal({ isOpen, onClose, user }: UserModalProps) {
-    const [formData, setFormData] = useState({
-        name: '',
+    const initialState = {
+        nombre_completo: '',
         username: '',
         password: '',
         email: '',
-        role: 'user' as UserRole,
-        status: 'active' as UserStatus
-    });
+        fk_id_rol: '2', // Por defecto Operador (ID 2)
+        estado: 'activo'
+    };
 
+    const [formData, setFormData] = useState(initialState);
+    const userLogged = JSON.parse(localStorage.getItem('user') || '{}'); // Obtenemos el usuario logueado
+    const isAdmin = userLogged.fk_id_rol === 1;
+
+    // Sincronizar el formulario cuando se abre el modal o cambia el usuario
     useEffect(() => {
         if (user) {
             setFormData({
-                name: user.name,
+                nombre_completo: user.nombre_completo,
                 username: user.username,
-                password: user.password,
+                password: '', // Por seguridad no cargamos la contraseña vieja
                 email: user.email,
-                role: user.role,
-                status: user.status,
+                fk_id_rol: String(user.fk_id_rol),
+                estado: user.estado || 'activo',
             });
         } else {
-            setFormData({
-                name: '',
-                username: '',
-                password: '',
-                email: '',
-                role: 'user',
-                status: 'active'
-            });
+            setFormData(initialState);
         }
     }, [user, isOpen]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await api.post('/userCreate', {
-                name: formData.name,
-                username: formData.username,
-                password: formData.password,
-                email: formData.email,
-                fk_id_rol: formData.role,
-                status: formData.status === 'active' ? 1 : 0
-            });
+            // Preparamos el cuerpo del JSON para el backend
+            const payload = {
+                ...formData,
+                fk_id_rol: Number(formData.fk_id_rol), // Convertimos a número para la DB
+            };
 
-            console.log('Usuario creado correctamente:', response.data);
-            onClose();
-        } catch (error) {
-            if (axios.isAxiosError(error)) {
-                console.error('Error al crear usuario:', error.response?.data);
+            if (user) {
+                // Lógica de Actualización (PUT)
+                console.log("Editando usuario con ID:", user.id_usuario);
+                console.log("URL final:", `/users/${user.id_usuario}`);
+                await api.put(`/users/${user.id_usuario}`, payload);
+                alert('Usuario actualizado correctamente');
             } else {
-                console.error('Error al crear usuario:', error);
+                // Lógica de Creación (POST)
+                await api.post('/register', payload);
+                alert('Usuario creado correctamente');
             }
+
+            setFormData(initialState);
+            onClose();
+        } catch (error: any) {
+            const msg = error.response?.data?.error || 'Error en el servidor';
+            alert('Error: ' + msg);
+            console.error(error);
         }
     };
 
     const handleChange = (field: string, value: string) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
+        setFormData(prev => ({ ...prev, [field]: value }));
     };
 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
                 {/* Header */}
-                <div className="flex justify-between items-center p-6 border-b border-gray-200">
-                    <h2 className="text-xl font-bold text-gray-900">
-                        {user ? 'Editar Usuario' : 'Crear Usuario'}
+                <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
+                    <h2 className="text-xl font-bold text-gray-800">
+                        {user ? 'Editar Usuario' : 'Nuevo Registro'}
                     </h2>
-                    <button
-                        onClick={onClose}
-                        className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors duration-200"
-                    >
-                        <X size={18} />
+                    <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+                        <X size={20} />
                     </button>
                 </div>
 
-                {/* Form */}
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                    {/* Nombre Completo */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Nombre Completo
-                        </label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Nombre Completo</label>
                         <input
                             type="text"
-                            value={formData.name}
-                            onChange={(e) => handleChange('name', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            placeholder="Ingresa el nombre completo"
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Usuario
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.username}
-                            onChange={(e) => handleChange('username', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            placeholder="Ingresa el usuario"
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Contraseña
-                        </label>
-                        <input
-                            type="password"
-                            value={formData.password}
-                            onChange={(e) => handleChange('password', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            placeholder="Ingresa la contraseña"
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Email
-                        </label>
-                        <input
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => handleChange('email', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            placeholder="usuario@ejemplo.com"
+                            value={formData.nombre_completo}
+                            onChange={(e) => handleChange('nombre_completo', e.target.value)}
+                            className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                             required
                         />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
+                        {/* Username */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Rol
-                            </label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Usuario</label>
+                            <input
+                                type="text"
+                                value={formData.username}
+                                onChange={(e) => handleChange('username', e.target.value)}
+                                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                                required
+                            />
+                        </div>
+                        {/* Email */}
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                            <input
+                                type="email"
+                                value={formData.email}
+                                onChange={(e) => handleChange('email', e.target.value)}
+                                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    {/* Password */}
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                            {user ? 'Nueva Contraseña (dejar vacío para no cambiar)' : 'Contraseña'}
+                        </label>
+                        <input
+                            type="password"
+                            value={formData.password}
+                            onChange={(e) => handleChange('password', e.target.value)}
+                            className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                            required={!user}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Rol */}
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Rol</label>
                             <select
-                                value={formData.role}
-                                onChange={(e) => handleChange('role', e.target.value as UserRole)}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                value={formData.fk_id_rol}
+                                onChange={(e) => handleChange('fk_id_rol', e.target.value)}
+                                disabled={!isAdmin}
+                                className="w-full p-3 border border-gray-300 rounded-xl bg-white outline-none focus:ring-2 focus:ring-indigo-500"
                             >
                                 <option value="1">Administrador</option>
                                 <option value="2">Operador</option>
                             </select>
                         </div>
 
+                        {/* Estado */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Estado
-                            </label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Estado</label>
                             <select
-                                value={formData.status}
-                                onChange={(e) => handleChange('status', e.target.value as UserStatus)}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                value={formData.estado}
+                                onChange={(e) => handleChange('estado', e.target.value)}
+                                className="w-full p-3 border border-gray-300 rounded-xl bg-white outline-none focus:ring-2 focus:ring-indigo-500"
                             >
-                                <option value="active">Activo</option>
-                                <option value="inactive">Inactivo</option>
+                                <option value="activo">Activo</option>
+                                <option value="inactivo">Inactivo</option>
                             </select>
                         </div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-3 pt-4">
+                    {/* Botones de acción */}
+                    <div className="flex gap-3 pt-6">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors duration-200"
+                            className="flex-1 px-4 py-3 text-gray-600 font-semibold hover:bg-gray-100 rounded-xl transition-all"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
-                            className="flex-1 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors duration-200"
+                            className="flex-1 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all"
                         >
-                            {user ? 'Actualizar' : 'Crear'} Usuario
+                            {user ? 'Guardar Cambios' : 'Registrar'}
                         </button>
                     </div>
                 </form>

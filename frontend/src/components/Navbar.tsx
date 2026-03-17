@@ -2,19 +2,24 @@
 import { Activity, User, Clock, Settings, LogOut, Menu, X, FileText, BarChart3 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ComponentPanel from './ComponentPanel';
+//import ComponentPanel from './ComponentPanel';
+import { useAppContext } from '../context/AppContext';
 
 export default function Navbar() {
+  const { user, logout } = useAppContext(); // 2. Obtén user y logout del contexto
+  const navigate = useNavigate();
+
+  // Variables derivadas del contexto
+  const username = user?.username || 'Usuario';
+  const roleName = user?.fk_id_rol === 1 ? 'Administrador' : 'Operador';
+  const isAdmin = user?.fk_id_rol === 1;
+
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isAdmin] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isComponentsPanelOpen, setIsComponentsPanelOpen] = useState(false);
-  const navigate = useNavigate();
-  
+
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -36,10 +41,10 @@ export default function Navbar() {
   };
 
   const handleLogout = () => {
-    if (!window.confirm('¿Estás seguro de cerrar sesión?')) {
-      return;
+    if (window.confirm('¿Estás seguro de cerrar sesión?')) {
+      logout(); // Llama a la función del contexto
+      navigate('/');
     }
-    navigate('/');
   };
 
   const handleNavigation = (path: string) => {
@@ -65,7 +70,7 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center justify-between h-16">
             {/* Logo y título a la izquierda */}
             <div className="flex items-center gap-4 flex-shrink-0">
-              <div 
+              <div
                 className="flex items-center gap-3 cursor-pointer group"
                 onClick={() => handleNavigation('/dashboard')}
               >
@@ -140,8 +145,11 @@ export default function Navbar() {
                   <User size={16} className="text-white" />
                 </div>
                 <div>
-                  <span className="text-sm font-semibold text-white block">
-                    {isAdmin ? 'Administrador' : 'Operador'}
+                  <span className="text-sm font-semibold text-white block truncate max-w-[100px]">
+                    {username}
+                  </span>
+                  <span className="text-[10px] uppercase tracking-wider text-emerald-400 font-bold">
+                    {roleName}
                   </span>
                 </div>
               </div>
@@ -170,7 +178,7 @@ export default function Navbar() {
             <div className="flex items-center justify-between h-16">
               {/* Logo y título */}
               <div className="flex items-center gap-3">
-                <div 
+                <div
                   className="flex items-center gap-2 cursor-pointer"
                   onClick={() => handleNavigation('/dashboard')}
                 >
@@ -216,11 +224,10 @@ export default function Navbar() {
 
       {/* Desktop Menu Dropdown */}
       <div
-        className={`hidden lg:block fixed right-4 top-20 z-40 transition-all duration-300 ease-in-out ${
-          isMenuOpen
-            ? 'opacity-100 translate-y-0 pointer-events-auto'
-            : 'opacity-0 -translate-y-4 pointer-events-none'
-        }`}
+        className={`hidden lg:block fixed right-4 top-20 z-40 transition-all duration-300 ease-in-out ${isMenuOpen
+          ? 'opacity-100 translate-y-0 pointer-events-auto'
+          : 'opacity-0 -translate-y-4 pointer-events-none'
+          }`}
       >
         <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-2xl p-4 w-64 backdrop-blur-sm">
           {/* Información del usuario */}
@@ -230,9 +237,11 @@ export default function Navbar() {
             </div>
             <div>
               <span className="font-semibold text-white text-sm block">
-                {isAdmin ? 'Administrador' : 'Operador'}
+                {username}
               </span>
-              <span className="text-xs text-emerald-400">Sesión activa</span>
+              <span className="text-[10px] uppercase tracking-wider text-emerald-400 font-bold">
+                {roleName}
+              </span>
             </div>
           </div>
 
@@ -247,7 +256,7 @@ export default function Navbar() {
                 <span className="font-medium text-sm">Gestión de Usuarios</span>
               </button>
             )}
-            
+
             <button
               className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200"
               onClick={handleOpenComponentsPanel}
@@ -255,7 +264,7 @@ export default function Navbar() {
               <Activity size={18} className="text-emerald-400" />
               <span className="font-medium text-sm">Componentes</span>
             </button>
-            
+
             <button
               className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200"
               onClick={() => handleNavigation('/reports')}
@@ -263,7 +272,7 @@ export default function Navbar() {
               <BarChart3 size={18} className="text-emerald-400" />
               <span className="font-medium text-sm">Reportes y Análisis</span>
             </button>
-            
+
             <button
               className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200"
               onClick={() => handleNavigation('/settings')}
@@ -271,7 +280,7 @@ export default function Navbar() {
               <Settings size={18} className="text-emerald-400" />
               <span className="font-medium text-sm">Configuración</span>
             </button>
-            
+
             <button
               className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200"
               onClick={() => window.open('/docs', '_blank')}
@@ -282,7 +291,7 @@ export default function Navbar() {
 
             {/* Separador */}
             <div className="border-t border-gray-700 my-2"></div>
-            
+
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-3 p-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg border border-transparent hover:border-red-400/30 transition-all duration-200"
@@ -296,9 +305,8 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       <div
-        className={`lg:hidden transition-all duration-300 ease-in-out overflow-hidden ${
-          isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-        }`}
+        className={`lg:hidden transition-all duration-300 ease-in-out overflow-hidden ${isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+          }`}
       >
         <div className="bg-gray-800 border-b border-gray-700 shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 space-y-3">
@@ -309,9 +317,11 @@ export default function Navbar() {
               </div>
               <div>
                 <span className="font-semibold text-white text-sm block">
-                  {isAdmin ? 'Administrador' : 'Operador'}
+                  {username}
                 </span>
-                <span className="text-xs text-emerald-400">Sesión activa</span>
+                <span className="text-[10px] uppercase tracking-wider text-emerald-400 font-bold">
+                  {roleName}
+                </span>
               </div>
             </div>
 
@@ -324,7 +334,7 @@ export default function Navbar() {
                 <Activity size={16} className="text-emerald-400" />
                 <span className="text-sm font-medium">Dashboard</span>
               </button>
-              
+
               <button
                 className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200"
                 onClick={() => handleNavigation('/laboratories')}
@@ -332,7 +342,7 @@ export default function Navbar() {
                 <Activity size={16} className="text-emerald-400" />
                 <span className="text-sm font-medium">Laboratorios</span>
               </button>
-              
+
               <button
                 className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200"
                 onClick={handleOpenComponentsPanel}
@@ -340,7 +350,7 @@ export default function Navbar() {
                 <Activity size={16} className="text-emerald-400" />
                 <span className="text-sm font-medium">Componentes</span>
               </button>
-              
+
               <button
                 className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200"
                 onClick={() => handleNavigation('/reports')}
@@ -358,7 +368,7 @@ export default function Navbar() {
                   <span className="text-sm font-medium">Usuarios</span>
                 </button>
               )}
-              
+
               <button
                 className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200"
                 onClick={() => handleNavigation('/settings')}
@@ -381,10 +391,12 @@ export default function Navbar() {
       </div>
 
       {/* Panel de Componentes */}
-      <ComponentPanel 
-        isOpen={isComponentsPanelOpen} 
-        onClose={handleCloseComponentsPanel} 
+      {/*
+      <ComponentPanel
+        isOpen={isComponentsPanelOpen}
+        onClose={handleCloseComponentsPanel}
       />
+      */}
 
       {/* Overlay para cerrar el menú al hacer clic fuera */}
       {isMenuOpen && (

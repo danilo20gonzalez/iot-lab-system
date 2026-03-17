@@ -3,6 +3,7 @@ import { apiUrl } from '../../config';
 import { Activity, Eye, EyeOff, User, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useAppContext } from '../context/AppContext';
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -10,6 +11,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAppContext();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,8 +23,12 @@ export default function Login() {
         password,
       });
 
-      const token = response.data.token;
+      const { token, user } = response.data;
+
       localStorage.setItem("token", token);
+
+      login(user);
+
       navigate("/dashboard");
     } catch (error) {
       setIsLoading(false);

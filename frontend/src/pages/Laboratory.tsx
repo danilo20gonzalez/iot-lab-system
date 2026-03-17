@@ -1,16 +1,16 @@
 // src/pages/Laboratory.tsx
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import Navbar from "../components/Navbar";
 import ComponentPanel from "../components/ComponentPanel";
 import AirConditionerControl from "../components/deviceControl/AirConditionerControl";
-import { useComponentContext } from "../components/ComponentContext";
-import type { ComponentData } from "../components/ComponentContext";
+import { useAppContext } from "../context/AppContext";
+import type { ComponentData } from "../context/AppContext";
 import { ReactSortable } from 'react-sortablejs';
 import LabRoomCard from '../components/LabRoomCard';
 
 const Laboratory = () => {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const { laboratoryComponents, addComponent, removeComponent, updateComponentOrder } = useComponentContext();
+  const { laboratoryComponents, addComponent, updateComponentOrder } = useAppContext();
 
   // Datos de ejemplo para las tarjetas de laboratorio
   const labRooms = [

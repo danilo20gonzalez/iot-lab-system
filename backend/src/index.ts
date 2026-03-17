@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import laboratorioRoutes from './routes/laboratorioRoutes';
-import {pool} from './config/db';
+import { pool } from './config/db';
 
 dotenv.config();
 
@@ -21,7 +21,7 @@ app.use('/api', laboratorioRoutes);
 
 // Ruta raíz
 app.get('/', (req: Request, res: Response) => {
-  res.send('🚀 Backend de LabControl Pro corriendo...');
+  res.send('Backend de LabControl Pro corriendo...');
 });
 
 // Iniciar servidor

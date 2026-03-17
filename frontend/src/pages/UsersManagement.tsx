@@ -1,81 +1,68 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Users } from 'lucide-react';
-import type { User, UserRole, UserStatus } from '../types/index';
+import type { User, UserRoleID, UserStatus } from '../types/index';
 import UserCard from '../components/UserCard';
 import UserModal from '../modals/UserModal';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import api from '../api/api';
 
 export default function UsersManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
+  const [roleFilter, setRoleFilter] = useState<UserRoleID | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<UserStatus | 'all'>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
-  // Cargar usuarios desde el backend
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await fetch('http://localhost:4000/api/getUsers');
-        const data = await res.json();
-        setUsers(data);
-      } catch (error) {
-        console.error('Error al cargar usuarios:', error);
-      }
-    };
 
+  const fetchUsers = async () => {
+    try {
+      const res = await api.get('/users');
+      setUsers(res.data);
+    } catch (error) {
+      console.error('Error al cargar usuarios:', error);
+    }
+  };
+
+  useEffect(() => {
     fetchUsers();
   }, []);
 
-  // Filtros
+  // 2. Filtros 
   useEffect(() => {
     let result = users;
 
     if (searchTerm) {
       result = result.filter(user =>
-        user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+        user.nombre_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.username?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     if (roleFilter !== 'all') {
-      result = result.filter(user => user.role === roleFilter);
+      result = result.filter(user => user.fk_id_rol === Number(roleFilter));
     }
 
     if (statusFilter !== 'all') {
-      result = result.filter(user => user.status === statusFilter);
+      result = result.filter(user => user.estado === statusFilter);
     }
 
     setFilteredUsers(result);
   }, [users, searchTerm, roleFilter, statusFilter]);
 
-  // CRUD Operations
-  const handleCreateUser = (userData: Omit<User, 'id' | 'createdAt'>) => {
-    const newUser: User = {
-      id: Date.now(),
-      ...userData,
-      createdAt: new Date().toISOString().split('T')[0]
-    };
-    setUsers(prev => [...prev, newUser]);
-  };
-
-  const handleUpdateUser = (userData: Omit<User, 'id' | 'createdAt'>) => {
-    if (!editingUser) return;
-
-    const updatedUser: User = {
-      ...editingUser,
-      ...userData
-    };
-    setUsers(prev => prev.map(user => user.id === editingUser.id ? updatedUser : user));
-    setEditingUser(null);
-  };
-
-  const handleDeleteUser = (userId: number) => {
+  // 3. Operaciones CRUD sincronizadas
+  const handleDeleteUser = async (userId: number) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
-      setUsers(prev => prev.filter(user => user.id !== userId));
+      try {
+        await api.delete(`/users/${userId}`);
+        setUsers(prev => prev.filter(user => user.id_usuario !== userId));
+        alert('Usuario eliminado correctamente');
+      } catch (error) {
+        alert('Error al eliminar el usuario');
+      }
     }
   };
 
@@ -87,116 +74,73 @@ export default function UsersManagement() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingUser(null);
+    fetchUsers(); // Recargamos la lista para ver los cambios (creación o edición)
   };
 
-  const handleSaveUser = (userData: Omit<User, 'id' | 'createdAt'>) => {
-    if (editingUser) {
-      handleUpdateUser(userData);
-    } else {
-      handleCreateUser(userData);
-    }
-  };  
-
+  // 4. Estadísticas con los nuevos nombres
   const stats = {
     total: users.length,
-    active: users.filter(u => u.status === 'active').length,
-    admins: users.filter(u => u.role === 'admin').length
+    active: users.filter(u => u.estado === 'activo').length,
+    admins: users.filter(u => u.fk_id_rol === 1).length
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar FIJO en la parte superior */}
       <Navbar />
-      
-      {/* Contenido principal con padding-top para evitar superposición */}
-      <div className="pt-16"> {/* Ajusta este valor según la altura de tu Navbar */}
+
+      <div className="pt-16">
         <div className="max-w-7xl mx-auto p-6">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestión de Usuarios</h1>
-            <p className="text-gray-600">Administra los usuarios y permisos del sistema</p>
+            <p className="text-gray-600">Administra los usuarios y permisos de LabControl Pro</p>
           </div>
 
-          {/* Stats */}
+          {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-                  <Users className="text-indigo-600" size={24} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Usuarios</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <Users className="text-green-600" size={24} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Usuarios Activos</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.active}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                  <Users className="text-red-600" size={24} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Administradores</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.admins}</p>
-                </div>
-              </div>
-            </div>
+            <StatCard icon={<Users className="text-indigo-600" />} label="Total Usuarios" value={stats.total} bgColor="bg-indigo-100" />
+            <StatCard icon={<Users className="text-green-600" />} label="Usuarios Activos" value={stats.active} bgColor="bg-green-100" />
+            <StatCard icon={<Users className="text-red-600" />} label="Administradores" value={stats.admins} bgColor="bg-red-100" />
           </div>
 
-          {/* Controls */}
+          {/* Controls / Filters */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
-            <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
-              {/* Search */}
-              <div className="relative flex-1 w-full lg:max-w-md">
+            <div className="flex flex-col lg:flex-row gap-4 justify-between">
+              <div className="relative flex-1 lg:max-w-md">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type="text"
-                  placeholder="Buscar usuarios por nombre o email..."
+                  placeholder="Buscar por nombre, usuario o email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
               </div>
 
-              {/* Filters */}
-              <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+              <div className="flex flex-wrap gap-3">
                 <select
                   value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value as UserRole | 'all')}
-                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  onChange={(e) => setRoleFilter(e.target.value as any)}
+                  className="px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="all">Todos los roles</option>
-                  <option value="admin">Administrador</option>
-                  <option value="moderator">Moderador</option>
-                  <option value="user">Usuario</option>
+                  <option value="1">Administrador</option>
+                  <option value="2">Operador</option>
                 </select>
 
                 <select
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as UserStatus | 'all')}
-                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  onChange={(e) => setStatusFilter(e.target.value as any)}
+                  className="px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="all">Todos los estados</option>
-                  <option value="active">Activo</option>
-                  <option value="inactive">Inactivo</option>
+                  <option value="activo">Activo</option>
+                  <option value="inactivo">Inactivo</option>
                 </select>
 
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="flex items-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors duration-200"
+                  className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition-all"
                 >
                   <Plus size={20} />
                   Nuevo Usuario
@@ -209,7 +153,7 @@ export default function UsersManagement() {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredUsers.map(user => (
               <UserCard
-                key={user.id}
+                key={user.id_usuario}
                 user={user}
                 onEdit={handleEditUser}
                 onDelete={handleDeleteUser}
@@ -219,20 +163,10 @@ export default function UsersManagement() {
 
           {/* Empty State */}
           {filteredUsers.length === 0 && (
-            <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed border-gray-300">
-              <Users size={48} className="mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No se encontraron usuarios</h3>
-              <p className="text-gray-500 mb-4">Intenta ajustar los filtros de búsqueda</p>
-              <button
-                onClick={() => {
-                  setSearchTerm('');
-                  setRoleFilter('all');
-                  setStatusFilter('all');
-                }}
-                className="text-indigo-600 hover:text-indigo-700 font-medium"
-              >
-                Limpiar filtros
-              </button>
+            <div className="text-center py-20 bg-white rounded-xl border-2 border-dashed border-gray-200">
+              <Users size={48} className="mx-auto text-gray-300 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900">No hay coincidencias</h3>
+              <p className="text-gray-500">Prueba cambiando los filtros de búsqueda</p>
             </div>
           )}
 
@@ -240,12 +174,28 @@ export default function UsersManagement() {
           <UserModal
             isOpen={isModalOpen}
             onClose={handleCloseModal}
-            onSave={handleSaveUser}
             user={editingUser}
           />
         </div>
       </div>
       <Footer />
+    </div>
+  );
+}
+
+// Componente auxiliar para las tarjetas de estadísticas
+function StatCard({ icon, label, value, bgColor }: any) {
+  return (
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+      <div className="flex items-center gap-4">
+        <div className={`w-12 h-12 ${bgColor} rounded-lg flex items-center justify-center`}>
+          {icon}
+        </div>
+        <div>
+          <p className="text-sm font-medium text-gray-600">{label}</p>
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
+        </div>
+      </div>
     </div>
   );
 }
