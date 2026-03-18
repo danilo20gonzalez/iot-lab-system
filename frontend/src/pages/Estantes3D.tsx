@@ -42,6 +42,7 @@ interface Fila3D {
   tipoCultivo: string;
   luzEncendida: boolean;
   riegoActivo: boolean;
+  entityId: string; // Para asociar con el dispositivo IoT correspondiente
 }
 
 type ModoType = 'monitoreo' | 'edicion' | 'configuracion';
@@ -542,9 +543,9 @@ export default function Estantes3D() {
         rotacion: [0, 0, 0],
         dimensiones: { ancho: 2, alto: 1.5, profundidad: 0.8 },
         filas: [
-          { id: 1, numero: 1, tipoCultivo: 'Tomates', luzEncendida: true, riegoActivo: false },
-          { id: 2, numero: 2, tipoCultivo: 'Lechugas', luzEncendida: false, riegoActivo: true },
-          { id: 3, numero: 3, tipoCultivo: 'Fresas', luzEncendida: true, riegoActivo: false }
+          { id: 1, numero: 1, tipoCultivo: 'Tomates', luzEncendida: true, riegoActivo: false, entityId: 'sonoff_1' },
+          { id: 2, numero: 2, tipoCultivo: 'Lechugas', luzEncendida: false, riegoActivo: true, entityId: 'fila-2' },
+          { id: 3, numero: 3, tipoCultivo: 'Fresas', luzEncendida: true, riegoActivo: false, entityId: 'fila-3'  }
         ]
       },
       {
@@ -556,7 +557,7 @@ export default function Estantes3D() {
         rotacion: [0, 0, 0],
         dimensiones: { ancho: 1.8, alto: 1.2, profundidad: 0.6 },
         filas: [
-          { id: 4, numero: 1, tipoCultivo: 'Experimentales', luzEncendida: false, riegoActivo: false }
+          { id: 4, numero: 1, tipoCultivo: 'Experimentales', luzEncendida: false, riegoActivo: false, entityId: 'fila-4' }
         ]
       }
     ];
@@ -628,7 +629,8 @@ export default function Estantes3D() {
       numero: estanteSeleccionado.filas.length + 1,
       tipoCultivo: 'Nuevo Cultivo',
       luzEncendida: false,
-      riegoActivo: false
+      riegoActivo: false,
+      entityId: `fila-${Date.now()}`
     };
 
     setEstantes(prev => prev.map(estante => {
@@ -684,8 +686,35 @@ export default function Estantes3D() {
   }
 
   // Controladores IoT (mantienen la lógica de actualización de estado)
-  const handleToggleLuz = () => {
+  const handleToggleLuz = async () => {
     if (!filaSeleccionada || !estanteSeleccionado) return;
+    try {
+      const entityId = "switch.sonoff_1";
+      if (filaSeleccionada.luzEncendida) {
+
+        await fetch("http://localhost:4000/api/sonnof/luz/off", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ entityId })
+        });
+
+      } else {
+
+        await fetch("http://localhost:4000/api/sonnof/luz/on", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ entityId })
+        });
+
+      }
+
+    } catch (error) {
+      console.error("Error controlando luz IoT", error);
+    }
 
     setEstantes(prev => prev.map(estante => {
       if (estante.id === estanteSeleccionado.id) {
@@ -729,7 +758,7 @@ export default function Estantes3D() {
       {/* Este div debe ocupar todo el espacio restante */}
       <div className="flex-1 w-full bg-gradient-to-br from-gray-900 to-gray-800 relative" style={{ height: 'calc(100vh - 80px)' }}>
         {/* Canvas 3D - debe ocupar todo el contenedor padre */}
-        <Canvas 
+        <Canvas
           camera={{ position: [5, 5, 15], fov: 50 }}
           style={{ width: '100%', height: '100%' }}
         >
@@ -778,9 +807,9 @@ export default function Estantes3D() {
           estanteSeleccionado={estanteSeleccionado || undefined}
           filaSeleccionada={filaSeleccionada || undefined}
           onDesenfocar={handleDesenfocar}
-          estantes={estantes} 
-          onToggleLuz={handleToggleLuz} 
-          onToggleRiego={handleToggleRiego} 
+          estantes={estantes}
+          onToggleLuz={handleToggleLuz}
+          onToggleRiego={handleToggleRiego}
         />
 
         {/* Stats en esquina */}
