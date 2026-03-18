@@ -5,6 +5,7 @@ import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import laboratorioRoutes from './routes/laboratorioRoutes';
 import { pool } from './config/db';
+import homeAssistantRoutes from './routes/homeAssistantRoutes';
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use('/api', authRoutes);
 app.use('/api', userRoutes);
 app.use('/api', laboratorioRoutes);
+app.use('/api', homeAssistantRoutes);
 
 // Ruta raíz
 app.get('/', (req: Request, res: Response) => {
