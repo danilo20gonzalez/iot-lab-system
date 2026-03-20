@@ -192,15 +192,15 @@ export default function LaboratoriesManagement() {
         <div className="min-h-screen bg-gray-50">
             <Navbar />
 
-            <div className="pt-16">
+            <div >
                 <div className="max-w-7xl mx-auto p-6">
                     {/* Header */}
-                    <div className="mb-8">
+                    <div className="mb-4">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <div>
-                                <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestión de Laboratorios</h1>
-                                <p className="text-gray-600">Administra los laboratorios y su configuración (HU-06 a HU-09)</p>
-                            </div>
+
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestión de Laboratorios</h1>
+                            <p className="text-gray-600">Administra los laboratorios y su configuración (HU-06 a HU-09)</p>
+
                             <button
                                 onClick={() => setIsModalOpen(true)}
                                 className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition-colors duration-200 shadow-lg hover:shadow-xl"
@@ -317,21 +317,19 @@ export default function LaboratoriesManagement() {
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => setViewMode('grid')}
-                                        className={`p-3 border rounded-lg transition-all duration-200 ${
-                                            viewMode === 'grid'
-                                                ? 'bg-emerald-100 border-emerald-300 text-emerald-700'
-                                                : 'bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200'
-                                        }`}
+                                        className={`p-3 border rounded-lg transition-all duration-200 ${viewMode === 'grid'
+                                            ? 'bg-emerald-100 border-emerald-300 text-emerald-700'
+                                            : 'bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200'
+                                            }`}
                                     >
                                         Grid
                                     </button>
                                     <button
                                         onClick={() => setViewMode('list')}
-                                        className={`p-3 border rounded-lg transition-all duration-200 ${
-                                            viewMode === 'list'
-                                                ? 'bg-emerald-100 border-emerald-300 text-emerald-700'
-                                                : 'bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200'
-                                        }`}
+                                        className={`p-3 border rounded-lg transition-all duration-200 ${viewMode === 'list'
+                                            ? 'bg-emerald-100 border-emerald-300 text-emerald-700'
+                                            : 'bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200'
+                                            }`}
                                     >
                                         Lista
                                     </button>
@@ -430,7 +428,7 @@ function LabCard({ lab, onEdit, onDelete, onView }: {
     };
 
     return (
-        <div 
+        <div
             className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 cursor-pointer"
             onClick={handleCardClick}
         >
@@ -483,11 +481,10 @@ function LabCard({ lab, onEdit, onDelete, onView }: {
                             <span>{lab.activeSensors} sensores</span>
                         </div>
                     </div>
-                    <div className={`px-2 py-1 rounded text-xs font-medium ${
-                        lab.automationStatus === 'on'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-gray-100 text-gray-800'
-                    }`}>
+                    <div className={`px-2 py-1 rounded text-xs font-medium ${lab.automationStatus === 'on'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-gray-100 text-gray-800'
+                        }`}>
                         {lab.automationStatus === 'on' ? 'Automático' : 'Manual'}
                     </div>
                 </div>
@@ -540,7 +537,7 @@ function LabTableRow({ lab, onEdit, onDelete, onView }: {
 
     return (
         <tr className="hover:bg-gray-50 transition-colors duration-200">
-            <td 
+            <td
                 className="px-6 py-4 cursor-pointer"
                 onClick={() => navigate('/laboratory')}
             >
@@ -583,11 +580,10 @@ function LabTableRow({ lab, onEdit, onDelete, onView }: {
                 </div>
             </td>
             <td className="px-6 py-4">
-                <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    lab.automationStatus === 'on'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-gray-100 text-gray-800'
-                }`}>
+                <div className={`px-3 py-1 rounded-full text-xs font-medium ${lab.automationStatus === 'on'
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : 'bg-gray-100 text-gray-800'
+                    }`}>
                     {lab.automationStatus === 'on' ? 'Automático' : 'Manual'}
                 </div>
             </td>

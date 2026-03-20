@@ -3,6 +3,10 @@ import { X } from 'lucide-react';
 import type { User } from '../types/index';
 import api from '../api/api';
 
+interface Rol {
+    id_rol: number;
+    nombre_rol: string;
+}
 
 interface UserModalProps {
     isOpen: boolean;
@@ -21,8 +25,18 @@ export default function UserModal({ isOpen, onClose, user }: UserModalProps) {
     };
 
     const [formData, setFormData] = useState(initialState);
+    const [roles, setRoles] = useState<Rol[]>([]);
     const userLogged = JSON.parse(localStorage.getItem('user') || '{}'); // Obtenemos el usuario logueado
     const isAdmin = userLogged.fk_id_rol === 1;
+
+    // Cargar roles desde la BD
+    useEffect(() => {
+        if (isOpen) {
+            api.get('/roles')
+                .then(res => setRoles(res.data))
+                .catch(err => console.error('Error al cargar roles:', err));
+        }
+    }, [isOpen]);
 
     // Sincronizar el formulario cuando se abre el modal o cambia el usuario
     useEffect(() => {
@@ -142,7 +156,7 @@ export default function UserModal({ isOpen, onClose, user }: UserModalProps) {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        {/* Rol */}
+                        {/* Rol - Dinámico desde BD */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-1">Rol</label>
                             <select
@@ -151,8 +165,18 @@ export default function UserModal({ isOpen, onClose, user }: UserModalProps) {
                                 disabled={!isAdmin}
                                 className="w-full p-3 border border-gray-300 rounded-xl bg-white outline-none focus:ring-2 focus:ring-indigo-500"
                             >
-                                <option value="1">Administrador</option>
-                                <option value="2">Operador</option>
+                                {roles.length > 0 ? (
+                                    roles.map((rol) => (
+                                        <option key={rol.id_rol} value={rol.id_rol}>
+                                            {rol.nombre_rol}
+                                        </option>
+                                    ))
+                                ) : (
+                                    <>
+                                        <option value="1">Administrador</option>
+                                        <option value="2">Operador</option>
+                                    </>
+                                )}
                             </select>
                         </div>
 

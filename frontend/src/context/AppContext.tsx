@@ -1,17 +1,22 @@
 // context/AppContext.tsx
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
-// Tipos definidos (traídos de tu antiguo ComponentContext)
+// Tipos definidos
 interface User { username: string; fk_id_rol: number; }
-export interface ComponentData { id: string; type: string; /* ... tus otras props */ }
+export interface ComponentData {
+    id: string;
+    type: string;
+    name?: string;
+    [key: string]: unknown; // Permitir props adicionales
+}
 
 interface AppContextType {
     user: User | null;
     login: (userData: User) => void;
     logout: () => void;
-    // Funciones de componentes ahora aquí
+    // Funciones de componentes
     laboratoryComponents: ComponentData[];
-    addComponent: (component: ComponentData) => void;
+    addComponent: (component: { type: string; name?: string; [key: string]: unknown }) => void;
     removeComponent: (id: string) => void;
     updateComponentOrder: (list: ComponentData[]) => void;
 }
@@ -25,7 +30,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         return savedUser ? JSON.parse(savedUser) : null;
     });
 
-    // Estado de Componentes (antes en ComponentContext)
+    // Estado de Componentes
     const [laboratoryComponents, setLaboratoryComponents] = useState<ComponentData[]>([]);
 
     const login = (userData: User) => {
@@ -39,8 +44,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setUser(null);
     };
 
-    const addComponent = (comp: ComponentData) => setLaboratoryComponents([...laboratoryComponents, comp]);
-    const removeComponent = (id: string) => setLaboratoryComponents(laboratoryComponents.filter(c => c.id !== id));
+    const addComponent = (comp: { type: string; name?: string; [key: string]: unknown }) => {
+        const newComponent: ComponentData = {
+            ...comp,
+            id: (comp.id as string) || `${comp.type}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            type: comp.type,
+        };
+        setLaboratoryComponents(prev => [...prev, newComponent]);
+    };
+
+    const removeComponent = (id: string) => setLaboratoryComponents(prev => prev.filter(c => c.id !== id));
     const updateComponentOrder = (list: ComponentData[]) => setLaboratoryComponents(list);
 
     return (

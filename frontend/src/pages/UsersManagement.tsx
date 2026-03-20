@@ -88,7 +88,7 @@ export default function UsersManagement() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <div className="pt-16">
+      <div>
         <div className="max-w-7xl mx-auto p-6">
           {/* Header */}
           <div className="mb-8">

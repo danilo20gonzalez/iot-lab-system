@@ -1,13 +1,15 @@
 // components/Navbar.tsx
 import { Activity, User, Clock, Settings, LogOut, Menu, X, FileText, BarChart3 } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 //import ComponentPanel from './ComponentPanel';
 import { useAppContext } from '../context/AppContext';
+import LogoutModal from '../modals/LogoutModal';
 
 export default function Navbar() {
   const { user, logout } = useAppContext(); // 2. Obtén user y logout del contexto
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Variables derivadas del contexto
   const username = user?.username || 'Usuario';
@@ -17,6 +19,45 @@ export default function Navbar() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isComponentsPanelOpen, setIsComponentsPanelOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // Refs para la animación del indicador
+  const navRef = useRef<HTMLElement>(null);
+  const buttonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
+
+  const navLinks = [
+    { name: 'Dashboard', path: '/dashboard' },
+    { name: 'Laboratorios', path: '/laboratories-management' },
+    { name: 'Sensores', path: '/sensors' },
+    { name: 'Reportes', path: '/reports' },
+  ];
+
+  // Calcular posición del indicador relativo al nav
+  const updateIndicator = useCallback(() => {
+    const activeButton = buttonRefs.current[location.pathname];
+    const nav = navRef.current;
+    if (activeButton && nav) {
+      const navRect = nav.getBoundingClientRect();
+      const buttonRect = activeButton.getBoundingClientRect();
+      setIndicatorStyle({
+        left: buttonRect.left - navRect.left,
+        width: buttonRect.width,
+        opacity: 1,
+      });
+    } else {
+      setIndicatorStyle(prev => ({ ...prev, opacity: 0 }));
+    }
+  }, [location.pathname]);
+
+  useLayoutEffect(() => {
+    updateIndicator();
+  }, [updateIndicator]);
+
+  useEffect(() => {
+    window.addEventListener('resize', updateIndicator);
+    return () => window.removeEventListener('resize', updateIndicator);
+  }, [updateIndicator]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -41,10 +82,13 @@ export default function Navbar() {
   };
 
   const handleLogout = () => {
-    if (window.confirm('¿Estás seguro de cerrar sesión?')) {
-      logout(); // Llama a la función del contexto
-      navigate('/');
-    }
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = () => {
+    setShowLogoutModal(false);
+    logout();
+    navigate('/');
   };
 
   const handleNavigation = (path: string) => {
@@ -63,7 +107,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="w-full bg-gray-900 border-b border-gray-700 sticky top-0 z-50 shadow-2xl">
+      <nav ref={navRef} className="w-full bg-gray-900 sticky top-0 z-50">
         {/* Container principal */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Desktop Layout */}
@@ -80,59 +124,57 @@ export default function Navbar() {
                     <Activity size={22} className="text-white filter drop-shadow" />
                   </div>
                 </div>
-                <div>
-                  <h1 className="text-xl font-bold text-white tracking-tight">
-                    LabControl Pro
-                  </h1>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span className="text-xs text-emerald-300 font-medium">
-                      Sistema Activo
-                    </span>
-                  </div>
+              </div>
+              <div>
+                <h1 className="text-xl font-black text-white tracking-tight filter drop-shadow-lg">
+                  LabControl Pro
+                </h1>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
+                  <span className="text-xs font-semibold text-white tracking-wider z-10">
+                    UNIVERSIDAD DE LA AMAZONIA
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Centro: Navegación principal */}
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => handleNavigation('/dashboard')}
-                className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-all duration-200"
-              >
-                Dashboard
-              </button>
-              <button
-                onClick={() => handleNavigation('/laboratories-management')}
-                className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-all duration-200"
-              >
-                Laboratorios
-              </button>
-              <button
-                onClick={() => handleNavigation('/sensors')}
-                className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-all duration-200"
-              >
-                Sensores
-              </button>
-              <button
-                onClick={() => handleNavigation('/reports')}
-                className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-all duration-200"
-              >
-                Reportes
-              </button>
+            {/* Centro: Navegación principal con indicador animado */}
+            <div className="relative flex items-center gap-1 h-full py-2">
+              {navLinks.map((link) => {
+                const isActive = location.pathname === link.path;
+                return (
+                  <button
+                    key={link.path}
+                    ref={(el) => { buttonRefs.current[link.path] = el; }}
+                    onClick={() => handleNavigation(link.path)}
+                    className={`relative px-4 h-12 text-sm font-medium transition-all duration-300 flex items-center justify-center rounded-lg ${isActive ? 'text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      }`}
+                  >
+                    {link.name}
+                    {/* Fondo activo sutil */}
+                    {isActive && (
+                      <div className="absolute inset-0 bg-emerald-500/10 rounded-lg pointer-events-none"></div>
+                    )}
+                    {/* Hover line para inactivos */}
+                    {!isActive && (
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-1 bg-emerald-500/40 transition-all duration-300 group-hover:w-full rounded-t-full"></div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Derecha: Controles de usuario */}
             <div className="flex items-center gap-4">
               {/* Hora y fecha */}
-              <div className="bg-gray-800 rounded-lg px-4 py-2 border border-gray-700">
+              <div className=" rounded-lg px-4 h-11 flex items-center">
                 <div className="flex items-center gap-2">
                   <Clock size={16} className="text-emerald-400" />
-                  <div className="text-right">
-                    <div className="text-sm font-semibold text-white font-mono">
+                  <div className="flex flex-col justify-center">
+                    <div className="text-sm font-semibold text-white font-mono leading-none mb-0.5">
                       {formatTime(currentTime)}
                     </div>
-                    <div className="text-xs text-gray-400">
+                    <div className="text-[10px] text-gray-400 leading-none">
                       {formatDate(currentTime)}
                     </div>
                   </div>
@@ -140,24 +182,23 @@ export default function Navbar() {
               </div>
 
               {/* Usuario */}
-              <div className="flex items-center gap-3 bg-gray-800 rounded-lg px-4 py-2 border border-gray-700">
-                <div className="h-8 w-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow">
-                  <User size={16} className="text-white" />
+              <div className="flex items-center gap-3  rounded-lg px-4 h-11 border border-gray-700">
+                <div className="h-7 w-7 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow">
+                  <User size={14} className="text-white" />
                 </div>
-                <div>
-                  <span className="text-sm font-semibold text-white block truncate max-w-[100px]">
+                <div className="flex flex-col justify-center">
+                  <span className="text-sm font-semibold text-white block truncate max-w-[100px] leading-none mb-0.5">
                     {username}
                   </span>
-                  <span className="text-[10px] uppercase tracking-wider text-emerald-400 font-bold">
+                  <span className="text-[9px] uppercase tracking-wider text-emerald-400 font-bold leading-none">
                     {roleName}
                   </span>
                 </div>
               </div>
 
-              {/* Menú hamburguesa */}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg border border-gray-700 hover:border-gray-600 transition-all duration-200"
+                className="h-11 w-11 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg border border-gray-700 hover:border-gray-600 transition-all duration-200"
               >
                 {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
@@ -165,7 +206,7 @@ export default function Navbar() {
               {/* Cerrar sesión */}
               <button
                 onClick={handleLogout}
-                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg border border-gray-700 hover:border-red-400/30 transition-all duration-200"
+                className="h-11 w-11 flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg border border-gray-700 hover:border-red-400/30 transition-all duration-200"
                 title="Cerrar sesión"
               >
                 <LogOut size={20} />
@@ -218,8 +259,61 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Línea decorativa inferior */}
-        <div className="h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500"></div>
+        {/* Línea decorativa inferior con indicador animado tipo gota */}
+        <div className="relative" style={{ height: '4px' }}>
+          {/* Línea base verde */}
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500"></div>
+
+          {/* SVG Gota / Blob que emerge de la línea */}
+          <div
+            className="absolute transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] pointer-events-none"
+            style={{
+              left: `${indicatorStyle.left}px`,
+              width: `${indicatorStyle.width}px`,
+              opacity: indicatorStyle.opacity,
+              top: '-14px',
+              height: '18px',
+            }}
+          >
+            <svg
+              viewBox="0 0 100 18"
+              preserveAspectRatio="none"
+              className="w-full h-full"
+              style={{ filter: 'drop-shadow(0 0 6px rgba(16,185,129,0.5))' }}
+            >
+              {/* Forma de gota: la línea sube suavemente desde los lados y forma un arco */}
+              <path
+                d="M0,18 C5,18 15,18 20,16 C28,12 35,4 50,4 C65,4 72,12 80,16 C85,18 95,18 100,18"
+                fill="url(#dropGradient)"
+              />
+              {/* Línea de borde luminoso */}
+              <path
+                d="M0,18 C5,18 15,18 20,16 C28,12 35,4 50,4 C65,4 72,12 80,16 C85,18 95,18 100,18"
+                fill="none"
+                stroke="rgba(255,255,255,0.4)"
+                strokeWidth="1"
+              />
+              <defs>
+                <linearGradient id="dropGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#34d399" stopOpacity="0.9" />
+                  <stop offset="60%" stopColor="#10b981" stopOpacity="1" />
+                  <stop offset="100%" stopColor="#059669" stopOpacity="1" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+
+          {/* Highlighter blanco sobre la línea base en la posición activa */}
+          <div
+            className="absolute top-0 h-full transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+            style={{
+              left: `${indicatorStyle.left + indicatorStyle.width * 0.15}px`,
+              width: `${indicatorStyle.width * 0.7}px`,
+              opacity: indicatorStyle.opacity * 0.5,
+              background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.7) 0%, transparent 70%)',
+            }}
+          ></div>
+        </div>
       </nav>
 
       {/* Desktop Menu Dropdown */}
@@ -405,6 +499,12 @@ export default function Navbar() {
           onClick={() => setIsMenuOpen(false)}
         ></div>
       )}
+      {/* Logout Modal */}
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </>
   );
 }
