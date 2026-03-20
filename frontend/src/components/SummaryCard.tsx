@@ -4,65 +4,39 @@ import type { LucideIcon } from 'lucide-react';
 interface SummaryCardProps {
   title: string;
   value: string | number;
-  subtitle?: string;
+  subtitle?: string; // Mantenemos la prop por compatibilidad pero no la usamos según el nuevo diseño
   icon?: LucideIcon;
-  trend?: 'up' | 'down' | 'stable';
 }
 
-export default function SummaryCard({ 
-  title, 
-  value, 
-  subtitle, 
-  icon: Icon, 
-  trend 
+export default function SummaryCard({
+  title,
+  value,
+  icon: Icon,
 }: SummaryCardProps) {
-  const trendIcons = {
-    up: '↗',
-    down: '↘',
-    stable: '→'
-  };
-
-  const trendColors = {
-    up: 'text-green-500',
-    down: 'text-red-500',
-    stable: 'text-gray-400'
-  };
-
   return (
-    <div 
-      className="bg-white p-4 rounded-lg border border-[#367c29] hover:shadow-md transition-all duration-200 cursor-pointer relative"
-      style={{ boxShadow: '0 2px 8px rgba(54, 124, 41, 0.08)' }}
+    <div
+      className="bg-white p-3 rounded-lg border border-gray-200 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 cursor-pointer w-full min-h-[90px] flex flex-col justify-between group/card"
+      style={{ boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}
     >
-      {/* Icono y trend en esquina superior derecha */}
-      <div className="flex justify-between items-start mb-2">
+      {/* Línea Superior: Icono y Título */}
+      <div className="flex items-center gap-2">
         {Icon && (
-          <div className="w-10 h-10 bg-[#367c29] bg-opacity-10 rounded-lg flex items-center justify-center">
-            <Icon size={20} style={{ color: '#367c29' }} />
+          <div className="w-8 h-8 bg-gradient-to-br from-[#367c29] to-[#2d6622] rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm transition-transform duration-300 group-hover/card:scale-105">
+            <Icon size={16} className="text-white" />
           </div>
         )}
-        {trend && (
-          <span className={`text-lg font-bold ${trendColors[trend]}`}>
-            {trendIcons[trend]}
-          </span>
-        )}
-      </div>
-
-      {/* Contenido principal */}
-      <div className="mt-2">
-        <p className="text-gray-600 text-xs font-medium mb-1 uppercase tracking-wide">
+        <p className="font-bold text-gray-900 text-[14px] uppercase tracking-tight leading-tight">
           {title}
         </p>
-        <h2 
-          className="text-xl font-bold mb-1"
-          style={{ color: '#367c29' }}
+      </div>
+
+      {/* Línea Central/Inferior: Valor */}
+      <div className="flex justify-center items-center py-2">
+        <h2
+          className="text-2xl leading-none font-bold text-gray-700"
         >
           {value}
         </h2>
-        {subtitle && (
-          <p className="text-gray-500 text-xs font-medium">
-            {subtitle}
-          </p>
-        )}
       </div>
     </div>
   );

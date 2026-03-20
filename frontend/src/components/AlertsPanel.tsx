@@ -37,8 +37,8 @@ export default function AlertsPanel({ alerts }: AlertsPanelProps) {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-            <Bell size={16} className="text-emerald-600" />
+          <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
+            <Bell size={16} className="text-white" />
           </div>
           Alertas del Sistema
         </h2>
@@ -64,10 +64,10 @@ export default function AlertsPanel({ alerts }: AlertsPanelProps) {
               {/* Icono */}
               <div className={`p-1.5 rounded ${
                 alert.type === "warning"
-                  ? "bg-orange-100 text-orange-600"
+                  ? "bg-orange-600 text-white"
                   : alert.type === "success"
-                  ? "bg-green-100 text-green-600"
-                  : "bg-blue-100 text-blue-600"
+                  ? "bg-green-600 text-white"
+                  : "bg-blue-600 text-white"
               }`}>
                 {alert.type === "warning" ? (
                   <AlertTriangle size={14} />
