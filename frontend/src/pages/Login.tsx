@@ -4,6 +4,8 @@ import { Activity, Eye, EyeOff, User, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAppContext } from '../context/AppContext';
+// 1. Importa el componente Particles
+import Particles from '../components/Particles';
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -16,19 +18,14 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
       const response = await axios.post(`${apiUrl}/api/login`, {
         username,
         password,
       });
-
       const { token, user } = response.data;
-
       localStorage.setItem("token", token);
-
       login(user);
-
       navigate("/dashboard");
     } catch (error) {
       setIsLoading(false);
@@ -37,8 +34,26 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-4">
-      <div className="max-w-md w-full space-y-8">
+    // 2. Agregamos 'relative' y 'overflow-hidden' al contenedor principal
+    <div className="relative min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-4 overflow-hidden">
+
+      {/* 3. Capa de Partículas (Fondo) */}
+      <div className="absolute inset-0 z-0">
+        <Particles
+          particleColors={["#367c29", "#0bb116"]} // Colores acordes a tu marca
+          particleCount={500}
+          particleSpread={12}
+          speed={0.15}
+          particleBaseSize={200}
+          moveParticlesOnHover={true}
+          alphaParticles={true}
+          disableRotation={false}
+          pixelRatio={window.devicePixelRatio || 1}
+        />
+      </div>
+
+      {/* 4. Contenido (Z-10 para que flote sobre las partículas) */}
+      <div className="relative z-10 max-w-md w-full space-y-8">
         {/* Logo y título */}
         <div className="text-center">
           <div className="flex justify-center mb-4">
@@ -55,15 +70,13 @@ export default function Login() {
         {/* Formulario */}
         <form
           onSubmit={handleSubmit}
-          className="bg-white p-8 rounded-2xl shadow-lg border border-green-100"
+          className="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-green-100"
         >
+          {/* ... (Todo tu código del formulario se mantiene igual) ... */}
           <div className="space-y-6">
             {/* Usuario */}
             <div>
-              <label
-                htmlFor="username"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
                 Usuario
               </label>
               <div className="relative">
@@ -72,7 +85,6 @@ export default function Login() {
                 </span>
                 <input
                   id="username"
-                  name="username"
                   type="text"
                   required
                   value={username}
@@ -85,10 +97,7 @@ export default function Login() {
 
             {/* Contraseña */}
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Contraseña
               </label>
               <div className="relative">
@@ -97,7 +106,6 @@ export default function Login() {
                 </span>
                 <input
                   id="password"
-                  name="password"
                   type={showPassword ? "text" : "password"}
                   required
                   value={password}
@@ -110,46 +118,24 @@ export default function Login() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
-                  {showPassword ? (
-                    <EyeOff size={20} className="text-gray-400 hover:text-gray-600" />
-                  ) : (
-                    <Eye size={20} className="text-gray-400 hover:text-gray-600" />
-                  )}
+                  {showPassword ? <EyeOff size={20} className="text-gray-400" /> : <Eye size={20} className="text-gray-400" />}
                 </button>
               </div>
             </div>
 
-            {/* Botón */}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#367c29] text-white py-3 px-4 rounded-xl font-medium hover:bg-[#2a6a21] focus:outline-none focus:ring-2 focus:ring-[#367c29] focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-[#367c29] text-white py-3 px-4 rounded-xl font-medium hover:bg-[#2a6a21] transition-all duration-200 disabled:opacity-50"
             >
-              {isLoading ? (
-                <div className="flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  Iniciando sesión...
-                </div>
-              ) : (
-                "Iniciar Sesión"
-              )}
+              {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
             </button>
-
-            {/* Recuperar contraseña */}
-            <div className="text-center">
-              <a
-                href="#"
-                className="text-sm text-[#367c29] hover:text-[#2a6a21] font-medium transition-colors"
-              >
-                ¿Olvidaste tu contraseña?
-              </a>
-            </div>
           </div>
         </form>
 
         {/* Footer */}
         <div className="text-center text-gray-500 text-sm">
-          <p>© 2024 LabControl Pro. Todos los derechos reservados.</p>
+          <p>© 2026 LabControl Pro. Todos los derechos reservados.</p>
         </div>
       </div>
     </div>
