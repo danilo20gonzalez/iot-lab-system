@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Building2, Users, Thermometer, Droplets, Eye, Edit3, Trash2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import LabCard from '../components/LabCard';
+import LabModal from '../modals/LabModal';
 import { useNavigate } from 'react-router-dom';
 
 interface Laboratory {
@@ -188,6 +190,14 @@ export default function LaboratoriesManagement() {
         totalUsers: laboratories.reduce((sum, lab) => sum + lab.associatedUsers, 0)
     };
 
+    const statCards = [
+        { label: 'Total Laboratorios', value: stats.total, icon: Building2, bgClass: 'bg-blue-100', textClass: 'text-blue-600' },
+        { label: 'Activos', value: stats.active, icon: Building2, bgClass: 'bg-green-100', textClass: 'text-green-600' },
+        { label: 'Sensores Activos', value: stats.totalSensors, icon: Thermometer, bgClass: 'bg-purple-100', textClass: 'text-purple-600' },
+        { label: 'Usuarios', value: stats.totalUsers, icon: Users, bgClass: 'bg-indigo-100', textClass: 'text-indigo-600' },
+        { label: 'Automatizados', value: stats.automated, icon: Building2, bgClass: 'bg-emerald-100', textClass: 'text-emerald-600' },
+    ];
+
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar />
@@ -197,10 +207,7 @@ export default function LaboratoriesManagement() {
                     {/* Header */}
                     <div className="mb-4">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestión de Laboratorios</h1>
-                            <p className="text-gray-600">Administra los laboratorios y su configuración (HU-06 a HU-09)</p>
-
+                            <h1 className="text-3xl font-bold text-gray-900">Gestión de Laboratorios</h1>
                             <button
                                 onClick={() => setIsModalOpen(true)}
                                 className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition-colors duration-200 shadow-lg hover:shadow-xl"
@@ -209,69 +216,22 @@ export default function LaboratoriesManagement() {
                                 Nuevo Laboratorio
                             </button>
                         </div>
+                        <p className="text-gray-600">Administra los laboratorios y su configuración</p>
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-                        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <Building2 className="text-blue-600" size={24} />
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+                        {statCards.map((stat, idx) => (
+                            <div key={idx} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 flex items-center gap-3 hover:shadow-md transition-shadow">
+                                <div className={`w-10 h-10 ${stat.bgClass} rounded-lg flex items-center justify-center shrink-0`}>
+                                    <stat.icon className={stat.textClass} size={20} />
                                 </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-600">Total Laboratorios</p>
-                                    <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                                    <Building2 className="text-green-600" size={24} />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-600">Activos</p>
-                                    <p className="text-2xl font-bold text-gray-900">{stats.active}</p>
+                                <div className="min-w-0">
+                                    <p className="text-xs font-medium text-gray-500 truncate">{stat.label}</p>
+                                    <p className="text-xl font-bold text-gray-900">{stat.value}</p>
                                 </div>
                             </div>
-                        </div>
-
-                        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                                    <Thermometer className="text-purple-600" size={24} />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-600">Sensores Activos</p>
-                                    <p className="text-2xl font-bold text-gray-900">{stats.totalSensors}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-                                    <Users className="text-indigo-600" size={24} />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-600">Usuarios Asociados</p>
-                                    <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-                                    <Building2 className="text-emerald-600" size={24} />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-600">Automatizados</p>
-                                    <p className="text-2xl font-bold text-gray-900">{stats.automated}</p>
-                                </div>
-                            </div>
-                        </div>
+                        ))}
                     </div>
 
                     {/* Controls */}
@@ -344,10 +304,19 @@ export default function LaboratoriesManagement() {
                             {filteredLabs.map(lab => (
                                 <LabCard
                                     key={lab.id}
-                                    lab={lab}
-                                    onEdit={handleEditLab}
-                                    onDelete={handleDeleteLab}
-                                    onView={handleViewLaboratory}
+                                    id={lab.id}
+                                    code={lab.code}
+                                    name={lab.name}
+                                    temperature={lab.temperature}
+                                    humidity={lab.humidity}
+                                    activeSensors={lab.activeSensors}
+                                    associatedUsers={lab.associatedUsers}
+                                    status={lab.status === 'active' ? 'activo' : lab.status === 'maintenance' ? 'mantenimiento' : 'mantenimiento'}
+                                    automationStatus={lab.automationStatus}
+                                    isZoneDisabled={lab.isZoneDisabled}
+                                    onEdit={() => handleEditLab(lab)}
+                                    onDelete={() => handleDeleteLab(lab.id)}
+                                    onView={() => handleViewLaboratory(lab.id)}
                                 />
                             ))}
                         </div>
@@ -405,128 +374,19 @@ export default function LaboratoriesManagement() {
                     )}
                 </div>
             </div>
+
+            {/* Modal para crear/editar laboratorio */}
+            <LabModal
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+                onSave={handleSaveLab}
+                lab={editingLab}
+            />
         </div>
     );
 }
 
-// Componente Tarjeta para vista grid
-function LabCard({ lab, onEdit, onDelete, onView }: {
-    lab: Laboratory;
-    onEdit: (lab: Laboratory) => void;
-    onDelete: (id: number) => void;
-    onView: (labId: number) => void;
-}) {
-    const navigate = useNavigate();
-
-    // Navegar al hacer click en la tarjeta
-    const handleCardClick = (e: React.MouseEvent) => {
-        // Prevenir que se active si se hace click en los botones
-        if ((e.target as HTMLElement).closest('button')) {
-            return;
-        }
-        navigate('/laboratory')
-    };
-
-    return (
-        <div
-            className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 cursor-pointer"
-            onClick={handleCardClick}
-        >
-            {/* Header */}
-            <div className="p-6 border-b border-gray-200">
-                <div className="flex justify-between items-start mb-3">
-                    <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1 hover:text-emerald-600 transition-colors">
-                            {lab.name}
-                        </h3>
-                        <p className="text-sm text-gray-500">Código: {lab.code}</p>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(lab.status)}`}>
-                        {getStatusText(lab.status)}
-                    </span>
-                </div>
-                <p className="text-gray-600 text-sm">{lab.description}</p>
-            </div>
-
-            {/* Métricas */}
-            <div className="p-6 border-b border-gray-200">
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-2">
-                        <Thermometer size={16} className="text-red-500" />
-                        <div>
-                            <p className="text-sm text-gray-600">Temperatura</p>
-                            <p className="font-semibold text-gray-900">{lab.temperature}°C</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Droplets size={16} className="text-blue-500" />
-                        <div>
-                            <p className="text-sm text-gray-600">Humedad</p>
-                            <p className="font-semibold text-gray-900">{lab.humidity}%</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Footer */}
-            <div className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
-                            <Users size={14} />
-                            <span>{lab.associatedUsers} usuarios</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <Thermometer size={14} />
-                            <span>{lab.activeSensors} sensores</span>
-                        </div>
-                    </div>
-                    <div className={`px-2 py-1 rounded text-xs font-medium ${lab.automationStatus === 'on'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-gray-100 text-gray-800'
-                        }`}>
-                        {lab.automationStatus === 'on' ? 'Automático' : 'Manual'}
-                    </div>
-                </div>
-
-                <div className="flex gap-2">
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onView(lab.id);
-                        }}
-                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg text-sm font-medium transition-colors duration-200"
-                    >
-                        <Eye size={16} />
-                        Ver Detalles
-                    </button>
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onEdit(lab);
-                        }}
-                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium transition-colors duration-200"
-                    >
-                        <Edit3 size={16} />
-                        Editar
-                    </button>
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onDelete(lab.id);
-                        }}
-                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium transition-colors duration-200"
-                    >
-                        <Trash2 size={16} />
-                        Eliminar
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// Componente Fila para vista lista
+// Componente Fila para vista lista (inline, específico de esta página)
 function LabTableRow({ lab, onEdit, onDelete, onView }: {
     lab: Laboratory;
     onEdit: (lab: Laboratory) => void;
