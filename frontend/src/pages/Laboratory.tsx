@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import Navbar from "../components/Navbar";
 import ComponentPanel from "../components/ComponentPanel";
 import AirConditionerControl from "../components/deviceControl/AirConditionerControl";
+import LightControl from "../components/deviceControl/LightControl";
+import RealTimeCamera from "../components/deviceControl/RealTimeCamera";
+import WaterValveControl from "../components/deviceControl/WaterValveControl";
 import { useAppContext } from "../context/AppContext";
 import type { ComponentData } from "../context/AppContext";
 import { ReactSortable } from 'react-sortablejs';
@@ -10,7 +13,7 @@ import LabRoomCard from '../components/LabRoomCard';
 
 const Laboratory = () => {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const { laboratoryComponents, addComponent, updateComponentOrder } = useAppContext();
+  const { laboratoryComponents, addComponent, updateComponentOrder, removeComponent } = useAppContext();
 
   // Datos de ejemplo para las tarjetas de laboratorio
   const labRooms = [
@@ -59,67 +62,26 @@ const Laboratory = () => {
 
   // Renderizar componente basado en el tipo
   const renderComponent = (component: ComponentData) => {
-    switch (component.type) {
-      case 'air-conditioner':
-        return (
-          <div className="h-48">
-            <AirConditionerControl />
-          </div>
-        );
-      case 'light':
-        return (
-          <div key={component.id} className="bg-white rounded-xl shadow-lg p-4 border h-48 flex flex-col justify-between">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
-                <span className="text-xl">💡</span>
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900 text-sm">Control de Luces</h3>
-                <p className="text-xs text-gray-500">Sala Principal</p>
-              </div>
-            </div>
-            <button className="w-full py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition-colors text-sm">
-              Encender Luces
-            </button>
-          </div>
-        );
-      case 'camera':
-        return (
-          <div key={component.id} className="bg-white rounded-xl shadow-lg p-4 border h-48 flex flex-col">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                <span className="text-xl">📷</span>
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900 text-sm">Cámara de Seguridad</h3>
-                <p className="text-xs text-gray-500">Entrada Principal</p>
-              </div>
-            </div>
-            <div className="bg-gray-200 rounded-lg h-24 flex-1 flex items-center justify-center text-gray-500 text-xs">
-              Vista en vivo
-            </div>
-          </div>
-        );
-      case 'valve':
-        return (
-          <div key={component.id} className="bg-white rounded-xl shadow-lg p-4 border h-48 flex flex-col justify-between">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <span className="text-xl">🚰</span>
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900 text-sm">Válvula de Agua</h3>
-                <p className="text-xs text-gray-500">Sistema Principal</p>
-              </div>
-            </div>
-            <button className="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors text-sm">
-              Abrir Válvula
-            </button>
-          </div>
-        );
-      default:
-        return null;
-    }
+    return (
+      <div className="relative group h-full">
+        {/* Botón de eliminar (Aparece al hacer hover) */}
+        <button
+          onClick={() => removeComponent(component.id)} // <--- Aquí usamos tu función del context
+          className="absolute -top-2 -right-2 z-50 bg-red-500 hover:bg-red-700 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200"
+          title="Eliminar dispositivo"
+        >
+          <span className="text-xs font-bold">✕</span>
+        </button>
+
+        {/* Renderizado dinámico del componente */}
+        <div className="h-48">
+          {component.type === 'air-conditioner' && <AirConditionerControl />}
+          {component.type === 'light' && <LightControl />}
+          {component.type === 'camera' && <RealTimeCamera />}
+          {component.type === 'valve' && <WaterValveControl />}
+        </div>
+      </div>
+    );
   };
 
   return (
