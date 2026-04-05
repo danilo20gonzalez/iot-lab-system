@@ -5,6 +5,8 @@ import { useAppContext } from '../context/AppContext';
 interface ComponentPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  onAddComponent?: (component: typeof availableComponents[0]) => void;
+  allowedTypes?: string[];
 }
 
 const availableComponents = [
@@ -38,8 +40,12 @@ const availableComponents = [
   },
 ];
 
-export default function ComponentPanel({ isOpen, onClose }: ComponentPanelProps) {
+export default function ComponentPanel({ isOpen, onClose, onAddComponent, allowedTypes }: ComponentPanelProps) {
   const { addComponent } = useAppContext();
+
+  const filteredComponents = allowedTypes
+    ? availableComponents.filter(c => allowedTypes.includes(c.type))
+    : availableComponents;
 
   const handleDragStart = (e: React.DragEvent, component: typeof availableComponents[0]) => {
     e.dataTransfer.setData('application/json', JSON.stringify({
@@ -50,10 +56,14 @@ export default function ComponentPanel({ isOpen, onClose }: ComponentPanelProps)
   };
 
   const handleAddComponent = (component: typeof availableComponents[0]) => {
-    addComponent({
-      type: component.type,
-      name: component.name,
-    });
+    if (onAddComponent) {
+      onAddComponent(component);
+    } else {
+      addComponent({
+        type: component.type,
+        name: component.name,
+      });
+    }
   };
 
   return (
@@ -68,9 +78,8 @@ export default function ComponentPanel({ isOpen, onClose }: ComponentPanelProps)
 
       {/* Panel lateral */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
       >
         {/* Header del panel */}
         <div className="flex justify-between items-center p-5 border-b border-gray-200 bg-gray-50">
@@ -88,7 +97,7 @@ export default function ComponentPanel({ isOpen, onClose }: ComponentPanelProps)
 
         {/* Lista de componentes */}
         <div className="p-4 space-y-3 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 80px)' }}>
-          {availableComponents.map((component) => (
+          {filteredComponents.map((component) => (
             <div
               key={component.type}
               draggable

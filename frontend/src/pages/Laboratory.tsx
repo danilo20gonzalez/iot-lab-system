@@ -1,5 +1,5 @@
 // src/pages/Laboratory.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from "../components/Navbar";
 import ComponentPanel from "../components/ComponentPanel";
 import AirConditionerControl from "../components/deviceControl/AirConditionerControl";
@@ -10,38 +10,43 @@ import { useAppContext } from "../context/AppContext";
 import type { ComponentData } from "../context/AppContext";
 import { ReactSortable } from 'react-sortablejs';
 import LabRoomCard from '../components/LabRoomCard';
+import CreateSalaModal from '../modals/CreateSalaModal';
+import api from '../api/api';
 
 const Laboratory = () => {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [isSalaModalOpen, setIsSalaModalOpen] = useState(false);
   const { laboratoryComponents, addComponent, updateComponentOrder, removeComponent } = useAppContext();
 
-  // Datos de ejemplo para las tarjetas de laboratorio
-  const labRooms = [
-    {
-      id: 'lab-1',
-      nombre: 'Laboratorio Principal',
-      dispositivosConectados: 12,
-      temperatura: 23,
-      modulosActivos: 8,
-      status: "activo" as const
-    },
-    {
-      id: 'lab-2',
-      nombre: 'Sala de Control',
-      dispositivosConectados: 6,
-      temperatura: 21,
-      modulosActivos: 4,
-      status: "activo" as const
-    },
-    {
-      id: 'lab-3',
-      nombre: 'Laboratorio Secundario',
-      dispositivosConectados: 3,
-      temperatura: 25,
-      modulosActivos: 2,
-      status: "alerta" as const
+  // Estado para laboratorios desde la API
+  const [labs, setLabs] = useState<Array<{
+    id: number;
+    nombre: string;
+    descripcion: string;
+    estado: string;
+  }>>([]);
+
+  const fetchLabs = useCallback(async () => {
+    try {
+      const res = await api.get('/getLaboratorios');
+      setLabs(res.data);
+    } catch (error) {
+      console.error('Error al cargar laboratorios:', error);
     }
-  ];
+  }, []);
+
+  useEffect(() => {
+    fetchLabs();
+  }, [fetchLabs]);
+
+  // Mapear el estado de la BD a los valores que espera LabRoomCard
+  const mapEstado = (estado: string): "activo" | "inactivo" | "alerta" => {
+    const lower = estado.toLowerCase();
+    if (lower === 'activo') return 'activo';
+    if (lower === 'inactivo') return 'inactivo';
+    if (lower === 'mantenimiento') return 'alerta';
+    return 'activo';
+  };
 
   // Manejar drop de componentes
   const handleDrop = (e: React.DragEvent) => {
@@ -90,10 +95,10 @@ const Laboratory = () => {
 
       <div className="max-w-7xl mx-auto p-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Laboratorio de Control</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Control del Laboratorio (nombre del laboratorio)</h1>
           <button
             onClick={() => setIsPanelOpen(true)}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2"
           >
             <span>+</span>
             Agregar Componente
@@ -108,7 +113,7 @@ const Laboratory = () => {
         >
           {laboratoryComponents.length === 0 ? (
             // Estado vacío
-            <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-300 rounded-xl bg-gray-200">
+            <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-emerald-500 rounded-xl bg-gray-300 ">
               <div className="text-center">
                 <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">📥</span>
@@ -121,7 +126,7 @@ const Laboratory = () => {
                 </p>
                 <button
                   onClick={() => setIsPanelOpen(true)}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 items-center gap-2"
                 >
                   Abrir Panel de Componentes
                 </button>
@@ -153,29 +158,91 @@ const Laboratory = () => {
         <ComponentPanel
           isOpen={isPanelOpen}
           onClose={() => setIsPanelOpen(false)}
+          allowedTypes={['air-conditioner', 'camera', 'light']}
         />
 
         {/* Sección de tarjetas de laboratorios */}
-        <div className="p-4">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Modulos Disponibles</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
-            {labRooms.map((lab) => (
+        <div className="p-4 flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3 mb-2">
+            <div className="w-1 h-8 bg-gradient-to-b from-emerald-600 to-green-700 rounded-full"></div>
+            Módulos Disponibles</h1>
+
+          <div className="flex gap-4">
+            <button
+              onClick={() => setIsSalaModalOpen(true)}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2"
+            >
+              <span className="text-lg">+</span>
+              Nuevo Módulo
+            </button>
+          </div>
+        </div>
+
+
+        {/* Tarjetas de ejemplo (TEMPORAL - borrar después) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
+          <LabRoomCard
+            nombre="Módulo Principal"
+            dispositivosConectados={12}
+            temperatura={23}
+            modulosActivos={8}
+            status="activo"
+            onEdit={() => console.log('Editar Módulo Principal')}
+            onDelete={() => console.log('Eliminar Módulo Principal')}
+          />
+          <LabRoomCard
+            nombre="Módulo de Control"
+            dispositivosConectados={6}
+            temperatura={21}
+            modulosActivos={4}
+            status="activo"
+            onEdit={() => console.log('Editar Módulo de Control')}
+            onDelete={() => console.log('Eliminar Módulo de Control')}
+          />
+        </div>
+
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
+          {labs.length > 0 ? (
+            labs.map((lab) => (
               <LabRoomCard
                 key={lab.id}
                 nombre={lab.nombre}
-                dispositivosConectados={lab.dispositivosConectados}
-                temperatura={lab.temperatura}
-                modulosActivos={lab.modulosActivos}
-                status={lab.status}
+                dispositivosConectados={0}
+                temperatura={22}
+                modulosActivos={0}
+                status={mapEstado(lab.estado)}
+                onEdit={() => console.log('Editar lab', lab.id)}
+                onDelete={() => console.log('Eliminar lab', lab.id)}
               />
-            ))}
-          </div>
-        </div>
-      </div>
+            ))
+          ) : (
+            <div className="col-span-2 flex flex-col items-center justify-center py-16 border-2 border-dashed border-gray-300 rounded-2xl bg-gray-50">
+              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
+                <span className="text-3xl">🏠</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-1">No hay módulos registrados</h3>
+              <p className="text-sm text-gray-500 mb-4">Crea tu primer módulo para comenzar</p>
+              <button
+                onClick={() => setIsSalaModalOpen(true)}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2"
+              >
+                <span>+</span> Crear Módulo
+              </button>
+            </div>
+          )}
+        </div> */}
+
+        {/* Modal para crear nuevo módulo */}
+        <CreateSalaModal
+          isOpen={isSalaModalOpen}
+          onClose={() => setIsSalaModalOpen(false)}
+          onCreated={fetchLabs}
+        />
+      </div >
 
 
 
-    </div>
+    </div >
 
 
   );
