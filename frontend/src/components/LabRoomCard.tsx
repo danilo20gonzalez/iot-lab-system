@@ -164,7 +164,7 @@ const LabRoomCard = ({
 
       {/* Interactive button - VERSIÓN CORREGIDA */}
       <motion.button
-        className="mt-6 w-full bg-emerald-600 text-white py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors relative z-10" // Agregado relative z-10
+        className="mt-6 w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white py-2 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-100 items-center gap-2 cursor-pointer" // Agregado relative z-10
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={handleViewDetails}

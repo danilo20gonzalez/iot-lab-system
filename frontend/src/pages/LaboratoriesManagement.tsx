@@ -210,7 +210,7 @@ export default function LaboratoriesManagement() {
                             <h1 className="text-3xl font-bold text-gray-900">Gestión Global de los Laboratorios</h1>
                             <button
                                 onClick={() => setIsModalOpen(true)}
-                                className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition-colors duration-200 shadow-lg hover:shadow-xl"
+                                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer"
                             >
                                 <Plus size={20} />
                                 Nuevo Laboratorio

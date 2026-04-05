@@ -59,8 +59,8 @@ const ProjectCard = ({
   };
 
   // Calcular porcentaje de uso de estanterías
-  const usagePercentage = estanteriasTotal > 0 
-    ? Math.min((estanteriasUsadas / estanteriasTotal) * 100, 100) 
+  const usagePercentage = estanteriasTotal > 0
+    ? Math.min((estanteriasUsadas / estanteriasTotal) * 100, 100)
     : 0;
 
   // Calcular porcentaje de pH (rango 0-14, donde 7 es neutro)
@@ -84,7 +84,7 @@ const ProjectCard = ({
     >
       {/* Background decoration */}
       <div className="absolute inset-0 bg-gradient-to-r from-blue-100/30 to-cyan-100/30 opacity-50 pointer-events-none" />
-      
+
       {/* Botones de acción superiores */}
       <div className="absolute top-4 right-4 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         {onEdit && (
@@ -194,7 +194,7 @@ const ProjectCard = ({
 
       {/* Interactive button */}
       <motion.button
-        className="mt-6 w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-2 rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition-all relative z-10"
+        className="mt-6 w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white py-2 rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-100 items-center gap-2 cursor-pointer"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={handleViewDetails}
