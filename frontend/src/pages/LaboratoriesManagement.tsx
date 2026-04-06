@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Search, Building2, Users, Thermometer, Droplets, Eye, Edit3, Trash2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import LabCard from '../components/LabCard';
-import CreateLabModal from '../modals/CreateLabModal';
+import LabModal from '../modals/LabModal';
 import { useNavigate } from 'react-router-dom';
 
 interface Laboratory {
@@ -207,7 +207,7 @@ export default function LaboratoriesManagement() {
                     {/* Header */}
                     <div className="mb-4">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <h1 className="text-3xl font-bold text-gray-900">Gestión Global de los Laboratorios</h1>
+                            <h1 className="text-3xl font-bold text-gray-900">Gestión de Laboratorios</h1>
                             <button
                                 onClick={() => setIsModalOpen(true)}
                                 className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer"
@@ -375,14 +375,12 @@ export default function LaboratoriesManagement() {
                 </div>
             </div>
 
-            {/* Modal para crear laboratorio */}
-            <CreateLabModal
+            {/* Modal para crear/editar laboratorio */}
+            <LabModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
-                onCreated={() => {
-                    // Refrescar datos después de crear
-                    handleCloseModal();
-                }}
+                onSave={handleSaveLab}
+                lab={editingLab}
             />
         </div>
     );

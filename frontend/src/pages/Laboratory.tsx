@@ -15,23 +15,33 @@ import api from '../api/api';
 
 const Laboratory = () => {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [isSalaModalOpen, setIsSalaModalOpen] = useState(false);
   const { laboratoryComponents, addComponent, updateComponentOrder, removeComponent } = useAppContext();
 
-  // Estado para laboratorios desde la API
-  const [labs, setLabs] = useState<Array<{
-    id: number;
-    nombre: string;
-    descripcion: string;
-    estado: string;
-  }>>([]);
-
-  const fetchLabs = useCallback(async () => {
-    try {
-      const res = await api.get('/getLaboratorios');
-      setLabs(res.data);
-    } catch (error) {
-      console.error('Error al cargar laboratorios:', error);
+  // Datos de ejemplo para las tarjetas de laboratorio
+  const labRooms = [
+    {
+      id: 'lab-1',
+      nombre: 'Laboratorio Principal',
+      dispositivosConectados: 12,
+      temperatura: 23,
+      modulosActivos: 8,
+      status: "activo" as const
+    },
+    {
+      id: 'lab-2',
+      nombre: 'Sala de Control',
+      dispositivosConectados: 6,
+      temperatura: 21,
+      modulosActivos: 4,
+      status: "activo" as const
+    },
+    {
+      id: 'lab-3',
+      nombre: 'Laboratorio Secundario',
+      dispositivosConectados: 3,
+      temperatura: 25,
+      modulosActivos: 2,
+      status: "alerta" as const
     }
   }, []);
 
