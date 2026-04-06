@@ -154,13 +154,6 @@ const Laboratory = () => {
           )}
         </div>
 
-        {/* Panel de componentes */}
-        <ComponentPanel
-          isOpen={isPanelOpen}
-          onClose={() => setIsPanelOpen(false)}
-          allowedTypes={['air-conditioner', 'camera', 'light']}
-        />
-
         {/* Sección de tarjetas de laboratorios */}
         <div className="p-4 flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3 mb-2">
@@ -232,16 +225,20 @@ const Laboratory = () => {
           )}
         </div> */}
 
-        {/* Modal para crear nuevo módulo */}
-        <CreateSalaModal
-          isOpen={isSalaModalOpen}
-          onClose={() => setIsSalaModalOpen(false)}
-          onCreated={fetchLabs}
-        />
       </div >
 
+      {/* Modales reubicados fuera del zoom */}
+      <ComponentPanel
+        isOpen={isPanelOpen}
+        onClose={() => setIsPanelOpen(false)}
+        allowedTypes={['air-conditioner', 'camera', 'light']}
+      />
 
-
+      <CreateSalaModal
+        isOpen={isSalaModalOpen}
+        onClose={() => setIsSalaModalOpen(false)}
+        onCreated={fetchLabs}
+      />
     </div >
 
 

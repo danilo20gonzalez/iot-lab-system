@@ -178,14 +178,6 @@ const Shelves = () => {
           )}
         </div>
 
-        {/* Panel de componentes */}
-        <ComponentPanel
-          isOpen={isPanelOpen}
-          onClose={() => setIsPanelOpen(false)}
-          onAddComponent={handleAddComponent}
-          allowedTypes={['valve']}
-        />
-
         {/* Sección de tarjetas de estanterías */}
         <div className="p-4 flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3 mb-2">
@@ -202,13 +194,6 @@ const Shelves = () => {
             </button>
           </div>
         </div>
-
-        {/* Modal de Creación */}
-        <CreateEstanteriaModal
-          isOpen={showCreateForm}
-          onClose={() => setShowCreateForm(false)}
-          onCreated={() => setShowCreateForm(false)}
-        />
 
         {/* Tarjetas de estanterías */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
@@ -228,6 +213,19 @@ const Shelves = () => {
           ))}
         </div>
       </div>
+
+      <ComponentPanel
+        isOpen={isPanelOpen}
+        onClose={() => setIsPanelOpen(false)}
+        onAddComponent={handleAddComponent}
+        allowedTypes={['valve']}
+      />
+
+      <CreateEstanteriaModal
+        isOpen={showCreateForm}
+        onClose={() => setShowCreateForm(false)}
+        onCreated={() => setShowCreateForm(false)}
+      />
     </div>
   );
 };

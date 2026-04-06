@@ -5,7 +5,7 @@ import ComponentPanel from "../components/ComponentPanel";
 import AirConditionerControl from "../components/deviceControl/AirConditionerControl";
 import LightControl from "../components/deviceControl/LightControl";
 import RealTimeCamera from "../components/deviceControl/RealTimeCamera";
-import CreateStandModal from '../modals/CreateStandModal';
+import CreateProjectModal from '../modals/CreateProjectModal';
 import { ReactSortable } from 'react-sortablejs';
 import type { ComponentData } from "../context/AppContext";
 
@@ -213,7 +213,7 @@ const Projects = () => {
         <div className="p-4 flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
             <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-cyan-600 rounded-full"></div>
-            Stands Disponibles
+            Proyectos Disponibles
           </h1>
 
           <div className="flex gap-4">
@@ -222,18 +222,11 @@ const Projects = () => {
               className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 cursor-pointer"
             >
               <span className="text-lg">+</span>
-              Nuevo Stand
+              Nuevo Proyecto
             </button>
           </div>
 
         </div>
-
-        {/* Modal para crear nuevo stand */}
-        <CreateStandModal
-          isOpen={showCreateForm}
-          onClose={() => setShowCreateForm(false)}
-          onCreated={() => setShowCreateForm(false)}
-        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
           {proyectos.map((proyecto) => (
@@ -251,22 +244,20 @@ const Projects = () => {
           ))}
         </div>
 
-        <ComponentPanel
-          isOpen={isPanelOpen}
-          onClose={() => setIsPanelOpen(false)}
-          onAddComponent={handleAddComponent}
-          allowedTypes={['light', 'camera', 'air-conditioner']}
-        />
       </div>
 
+      <CreateProjectModal
+        isOpen={showCreateForm}
+        onClose={() => setShowCreateForm(false)}
+        onCreated={() => setShowCreateForm(false)}
+      />
 
-      <main className="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
-
-
-
-
-
-      </main>
+      <ComponentPanel
+        isOpen={isPanelOpen}
+        onClose={() => setIsPanelOpen(false)}
+        onAddComponent={handleAddComponent}
+        allowedTypes={['light', 'camera', 'air-conditioner']}
+      />
     </div>
   );
 };

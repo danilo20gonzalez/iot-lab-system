@@ -3,13 +3,13 @@ import { X, LayoutGrid, Beaker, Tag, FileText, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/api';
 
-interface CreateStandModalProps {
+interface CreateProjectModalProps {
     isOpen: boolean;
     onClose: () => void;
     onCreated?: () => void;
 }
 
-export default function CreateStandModal({ isOpen, onClose, onCreated }: CreateStandModalProps) {
+export default function CreateProjectModal({ isOpen, onClose, onCreated }: CreateProjectModalProps) {
     const [formData, setFormData] = useState({
         nombre: '',
         descripcion: '',
@@ -46,8 +46,8 @@ export default function CreateStandModal({ isOpen, onClose, onCreated }: CreateS
 
         setIsSubmitting(true);
         try {
-            // TODO: Ajustar endpoint cuando exista la ruta de stands en el backend
-            await api.post('/createStand', {
+            // TODO: Ajustar endpoint cuando exista la ruta de proyectos en el backend
+            await api.post('/createProject', {
                 nombre: formData.nombre.trim(),
                 descripcion: formData.descripcion.trim(),
                 estadoId: Number(formData.estadoId),
@@ -58,7 +58,7 @@ export default function CreateStandModal({ isOpen, onClose, onCreated }: CreateS
             onCreated?.();
             onClose();
         } catch (error: any) {
-            const msg = error.response?.data?.message || 'Error al crear el stand';
+            const msg = error.response?.data?.message || 'Error al crear el proyecto';
             alert(msg);
             console.error(error);
         } finally {
@@ -106,10 +106,10 @@ export default function CreateStandModal({ isOpen, onClose, onCreated }: CreateS
                                 </div>
                                 <div>
                                     <h2 className="text-base font-bold text-gray-900">
-                                        Nuevo Stand
+                                        Nuevo Proyecto
                                     </h2>
                                     <p className="text-[11px] text-gray-500">
-                                        Registra un nuevo stand en el módulo
+                                        Registra un nuevo proyecto en el módulo
                                     </p>
                                 </div>
                             </div>
@@ -126,17 +126,17 @@ export default function CreateStandModal({ isOpen, onClose, onCreated }: CreateS
 
                         {/* Form */}
                         <form onSubmit={handleSubmit} className="px-5 py-4 space-y-3 overflow-y-auto">
-                            {/* Nombre del Stand */}
+                            {/* Nombre del Proyecto */}
                             <div>
                                 <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-1">
                                     <Tag size={12} className="text-blue-600" />
-                                    Nombre del Stand
+                                    Nombre del Proyecto
                                 </label>
                                 <input
                                     type="text"
                                     value={formData.nombre}
                                     onChange={(e) => handleChange('nombre', e.target.value)}
-                                    placeholder="Ej: Stand A-1"
+                                    placeholder="Ej: Proyecto 1"
                                     className={`w-full px-3 py-2 text-sm border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-gray-50 hover:bg-white focus:bg-white ${errors.nombre ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'
                                         }`}
                                 />
@@ -160,7 +160,7 @@ export default function CreateStandModal({ isOpen, onClose, onCreated }: CreateS
                                 <textarea
                                     value={formData.descripcion}
                                     onChange={(e) => handleChange('descripcion', e.target.value)}
-                                    placeholder="Describe brevemente el propósito del stand..."
+                                    placeholder="Describe brevemente el propósito del proyecto..."
                                     rows={2}
                                     className={`w-full px-3 py-2 text-sm border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 resize-none bg-gray-50 hover:bg-white focus:bg-white ${errors.descripcion ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'
                                         }`}
@@ -213,7 +213,7 @@ export default function CreateStandModal({ isOpen, onClose, onCreated }: CreateS
                                             </span>
                                             {formData.estadoId === option.value && (
                                                 <motion.div
-                                                    layoutId="standEstadoIndicator"
+                                                    layoutId="projectEstadoIndicator"
                                                     className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center"
                                                     initial={{ scale: 0 }}
                                                     animate={{ scale: 1 }}
@@ -231,7 +231,7 @@ export default function CreateStandModal({ isOpen, onClose, onCreated }: CreateS
                             <div className="bg-blue-50/60 border border-blue-100 rounded-xl p-3 flex items-start gap-3">
                                 <Beaker size={18} className="text-blue-600 mt-0.5 flex-shrink-0" />
                                 <p className="text-xs text-blue-700 leading-relaxed">
-                                    Una vez creado el stand, podrás asignarle estanterías, sensores y
+                                    Una vez creado el proyecto, podrás asignarle estanterías, sensores y
                                     configurar los parámetros de monitoreo desde el panel de control.
                                 </p>
                             </div>
@@ -260,7 +260,7 @@ export default function CreateStandModal({ isOpen, onClose, onCreated }: CreateS
                                             Creando...
                                         </>
                                     ) : (
-                                        'Crear Stand'
+                                        'Crear Proyecto'
                                     )}
                                 </button>
                             </div>
