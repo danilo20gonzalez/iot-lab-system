@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Edit3, Trash2 } from "lucide-react";
 
 interface ProjectCardProps {
   nombre: string;
@@ -8,6 +10,8 @@ interface ProjectCardProps {
   phAgua: number;
   modulosActivos: number;
   status: "activo" | "inactivo" | "alerta";
+  onDelete?: () => void;
+  onEdit?: () => void;
 }
 
 const ProjectCard = ({
@@ -17,8 +21,29 @@ const ProjectCard = ({
   phAgua,
   modulosActivos,
   status,
+  onDelete,
+  onEdit,
 }: ProjectCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
+
+  const handleViewDetails = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    navigate(`/stand`);
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (onEdit) onEdit();
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (onDelete) onDelete();
+  };
 
   const getStatusColor = () => {
     switch (status) {
@@ -34,8 +59,8 @@ const ProjectCard = ({
   };
 
   // Calcular porcentaje de uso de estanterías
-  const usagePercentage = estanteriasTotal > 0 
-    ? Math.min((estanteriasUsadas / estanteriasTotal) * 100, 100) 
+  const usagePercentage = estanteriasTotal > 0
+    ? Math.min((estanteriasUsadas / estanteriasTotal) * 100, 100)
     : 0;
 
   // Calcular porcentaje de pH (rango 0-14, donde 7 es neutro)
@@ -50,7 +75,7 @@ const ProjectCard = ({
 
   return (
     <motion.div
-      className="relative bg-gradient-to-br from-white to-gray-50 p-6 rounded-2xl shadow-lg border border-gray-100 overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+      className="relative bg-gradient-to-br from-white to-gray-50 p-6 rounded-2xl shadow-lg border border-gray-100 overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -58,9 +83,31 @@ const ProjectCard = ({
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Background decoration */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-100/30 to-cyan-100/30 opacity-50" />
-      
-      <div className="relative flex justify-between items-center mb-6">
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-100/30 to-cyan-100/30 opacity-50 pointer-events-none" />
+
+      {/* Botones de acción superiores */}
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        {onEdit && (
+          <button
+            onClick={handleEdit}
+            className="p-2 text-gray-400 hover:text-blue-600 bg-white rounded-full transition-colors duration-300 ring-1 ring-gray-100 hover:ring-blue-200 shadow-sm"
+            title="Editar proyecto"
+          >
+            <Edit3 size={16} />
+          </button>
+        )}
+        {onDelete && (
+          <button
+            onClick={handleDelete}
+            className="p-2 text-gray-400 hover:text-red-500 bg-white rounded-full transition-colors duration-300 ring-1 ring-gray-100 hover:ring-red-100 shadow-sm"
+            title="Eliminar proyecto"
+          >
+            <Trash2 size={16} />
+          </button>
+        )}
+      </div>
+
+      <div className="relative flex justify-between items-start mb-6 pr-20">
         <h3 className="text-xl font-bold text-gray-800 tracking-tight">{nombre}</h3>
         <motion.span
           className={`text-white px-3 py-1 rounded-full text-sm font-medium ${getStatusColor()}`}
@@ -147,9 +194,12 @@ const ProjectCard = ({
 
       {/* Interactive button */}
       <motion.button
-        className="mt-6 w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-2 rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition-all"
+        className="mt-6 w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white py-2 rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-100 items-center gap-2 cursor-pointer"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
+        onClick={handleViewDetails}
+        onMouseDown={(e) => e.stopPropagation()}
+        onMouseUp={(e) => e.stopPropagation()}
       >
         Ver Detalles
       </motion.button>
