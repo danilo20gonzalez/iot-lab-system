@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import LabCard from '../components/LabCard';
 import CreateLabModal from '../modals/CreateLabModal';
 import { useNavigate } from 'react-router-dom';
+import api from '../api/api';
 
 interface Laboratory {
     id: number;
@@ -61,7 +62,7 @@ export default function LaboratoriesManagement() {
             temperature: 23.5,
             humidity: 45,
             status: 'active',
-            associatedUsers: 8,
+            associatedUsers: 0,
             createdAt: '2024-01-15',
             automationStatus: 'on',
             isZoneDisabled: false,
@@ -76,34 +77,28 @@ export default function LaboratoriesManagement() {
             temperature: 31.2,
             humidity: 62,
             status: 'maintenance',
-            associatedUsers: 6,
+            associatedUsers: 0,
             createdAt: '2024-01-20',
             automationStatus: 'off',
             isZoneDisabled: true,
             activeSensors: 8,
             devices: 15
-        },
-        {
-            id: 3,
-            code: 'LAB-003',
-            name: 'Laboratorio de Biología Molecular',
-            description: 'Investigación en biología molecular y genética',
-            temperature: 25.1,
-            humidity: 50,
-            status: 'active',
-            associatedUsers: 12,
-            createdAt: '2024-02-01',
-            automationStatus: 'on',
-            isZoneDisabled: false,
-            activeSensors: 20,
-            devices: 25
         }
     ];
 
     useEffect(() => {
-        // Simular carga desde API
-        setLaboratories(initialLabs);
-        setFilteredLabs(initialLabs);
+        // Cargar laboratorios desde API
+        const fetchLaboratories = async () => {
+            try {
+                const response = await api.get('/getLaboratorios');
+                setLaboratories(response.data);
+            } catch (error) {
+                console.error('Error al cargar laboratorios:', error);
+                // Mantener datos de ejemplo en caso de error
+                setLaboratories(initialLabs);
+            }
+        };
+        fetchLaboratories();
     }, []);
 
     // Filtros (HU-09)
@@ -130,32 +125,46 @@ export default function LaboratoriesManagement() {
     }, [laboratories, searchTerm, statusFilter, automationFilter]);
 
     // Crear laboratorio (HU-06)
-    const handleCreateLab = (labData: Omit<Laboratory, 'id'>) => {
-        const newLab: Laboratory = {
-            id: Date.now(),
-            ...labData
-        };
-        setLaboratories(prev => [...prev, newLab]);
-        setIsModalOpen(false);
+    const handleCreateLab = async (labData: { name: string; description: string; status: 'active' | 'maintenance' | 'inactive' }) => {
+        try {
+            const response = await api.post('createLaboratorio', labData);
+            const newLab = response.data.laboratorio;
+            setLaboratories(prev => [...prev, newLab]);
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error('Error al crear laboratorio:', error);
+            alert('Error al crear el laboratorio');
+        }
     };
 
     // Editar laboratorio (HU-07)
-    const handleUpdateLab = (labData: Omit<Laboratory, 'id'>) => {
+    const handleUpdateLab = async (labData: { name: string; description: string; status: 'active' | 'maintenance' | 'inactive' }) => {
         if (!editingLab) return;
-
-        const updatedLab: Laboratory = {
-            ...editingLab,
-            ...labData
-        };
-        setLaboratories(prev => prev.map(lab => lab.id === editingLab.id ? updatedLab : lab));
-        setEditingLab(null);
-        setIsModalOpen(false);
+        try {
+            await api.put(`updateLaboratorio/${editingLab.id}`, labData);
+            const updatedLab: Laboratory = {
+                ...editingLab,
+                ...labData
+            };
+            setLaboratories(prev => prev.map(lab => lab.id === editingLab.id ? updatedLab : lab));
+            setEditingLab(null);
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error('Error al actualizar laboratorio:', error);
+            alert('Error al actualizar el laboratorio');
+        }
     };
 
     // Eliminar laboratorio (HU-08)
-    const handleDeleteLab = (labId: number) => {
+    const handleDeleteLab = async (labId: number) => {
         if (window.confirm('¿Estás seguro de que quieres eliminar este laboratorio?')) {
-            setLaboratories(prev => prev.filter(lab => lab.id !== labId));
+            try {
+                await api.delete(`deleteLaboratorio/${labId}`);
+                setLaboratories(prev => prev.filter(lab => lab.id !== labId));
+            } catch (error) {
+                console.error('Error al eliminar laboratorio:', error);
+                alert('Error al eliminar el laboratorio');
+            }
         }
     };
 
@@ -174,11 +183,11 @@ export default function LaboratoriesManagement() {
         setEditingLab(null);
     };
 
-    const handleSaveLab = (labData: Omit<Laboratory, 'id'>) => {
+    const handleSaveLab = async (labData: { name: string; description: string; status: 'active' | 'maintenance' | 'inactive' }) => {
         if (editingLab) {
-            handleUpdateLab(labData);
+            await handleUpdateLab(labData);
         } else {
-            handleCreateLab(labData);
+            await handleCreateLab(labData);
         }
     };
 
@@ -187,7 +196,7 @@ export default function LaboratoriesManagement() {
         active: laboratories.filter(l => l.status === 'active').length,
         automated: laboratories.filter(l => l.automationStatus === 'on').length,
         totalSensors: laboratories.reduce((sum, lab) => sum + lab.activeSensors, 0),
-        totalUsers: laboratories.reduce((sum, lab) => sum + lab.associatedUsers, 0)
+        totalUsers: laboratories.filter(l => l.associatedUsers > 0).length
     };
 
     const statCards = [
@@ -379,10 +388,12 @@ export default function LaboratoriesManagement() {
             <CreateLabModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
-                onCreated={() => {
-                    // Refrescar datos después de crear
-                    handleCloseModal();
-                }}
+                onSave={handleSaveLab}
+                editingLab={editingLab ? {
+                    name: editingLab.name,
+                    description: editingLab.description,
+                    status: editingLab.status
+                } : null}
             />
         </div>
     );

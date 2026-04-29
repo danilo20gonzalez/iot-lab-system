@@ -8,12 +8,10 @@ export const getUsers = async (req: Request, res: Response) => {
     const [rows] = await pool.query<RowDataPacket[]>(`
       SELECT 
         id_usuario,
-        nombre_completo,
         username,
         email,
-        estado,
         fk_id_rol,
-        created_at
+        creado_en
       FROM usuario
       ORDER BY id_usuario DESC;
     `);
@@ -50,9 +48,9 @@ export const updateUser = async (req: Request, res: Response) => {
   try {
     const [result] = await pool.query(
       `UPDATE usuario 
-       SET nombre_completo = ?, username = ?, email = ?, estado = ?, fk_id_rol = ? 
+       SET username = ?, email = ?, estado = ?, fk_id_rol = ? 
        WHERE id_usuario = ?`,
-      [nombre_completo, username, email, estado, fk_id_rol, id]
+      [username, email, estado, fk_id_rol, id]
     );
 
     if ((result as any).affectedRows === 0) {
