@@ -1,13 +1,21 @@
 import { useState, useEffect } from 'react';
-import { X, FlaskConical, Beaker, Tag, FileText, Activity } from 'lucide-react';
+import { X, FlaskConical, Beaker, Tag, FileText, Activity, Thermometer, Droplets, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ComponentPanel from '../components/ComponentPanel';
+import TemperatureControl from '../components/deviceControl/TemperatureControl';
+import HumidityControl from '../components/deviceControl/HumidityControl';
 
+interface PlacedSensor {
+    id: string;
+    type: string;
+    name: string;
+}
 
 interface CreateLabModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (labData: { name: string; description: string; status: 'active' | 'maintenance' | 'inactive' }) => void;
-    editingLab?: { name: string; description: string; status: 'active' | 'maintenance' | 'inactive' } | null;
+    onSave: (labData: { name: string; description: string; status: 'active' | 'maintenance' | 'inactive'; sensors: PlacedSensor[] }) => void;
+    editingLab?: { name: string; description: string; status: 'active' | 'maintenance' | 'inactive'; sensors?: PlacedSensor[] } | null;
 }
 
 export default function CreateLabModal({ isOpen, onClose, onSave, editingLab }: CreateLabModalProps) {
@@ -19,13 +27,25 @@ export default function CreateLabModal({ isOpen, onClose, onSave, editingLab }: 
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [isPanelOpen, setIsPanelOpen] = useState(false);
+    const [placedSensors, setPlacedSensors] = useState<PlacedSensor[]>([]);
 
     // Reset form when modal opens/closes or editingLab changes
     useEffect(() => {
-        if (editingLab) {
-            setFormData(editingLab);
-        } else {
-            setFormData({ name: '', description: '', status: 'active' });
+        if (isOpen) {
+            if (editingLab) {
+                setFormData({
+                    name: editingLab.name,
+                    description: editingLab.description,
+                    status: editingLab.status,
+                });
+                setPlacedSensors(editingLab.sensors || []);
+            } else {
+                setFormData({ name: '', description: '', status: 'active' });
+                setPlacedSensors([]);
+            }
+            setErrors({});
+            setIsPanelOpen(false);
         }
     }, [isOpen, editingLab]);
 
@@ -51,16 +71,58 @@ export default function CreateLabModal({ isOpen, onClose, onSave, editingLab }: 
         }
     };
 
+    const handleAddSensor = (component: any) => {
+        const newSensor: PlacedSensor = {
+            id: `${component.type}-${Date.now()}`,
+            type: component.type,
+            name: component.name,
+        };
+        setPlacedSensors(prev => [...prev, newSensor]);
+    };
+
+    const handleRemoveSensor = (sensorId: string) => {
+        setPlacedSensors(prev => prev.filter(s => s.id !== sensorId));
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        const data = e.dataTransfer.getData('application/json');
+        if (!data) return;
+        try {
+            const componentData = JSON.parse(data);
+            handleAddSensor(componentData);
+        } catch (error) {
+            console.error('Error al procesar componente:', error);
+        }
+    };
+
+    const renderSensorWidget = (sensor: PlacedSensor) => {
+        switch (sensor.type) {
+            case 'temperature':
+                return <TemperatureControl />;
+            case 'humidity':
+                return <HumidityControl />;
+            default:
+                return null;
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validate()) return;
 
         setIsSubmitting(true);
         try {
-            await onSave(formData);
+            await onSave({ ...formData, sensors: placedSensors });
             // Reset form
             setFormData({ name: '', description: '', status: 'active' });
             setErrors({});
+            setPlacedSensors([]);
             onClose();
         } catch (error: any) {
             const msg = error.response?.data?.message || 'Error al guardar el laboratorio';
@@ -76,6 +138,7 @@ export default function CreateLabModal({ isOpen, onClose, onSave, editingLab }: 
     };
 
     return (
+        <>
         <AnimatePresence>
             {isOpen && (
                 <div
@@ -93,7 +156,7 @@ export default function CreateLabModal({ isOpen, onClose, onSave, editingLab }: 
 
                     {/* Modal Card */}
                     <motion.div
-                        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-hidden flex flex-col"
+                        className={`relative bg-white rounded-2xl shadow-2xl w-full ${editingLab ? 'max-w-2xl' : 'max-w-md'} mx-4 max-h-[90vh] overflow-hidden flex flex-col`}
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -226,25 +289,88 @@ export default function CreateLabModal({ isOpen, onClose, onSave, editingLab }: 
                                                 >
                                                     <span className="text-white text-[8px]">✓</span>
                                                 </motion.div>
-                                            )
-                                            }
-                                        </button >
-                                    ))
-                                    }
-                                </div >
-                            </div >
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
 
-                            {/* Info card */}
-                            < div className="bg-emerald-50/60 border border-emerald-100 rounded-xl p-3 flex items-start gap-3" >
-                                <Beaker size={18} className="text-emerald-600 mt-0.5 flex-shrink-0" />
-                                <p className="text-xs text-emerald-700 leading-relaxed">
-                                    Una vez creado el laboratorio, podrás asignarle dispositivos IoT, sensores y
-                                    configurar las zonas de automatización desde el panel de control.
-                                </p>
-                            </div >
+                            {/* ─── Zona de Sensores (solo en modo edición) ─── */}
+                            {editingLab && (
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700">
+                                            <Thermometer size={12} className="text-emerald-600" />
+                                            Sensores del Laboratorio
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsPanelOpen(true)}
+                                            className="flex items-center gap-1 px-3 py-1.5 text-[11px] font-semibold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 rounded-lg shadow-sm transition-all duration-200"
+                                        >
+                                            <span className="text-sm">+</span>
+                                            Agregar Sensor
+                                        </button>
+                                    </div>
+
+                                    <div
+                                        className="min-h-[120px] rounded-xl border-2 border-dashed border-gray-300 bg-gray-50/50 p-3 transition-colors duration-200"
+                                        onDragOver={handleDragOver}
+                                        onDrop={handleDrop}
+                                    >
+                                        {placedSensors.length === 0 ? (
+                                            <div className="flex flex-col items-center justify-center h-full py-4 text-center">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center border border-red-200">
+                                                        <Thermometer size={14} className="text-red-400" />
+                                                    </div>
+                                                    <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center border border-blue-200">
+                                                        <Droplets size={14} className="text-blue-400" />
+                                                    </div>
+                                                </div>
+                                                <p className="text-xs text-gray-500 font-medium">
+                                                    No hay sensores asignados
+                                                </p>
+                                                <p className="text-[10px] text-gray-400 mt-0.5">
+                                                    Arrastra o haz clic en "Agregar Sensor" para añadir
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                {placedSensors.map((sensor) => (
+                                                    <div key={sensor.id} className="relative group">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleRemoveSensor(sensor.id)}
+                                                            className="absolute -top-2 -right-2 z-10 bg-red-500 hover:bg-red-700 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200"
+                                                            title="Eliminar sensor"
+                                                        >
+                                                            <Trash2 size={10} />
+                                                        </button>
+                                                        <div className="h-[190px]">
+                                                            {renderSensorWidget(sensor)}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Info card (solo en creación) */}
+                            {!editingLab && (
+                                <div className="bg-emerald-50/60 border border-emerald-100 rounded-xl p-3 flex items-start gap-3">
+                                    <Beaker size={18} className="text-emerald-600 mt-0.5 flex-shrink-0" />
+                                    <p className="text-xs text-emerald-700 leading-relaxed">
+                                        Una vez creado el laboratorio, podrás asignarle dispositivos IoT, sensores y
+                                        configurar las zonas de automatización desde el panel de control.
+                                    </p>
+                                </div>
+                            )}
 
                             {/* Botones */}
-                            < div className="flex gap-3 pt-1" >
+                            <div className="flex gap-3 pt-1">
                                 <button
                                     type="button"
                                     onClick={onClose}
@@ -264,17 +390,27 @@ export default function CreateLabModal({ isOpen, onClose, onSave, editingLab }: 
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                             </svg>
-                                            Creando...
+                                            {editingLab ? 'Actualizando...' : 'Creando...'}
                                         </>
                                     ) : (
-                                        'crear Laboratorio'
+                                        editingLab ? 'Actualizar Laboratorio' : 'Crear Laboratorio'
                                     )}
                                 </button>
-                            </div >
-                        </form >
-                    </motion.div >
-                </div >
+                            </div>
+                        </form>
+                    </motion.div>
+                </div>
             )}
-        </AnimatePresence >
+        </AnimatePresence>
+
+        {/* Panel de Componentes (solo temperatura y humedad) */}
+        <ComponentPanel
+            isOpen={isPanelOpen}
+            onClose={() => setIsPanelOpen(false)}
+            onAddComponent={handleAddSensor}
+            allowedTypes={['temperature', 'humidity']}
+        />
+    </>
     );
 }
+

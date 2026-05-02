@@ -24,14 +24,31 @@ const Laboratory = () => {
     nombre: string;
     descripcion: string;
     estado: string;
+    sensors?: { id: string; type: string; name: string }[];
   }>>([]);
+  const [editingRoom, setEditingRoom] = useState<any>(null);
 
   const fetchLabs = useCallback(async () => {
+    const mockLab = {
+      id: 9999,
+      nombre: "Módulo de Pruebas (Ejemplo)",
+      descripcion: "Módulo de ejemplo para visualizar y probar la edición de sensores.",
+      estado: "Activo",
+      estadoId: "1",
+      sensors: [
+        { id: "temp-1", type: "temperature", name: "Temperatura" },
+        { id: "hum-1", type: "humidity", name: "Humedad" }
+      ]
+    };
+
     try {
       const res = await api.get('/getLaboratorios');
-      setLabs(res.data);
+      // Asegurarse de que el mock no se duplique y aparezca junto con los datos reales
+      const data = res.data.filter((l: any) => l.id !== 9999);
+      setLabs([mockLab, ...data]);
     } catch (error) {
       console.error('Error al cargar laboratorios:', error);
+      setLabs([mockLab]);
     }
   }, []);
 
@@ -46,6 +63,48 @@ const Laboratory = () => {
     if (lower === 'inactivo') return 'inactivo';
     if (lower === 'mantenimiento') return 'alerta';
     return 'activo';
+  };
+
+  const handleEditSala = (sala: any) => {
+    setEditingRoom(sala);
+    setIsSalaModalOpen(true);
+  };
+
+  const handleDeleteSala = async (id: number) => {
+    if (window.confirm('¿Estás seguro de eliminar este módulo?')) {
+      try {
+        await api.delete(`/deleteSala/${id}`); // Ajustar ruta
+        setLabs(prev => prev.filter(lab => lab.id !== id));
+      } catch (error) {
+        console.error('Error al eliminar sala:', error);
+      }
+    }
+  };
+
+  const handleSaveSala = async (salaData: any) => {
+    try {
+      if (editingRoom) {
+        if (editingRoom.id === 9999) {
+          // Actualización simulada para el módulo de ejemplo
+          setLabs(prev => prev.map(lab => lab.id === editingRoom.id ? {
+            ...lab,
+            ...salaData,
+            nombre: salaData.nombre,
+            estado: salaData.estadoId === '1' ? 'Activo' : salaData.estadoId === '2' ? 'Mantenimiento' : 'Inactivo'
+          } : lab));
+        } else {
+          await api.put(`/updateSala/${editingRoom.id}`, salaData);
+          setLabs(prev => prev.map(lab => lab.id === editingRoom.id ? { ...lab, ...salaData } : lab));
+        }
+      } else {
+        const response = await api.post('/createSala', salaData);
+        setLabs(prev => [...prev, { ...response.data.sala, sensors: salaData.sensors || [] }]);
+      }
+      setIsSalaModalOpen(false);
+      setEditingRoom(null);
+    } catch (error) {
+      console.error('Error al guardar sala:', error);
+    }
   };
 
   // Manejar drop de componentes
@@ -162,7 +221,10 @@ const Laboratory = () => {
 
           <div className="flex gap-4">
             <button
-              onClick={() => setIsSalaModalOpen(true)}
+              onClick={() => {
+                setEditingRoom(null);
+                setIsSalaModalOpen(true);
+              }}
               className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 cursor-pointer"
             >
               <span className="text-lg">+</span>
@@ -172,40 +234,18 @@ const Laboratory = () => {
         </div>
 
 
-        {/* Tarjetas de ejemplo (TEMPORAL - borrar después) */}
+        {/* Tarjetas de Módulos */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
-          <LabRoomCard
-            nombre="Módulo Principal"
-            dispositivosConectados={12}
-            temperatura={23}
-            modulosActivos={8}
-            status="activo"
-            onEdit={() => console.log('Editar Módulo Principal')}
-            onDelete={() => console.log('Eliminar Módulo Principal')}
-          />
-          <LabRoomCard
-            nombre="Módulo de Control"
-            dispositivosConectados={6}
-            temperatura={21}
-            modulosActivos={4}
-            status="activo"
-            onEdit={() => console.log('Editar Módulo de Control')}
-            onDelete={() => console.log('Eliminar Módulo de Control')}
-          />
-        </div>
-
-        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
           {labs.length > 0 ? (
             labs.map((lab) => (
               <LabRoomCard
                 key={lab.id}
                 nombre={lab.nombre}
-                dispositivosConectados={0}
-                temperatura={22}
                 modulosActivos={0}
                 status={mapEstado(lab.estado)}
-                onEdit={() => console.log('Editar lab', lab.id)}
-                onDelete={() => console.log('Eliminar lab', lab.id)}
+                sensors={lab.sensors || []}
+                onEdit={() => handleEditSala(lab)}
+                onDelete={() => handleDeleteSala(lab.id)}
               />
             ))
           ) : (
@@ -216,14 +256,17 @@ const Laboratory = () => {
               <h3 className="text-lg font-semibold text-gray-700 mb-1">No hay módulos registrados</h3>
               <p className="text-sm text-gray-500 mb-4">Crea tu primer módulo para comenzar</p>
               <button
-                onClick={() => setIsSalaModalOpen(true)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2"
+                onClick={() => {
+                  setEditingRoom(null);
+                  setIsSalaModalOpen(true);
+                }}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 cursor-pointer"
               >
                 <span>+</span> Crear Módulo
               </button>
             </div>
           )}
-        </div> */}
+        </div>
 
       </div >
 
@@ -236,8 +279,17 @@ const Laboratory = () => {
 
       <CreateSalaModal
         isOpen={isSalaModalOpen}
-        onClose={() => setIsSalaModalOpen(false)}
-        onCreated={fetchLabs}
+        onClose={() => {
+          setIsSalaModalOpen(false);
+          setEditingRoom(null);
+        }}
+        onSave={handleSaveSala}
+        editingRoom={editingRoom ? {
+          nombre: editingRoom.nombre,
+          descripcion: editingRoom.descripcion,
+          estadoId: editingRoom.estadoId || (editingRoom.estado === 'Activo' ? '1' : '3'),
+          sensors: editingRoom.sensors || []
+        } : null}
       />
     </div >
 

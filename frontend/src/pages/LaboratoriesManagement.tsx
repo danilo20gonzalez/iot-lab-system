@@ -12,8 +12,6 @@ interface Laboratory {
     code: string;
     name: string;
     description: string;
-    temperature: number;
-    humidity: number;
     status: 'active' | 'maintenance' | 'inactive';
     associatedUsers: number;
     createdAt: string;
@@ -21,6 +19,7 @@ interface Laboratory {
     isZoneDisabled: boolean;
     activeSensors: number;
     devices: number;
+    sensors?: { id: string; type: string; name: string }[];
 }
 
 const getStatusColor = (status: string) => {
@@ -47,7 +46,6 @@ export default function LaboratoriesManagement() {
     const [filteredLabs, setFilteredLabs] = useState<Laboratory[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'maintenance' | 'inactive'>('all');
-    const [automationFilter, setAutomationFilter] = useState<'all' | 'on' | 'off'>('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingLab, setEditingLab] = useState<Laboratory | null>(null);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -59,30 +57,28 @@ export default function LaboratoriesManagement() {
             code: 'LAB-001',
             name: 'Laboratorio de Microbiología',
             description: 'Laboratorio especializado en análisis microbiológicos',
-            temperature: 23.5,
-            humidity: 45,
             status: 'active',
             associatedUsers: 0,
             createdAt: '2024-01-15',
             automationStatus: 'on',
             isZoneDisabled: false,
             activeSensors: 12,
-            devices: 18
+            devices: 18,
+            sensors: []
         },
         {
             id: 2,
             code: 'LAB-002',
             name: 'Laboratorio de Química Orgánica',
             description: 'Análisis y experimentos en química orgánica',
-            temperature: 31.2,
-            humidity: 62,
             status: 'maintenance',
             associatedUsers: 0,
             createdAt: '2024-01-20',
             automationStatus: 'off',
             isZoneDisabled: true,
             activeSensors: 8,
-            devices: 15
+            devices: 15,
+            sensors: []
         }
     ];
 
@@ -117,18 +113,16 @@ export default function LaboratoriesManagement() {
             result = result.filter(lab => lab.status === statusFilter);
         }
 
-        if (automationFilter !== 'all') {
-            result = result.filter(lab => lab.automationStatus === automationFilter);
-        }
-
         setFilteredLabs(result);
-    }, [laboratories, searchTerm, statusFilter, automationFilter]);
+    }, [laboratories, searchTerm, statusFilter]);
 
     // Crear laboratorio (HU-06)
-    const handleCreateLab = async (labData: { name: string; description: string; status: 'active' | 'maintenance' | 'inactive' }) => {
+    const handleCreateLab = async (labData: { name: string; description: string; status: 'active' | 'maintenance' | 'inactive'; sensors?: any[] }) => {
         try {
             const response = await api.post('createLaboratorio', labData);
-            const newLab = response.data.laboratorio;
+            // La API actualmente no maneja los sensores del lado del servidor en createLaboratorio,
+            // pero podemos agregarlos al estado local para visualizarlos
+            const newLab = { ...response.data.laboratorio, sensors: labData.sensors || [] };
             setLaboratories(prev => [...prev, newLab]);
             setIsModalOpen(false);
         } catch (error) {
@@ -138,7 +132,7 @@ export default function LaboratoriesManagement() {
     };
 
     // Editar laboratorio (HU-07)
-    const handleUpdateLab = async (labData: { name: string; description: string; status: 'active' | 'maintenance' | 'inactive' }) => {
+    const handleUpdateLab = async (labData: { name: string; description: string; status: 'active' | 'maintenance' | 'inactive'; sensors?: any[] }) => {
         if (!editingLab) return;
         try {
             await api.put(`updateLaboratorio/${editingLab.id}`, labData);
@@ -183,7 +177,7 @@ export default function LaboratoriesManagement() {
         setEditingLab(null);
     };
 
-    const handleSaveLab = async (labData: { name: string; description: string; status: 'active' | 'maintenance' | 'inactive' }) => {
+    const handleSaveLab = async (labData: { name: string; description: string; status: 'active' | 'maintenance' | 'inactive'; sensors?: any[] }) => {
         if (editingLab) {
             await handleUpdateLab(labData);
         } else {
@@ -271,16 +265,6 @@ export default function LaboratoriesManagement() {
                                         <option value="maintenance">Mantenimiento</option>
                                         <option value="inactive">Inactivo</option>
                                     </select>
-
-                                    <select
-                                        value={automationFilter}
-                                        onChange={(e) => setAutomationFilter(e.target.value as any)}
-                                        className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                                    >
-                                        <option value="all">Toda automatización</option>
-                                        <option value="on">Automatizado</option>
-                                        <option value="off">Manual</option>
-                                    </select>
                                 </div>
 
                                 <div className="flex gap-2">
@@ -316,16 +300,14 @@ export default function LaboratoriesManagement() {
                                     id={lab.id}
                                     code={lab.code}
                                     name={lab.name}
-                                    temperature={lab.temperature}
-                                    humidity={lab.humidity}
                                     activeSensors={lab.activeSensors}
                                     associatedUsers={lab.associatedUsers}
                                     status={lab.status === 'active' ? 'activo' : lab.status === 'maintenance' ? 'mantenimiento' : 'mantenimiento'}
                                     automationStatus={lab.automationStatus}
                                     isZoneDisabled={lab.isZoneDisabled}
+                                    sensors={lab.sensors || []}
                                     onEdit={() => handleEditLab(lab)}
                                     onDelete={() => handleDeleteLab(lab.id)}
-                                    onView={() => handleViewLaboratory(lab.id)}
                                 />
                             ))}
                         </div>
@@ -336,9 +318,7 @@ export default function LaboratoriesManagement() {
                                     <tr>
                                         <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Laboratorio</th>
                                         <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Estado</th>
-                                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Métricas</th>
                                         <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Usuarios</th>
-                                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Automatización</th>
                                         <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Acciones</th>
                                     </tr>
                                 </thead>
@@ -349,7 +329,6 @@ export default function LaboratoriesManagement() {
                                             lab={lab}
                                             onEdit={handleEditLab}
                                             onDelete={handleDeleteLab}
-                                            onView={handleViewLaboratory}
                                         />
                                     ))}
                                 </tbody>
@@ -367,7 +346,6 @@ export default function LaboratoriesManagement() {
                                 onClick={() => {
                                     setSearchTerm('');
                                     setStatusFilter('all');
-                                    setAutomationFilter('all');
                                 }}
                                 className="text-emerald-600 hover:text-emerald-700 font-medium mr-4"
                             >
@@ -392,7 +370,8 @@ export default function LaboratoriesManagement() {
                 editingLab={editingLab ? {
                     name: editingLab.name,
                     description: editingLab.description,
-                    status: editingLab.status
+                    status: editingLab.status,
+                    sensors: editingLab.sensors
                 } : null}
             />
         </div>
@@ -400,11 +379,10 @@ export default function LaboratoriesManagement() {
 }
 
 // Componente Fila para vista lista (inline, específico de esta página)
-function LabTableRow({ lab, onEdit, onDelete, onView }: {
+function LabTableRow({ lab, onEdit, onDelete }: {
     lab: Laboratory;
     onEdit: (lab: Laboratory) => void;
     onDelete: (id: number) => void;
-    onView: (labId: number) => void;
 }) {
     const navigate = useNavigate();
 
@@ -434,18 +412,6 @@ function LabTableRow({ lab, onEdit, onDelete, onView }: {
                 </span>
             </td>
             <td className="px-6 py-4">
-                <div className="flex gap-4 text-sm">
-                    <div className="flex items-center gap-1">
-                        <Thermometer size={14} className="text-red-500" />
-                        <span className="font-medium">{lab.temperature}°C</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                        <Droplets size={14} className="text-blue-500" />
-                        <span className="font-medium">{lab.humidity}%</span>
-                    </div>
-                </div>
-            </td>
-            <td className="px-6 py-4">
                 <div className="flex items-center gap-2">
                     <Users size={16} className="text-gray-400" />
                     <span className="font-medium">{lab.associatedUsers}</span>
@@ -453,22 +419,7 @@ function LabTableRow({ lab, onEdit, onDelete, onView }: {
                 </div>
             </td>
             <td className="px-6 py-4">
-                <div className={`px-3 py-1 rounded-full text-xs font-medium ${lab.automationStatus === 'on'
-                    ? 'bg-emerald-100 text-emerald-800'
-                    : 'bg-gray-100 text-gray-800'
-                    }`}>
-                    {lab.automationStatus === 'on' ? 'Automático' : 'Manual'}
-                </div>
-            </td>
-            <td className="px-6 py-4">
                 <div className="flex gap-2">
-                    <button
-                        onClick={() => onView(lab.id)}
-                        className="p-2 text-emerald-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors duration-200"
-                        title="Ver detalles del laboratorio"
-                    >
-                        <Eye size={16} />
-                    </button>
                     <button
                         onClick={() => onEdit(lab)}
                         className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"

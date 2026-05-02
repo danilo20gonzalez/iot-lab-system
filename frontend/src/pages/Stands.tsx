@@ -11,46 +11,27 @@ interface Estanteria {
   id: number;
   nombre: string;
   descripcion: string;
-  proyectoId: number;
-  proyectoNombre: string;
-  filasTotal: number;
-  filasUsadas: number;
-  intensidadLuz: number;
-  modulosActivos: number;
-  status: "activo" | "inactivo" | "alerta";
+  status: "active" | "maintenance" | "inactive";
+  sensors?: { id: string; type: string; name: string }[];
 }
 
 const Shelves = () => {
-  const [estanterias] = useState<Estanteria[]>([
+  const [estanterias, setEstanterias] = useState<Estanteria[]>([
     {
       id: 1,
       nombre: "Estantería 1",
-      descripcion: "Estantería principal",
-      proyectoId: 1,
-      proyectoNombre: "Proyecto 1",
-      filasTotal: 6,
-      filasUsadas: 4,
-      intensidadLuz: 85,
-      modulosActivos: 2,
-      status: "activo",
-    },
-    {
-      id: 2,
-      nombre: "Estantería 2",
-      descripcion: "Estantería secundaria",
-      proyectoId: 1,
-      proyectoNombre: "Proyecto 1",
-      filasTotal: 8,
-      filasUsadas: 5,
-      intensidadLuz: 72,
-      modulosActivos: 3,
-      status: "activo",
+      descripcion: "Estantería principal para cultivo hidropónico",
+      status: "active",
+      sensors: [
+        { id: 'light-1', type: 'light', name: 'Luz Superior' }
+      ]
     },
   ]);
 
   const [placedComponents, setPlacedComponents] = useState<ComponentData[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [editingEstanteria, setEditingEstanteria] = useState<Estanteria | null>(null);
 
   // Manejar cuando se arrastra sobre el área
   const handleDragOver = (e: React.DragEvent) => {
@@ -113,13 +94,40 @@ const Shelves = () => {
     );
   };
 
+  const handleSaveEstanteria = (data: any) => {
+    if (editingEstanteria) {
+      setEstanterias(prev => prev.map(e => e.id === editingEstanteria.id ? { ...e, ...data } : e));
+    } else {
+      const newEst: Estanteria = {
+        id: Date.now(),
+        nombre: data.nombre,
+        descripcion: data.descripcion,
+        status: data.status,
+        sensors: data.sensors
+      };
+      setEstanterias(prev => [...prev, newEst]);
+    }
+    setEditingEstanteria(null);
+    setShowCreateForm(false);
+  };
+
+  const handleEditEstanteria = (estanteria: Estanteria) => {
+    setEditingEstanteria(estanteria);
+    setShowCreateForm(true);
+  };
+
+
+  const handleDeleteEstanteria = (id: number) => {
+    setEstanterias(prev => prev.filter(e => e.id !== id));
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
       <div className="max-w-7xl mx-auto p-6" style={{ zoom: 0.8 }}>
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold text-gray-900">Control del Proyecto (nombre del proyecto)</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Control del Proyecto Hidropónico</h1>
           <button
             onClick={() => setIsPanelOpen(true)}
             className="bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 cursor-pointer"
@@ -186,7 +194,10 @@ const Shelves = () => {
 
           <div className="flex gap-4">
             <button
-              onClick={() => setShowCreateForm(true)}
+              onClick={() => {
+                setEditingEstanteria(null);
+                setShowCreateForm(true);
+              }}
               className="bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 cursor-pointer"
             >
               <span className="text-lg">+</span>
@@ -201,14 +212,10 @@ const Shelves = () => {
             <ShelfCard
               key={estanteria.id}
               nombre={estanteria.nombre}
-              proyectoNombre={estanteria.proyectoNombre}
-              filasTotal={estanteria.filasTotal}
-              filasUsadas={estanteria.filasUsadas}
-              modulosActivos={estanteria.modulosActivos}
               status={estanteria.status}
-              onDelete={() => console.log('Delete')}
-              onEdit={() => console.log('Edit')}
-              onView={() => console.log('View')}
+              sensors={estanteria.sensors}
+              onDelete={() => handleDeleteEstanteria(estanteria.id)}
+              onEdit={() => handleEditEstanteria(estanteria)}
             />
           ))}
         </div>
@@ -223,8 +230,12 @@ const Shelves = () => {
 
       <CreateEstanteriaModal
         isOpen={showCreateForm}
-        onClose={() => setShowCreateForm(false)}
-        onCreated={() => setShowCreateForm(false)}
+        onClose={() => {
+          setShowCreateForm(false);
+          setEditingEstanteria(null);
+        }}
+        onSave={handleSaveEstanteria}
+        editingEstanteria={editingEstanteria}
       />
     </div>
   );
