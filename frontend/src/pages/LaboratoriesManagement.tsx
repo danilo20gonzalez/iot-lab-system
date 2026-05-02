@@ -3,7 +3,11 @@ import { useState, useEffect } from 'react';
 import { Plus, Search, Building2, Users, Thermometer, Droplets, Eye, Edit3, Trash2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import LabCard from '../components/LabCard';
+<<<<<<< HEAD
 import CreateLabModal from '../modals/CreateLabModal';
+=======
+import LabModal from '../modals/LabModal';
+>>>>>>> ebc5e5cd8aa7b8819459376b236d66fb81aa6023
 import { useNavigate } from 'react-router-dom';
 import api from '../api/api';
 
@@ -210,7 +214,11 @@ export default function LaboratoriesManagement() {
                     {/* Header */}
                     <div className="mb-4">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+<<<<<<< HEAD
                             <h1 className="text-3xl font-bold text-gray-900">Gestión Global de los Laboratorios</h1>
+=======
+                            <h1 className="text-3xl font-bold text-gray-900">Gestión de Laboratorios</h1>
+>>>>>>> ebc5e5cd8aa7b8819459376b236d66fb81aa6023
                             <button
                                 onClick={() => setIsModalOpen(true)}
                                 className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer"
@@ -362,6 +370,7 @@ export default function LaboratoriesManagement() {
                 </div>
             </div>
 
+<<<<<<< HEAD
             {/* Modal para crear laboratorio */}
             <CreateLabModal
                 isOpen={isModalOpen}
@@ -373,6 +382,14 @@ export default function LaboratoriesManagement() {
                     status: editingLab.status,
                     sensors: editingLab.sensors
                 } : null}
+=======
+            {/* Modal para crear/editar laboratorio */}
+            <LabModal
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+                onSave={handleSaveLab}
+                lab={editingLab}
+>>>>>>> ebc5e5cd8aa7b8819459376b236d66fb81aa6023
             />
         </div>
     );

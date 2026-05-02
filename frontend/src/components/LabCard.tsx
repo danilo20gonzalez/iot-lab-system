@@ -155,7 +155,11 @@ export default function LabCard({
       {/* --- Botón de Acción --- */}
       <button
         onClick={() => navigate('/laboratory')}
+<<<<<<< HEAD
         className="mt-1 w-full flex items-center justify-between p-3 text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 border border-gray-300 rounded-xl hover:bg-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-100 cursor-pointer"
+=======
+        className="mt-1 w-full flex items-center justify-between p-3 text-sm font-semibold text-white bg-emerald-600 border border-gray-300 rounded-xl hover:bg-emerald-700 transition-colors duration-300 cursor-pointer"
+>>>>>>> ebc5e5cd8aa7b8819459376b236d66fb81aa6023
       >
         <span className="flex items-center gap-2">
           <Activity size={16} />
