@@ -7,7 +7,6 @@ import Laboratory from "./pages/Laboratory";
 import LaboratoriesManagement from "./pages/LaboratoriesManagement";
 import Project from "./pages/Projects";
 import Stand from "./pages/Stands";
-import Row from "./pages/Rows";
 import Sensors from "./pages/Sensors";
 import Settings from "./pages/Settings";
 
@@ -26,7 +25,6 @@ function App() {
             <Route path="/laboratories-management" element={<LaboratoriesManagement />} />
             <Route path="/project" element={<Project />} />
             <Route path="/stand" element={<Stand />} />
-            <Route path="/row" element={<Row />} />
             <Route path="/sensors" element={<Sensors />} />
             <Route path="/settings" element={<Settings />} />
 

@@ -15,7 +15,6 @@ import api from '../api/api';
 
 const Laboratory = () => {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-<<<<<<< HEAD
   const [isSalaModalOpen, setIsSalaModalOpen] = useState(false);
   const { laboratoryComponents, addComponent, updateComponentOrder, removeComponent } = useAppContext();
 
@@ -50,35 +49,6 @@ const Laboratory = () => {
     } catch (error) {
       console.error('Error al cargar laboratorios:', error);
       setLabs([mockLab]);
-=======
-  const { laboratoryComponents, addComponent, updateComponentOrder, removeComponent } = useAppContext();
-
-  // Datos de ejemplo para las tarjetas de laboratorio
-  const labRooms = [
-    {
-      id: 'lab-1',
-      nombre: 'Laboratorio Principal',
-      dispositivosConectados: 12,
-      temperatura: 23,
-      modulosActivos: 8,
-      status: "activo" as const
-    },
-    {
-      id: 'lab-2',
-      nombre: 'Sala de Control',
-      dispositivosConectados: 6,
-      temperatura: 21,
-      modulosActivos: 4,
-      status: "activo" as const
-    },
-    {
-      id: 'lab-3',
-      nombre: 'Laboratorio Secundario',
-      dispositivosConectados: 3,
-      temperatura: 25,
-      modulosActivos: 2,
-      status: "alerta" as const
->>>>>>> ebc5e5cd8aa7b8819459376b236d66fb81aa6023
     }
   }, []);
 
