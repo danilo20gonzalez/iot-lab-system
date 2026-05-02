@@ -36,7 +36,7 @@ export default function UsersManagement() {
 
     if (searchTerm) {
       result = result.filter(user =>
-        user.nombre_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.username?.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -46,9 +46,6 @@ export default function UsersManagement() {
       result = result.filter(user => user.fk_id_rol === Number(roleFilter));
     }
 
-    if (statusFilter !== 'all') {
-      result = result.filter(user => user.estado === statusFilter);
-    }
 
     setFilteredUsers(result);
   }, [users, searchTerm, roleFilter, statusFilter]);
@@ -80,7 +77,7 @@ export default function UsersManagement() {
   // 4. Estadísticas con los nuevos nombres
   const stats = {
     total: users.length,
-    active: users.filter(u => u.estado === 'activo').length,
+
     admins: users.filter(u => u.fk_id_rol === 1).length
   };
 
@@ -99,7 +96,7 @@ export default function UsersManagement() {
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <StatCard icon={<Users className="text-indigo-600" />} label="Total Usuarios" value={stats.total} bgColor="bg-indigo-100" />
-            <StatCard icon={<Users className="text-green-600" />} label="Usuarios Activos" value={stats.active} bgColor="bg-green-100" />
+           {/* <StatCard icon={<Users className="text-green-600" />} label="Usuarios Activos" value={stats.active} bgColor="bg-green-100" />*/}
             <StatCard icon={<Users className="text-red-600" />} label="Administradores" value={stats.admins} bgColor="bg-red-100" />
           </div>
 
