@@ -52,8 +52,7 @@ export default function LaboratoriesManagement() {
     const [editingLab, setEditingLab] = useState<Laboratory | null>(null);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-    // Datos de laboratorios inicializados vacíos
-    const [laboratories, setLaboratories] = useState<Laboratory[]>([]);
+    // Datos de laboratorios cargados desde la API
 
     useEffect(() => {
         // Cargar laboratorios desde API
