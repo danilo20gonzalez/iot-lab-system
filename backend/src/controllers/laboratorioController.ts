@@ -5,33 +5,9 @@ import { RowDataPacket, ResultSetHeader } from 'mysql2';
 // ✅ Listar laboratorios
 export const getLaboratorios = async (req: Request, res: Response) => {
   try {
-    const [rows] = await pool.query<RowDataPacket[]>(`
-    SELECT 
-      l.ID_MODULO_LABORATORIO AS id,
-      CONCAT('LAB-', LPAD(l.ID_MODULO_LABORATORIO, 3, '0')) AS code,
-      l.NOMBRE_MODULO_MODULO_LABORATORIO AS name,
-      l.DESCRIPCION_MODULO_LABORATORIO AS description,
-      23.5 AS temperature, -- Se mantiene quemado
-      45 AS humidity,      -- Se mantiene quemado
-      CASE 
-          WHEN e.ID_ESTADO_MODULO_LABORATORIO = 1 THEN 'active'
-          WHEN e.ID_ESTADO_MODULO_LABORATORIO = 2 THEN 'maintenance'
-          ELSE 'inactive'
-      END AS status,
-    
-    -- CAMBIO AQUÍ: Trae el conteo real de la tabla usuario
-      (SELECT COUNT(*) FROM usuario) AS associatedUsers,
-    
-      NOW() AS createdAt,
-      'on' AS automationStatus, -- Se mantiene quemado
-      false AS isZoneDisabled,   -- Se mantiene quemado
-      12 AS activeSensors,       -- Se mantiene quemado
-      18 AS devices              -- Se mantiene quemado
-    FROM modulo_laboratorio l
-    JOIN estado_modulo_laboratorio e ON l.PK_ID_ESTADO_MODULO_LABORATORIO = e.ID_ESTADO_MODULO_LABORATORIO
-    ORDER BY l.ID_MODULO_LABORATORIO DESC;
-    `);
-    res.json(rows);
+    const [rows] = await pool.query<RowDataPacket[]>('CALL OBTENER_LABORATORIOS()');
+    const laboratorios = rows[0];
+    res.json(laboratorios);
   } catch (error) {
     console.error('Error al obtener laboratorios:', error);
     res.status(500).json({ message: 'Error al obtener laboratorios' });
@@ -45,15 +21,16 @@ export const createLaboratorio = async (req: Request, res: Response) => {
     // Map status to estadoId
     const estadoId = status === 'active' ? 1 : status === 'maintenance' ? 2 : 3;
 
-    const [result] = await pool.query<ResultSetHeader>(
-      `INSERT INTO modulo_laboratorio (NOMBRE_MODULO_MODULO_LABORATORIO, DESCRIPCION_MODULO_LABORATORIO, PK_ID_ESTADO_MODULO_LABORATORIO)
-       VALUES (?, ?, ?)`,
+    const [result] = await pool.query<RowDataPacket[]>(
+      'CALL CREAR_LABORATORIO(?, ?, ?)',
       [name, description, estadoId]
     );
+    
+    const insertId = result[0][0].insertId;
 
     const newLab = {
-      id: result.insertId,
-      code: `LAB-${String(result.insertId).padStart(3, '0')}`,
+      id: insertId,
+      code: `LAB-${String(insertId).padStart(3, '0')}`,
       name,
       description,
       temperature: 23.5,
@@ -85,8 +62,8 @@ export const updateLaboratorio = async (req: Request, res: Response) => {
     const estadoId = status === 'active' ? 1 : status === 'maintenance' ? 2 : 3;
 
     await pool.query(
-      `UPDATE modulo_laboratorio SET NOMBRE_MODULO_MODULO_LABORATORIO = ?, DESCRIPCION_MODULO_LABORATORIO = ?, PK_ID_ESTADO_MODULO_LABORATORIO = ? WHERE ID_MODULO_LABORATORIO = ?`,
-      [name, description, estadoId, id]
+      'CALL ACTUALIZAR_LABORATORIO(?, ?, ?, ?)',
+      [id, name, description, estadoId]
     );
 
     res.json({ message: 'Laboratorio actualizado correctamente' });
@@ -101,7 +78,7 @@ export const deleteLaboratorio = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    await pool.query('DELETE FROM modulo_laboratorio WHERE ID_MODULO_LABORATORIO = ?', [id]);
+    await pool.query('CALL ELIMINAR_LABORATORIO(?)', [id]);
 
     res.json({ message: 'Laboratorio eliminado correctamente' });
   } catch (error) {

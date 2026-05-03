@@ -1,0 +1,5 @@
+[dotenv@17.2.2] injecting env (7) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 📡 auto-backup env with Radar: https://dotenvx.com/radar
+Conectado a MySQL
+Conexión a MySQL establecida
+Servidor corriendo en http://localhost:4000

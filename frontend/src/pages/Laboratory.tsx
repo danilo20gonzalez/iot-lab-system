@@ -1,5 +1,5 @@
 // src/pages/Laboratory.tsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Navbar from "../components/Navbar";
 import ComponentPanel from "../components/ComponentPanel";
 import AirConditionerControl from "../components/deviceControl/AirConditionerControl";
@@ -18,6 +18,43 @@ const Laboratory = () => {
   const [isSalaModalOpen, setIsSalaModalOpen] = useState(false);
   const { laboratoryComponents, addComponent, updateComponentOrder, removeComponent } = useAppContext();
 
+  // Estado WebSocket
+  const [haStates, setHaStates] = useState<Record<string, string>>({});
+  const wsRef = useRef<WebSocket | null>(null);
+
+  useEffect(() => {
+    // Conectar al WebSocket local (puerto 8080)
+    const ws = new WebSocket('ws://localhost:8080');
+    wsRef.current = ws;
+
+    ws.onopen = () => console.log('Conectado al servidor WebSocket local (HA Bridge)');
+
+    ws.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'state_change') {
+          // Actualizamos el estado del dispositivo
+          setHaStates(prev => ({ ...prev, [msg.entity]: msg.state }));
+        }
+      } catch (e) {
+        console.error('Error parseando mensaje WS:', e);
+      }
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+
+  const sendHACommand = (entity: string, turnOn: boolean) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ 
+        action: turnOn ? 'turn_on' : 'turn_off', 
+        entity 
+      }));
+    }
+  };
+
   // Estado para laboratorios desde la API
   const [labs, setLabs] = useState<Array<{
     id: number;
@@ -29,26 +66,20 @@ const Laboratory = () => {
   const [editingRoom, setEditingRoom] = useState<any>(null);
 
   const fetchLabs = useCallback(async () => {
-    const mockLab = {
-      id: 9999,
-      nombre: "Módulo de Pruebas (Ejemplo)",
-      descripcion: "Módulo de ejemplo para visualizar y probar la edición de sensores.",
-      estado: "Activo",
-      estadoId: "1",
-      sensors: [
-        { id: "temp-1", type: "temperature", name: "Temperatura" },
-        { id: "hum-1", type: "humidity", name: "Humedad" }
-      ]
-    };
-
     try {
       const res = await api.get('/getLaboratorios');
-      // Asegurarse de que el mock no se duplique y aparezca junto con los datos reales
-      const data = res.data.filter((l: any) => l.id !== 9999);
-      setLabs([mockLab, ...data]);
+      const data = res.data.map((l: any) => ({
+        id: l.id,
+        nombre: l.name,
+        descripcion: l.description,
+        estado: l.status,
+        estadoId: l.status === 'active' ? '1' : l.status === 'maintenance' ? '2' : '3',
+        sensors: [] // Los sensores se mapearán más adelante
+      }));
+      setLabs(data);
     } catch (error) {
       console.error('Error al cargar laboratorios:', error);
-      setLabs([mockLab]);
+      setLabs([]);
     }
   }, []);
 
@@ -57,7 +88,8 @@ const Laboratory = () => {
   }, [fetchLabs]);
 
   // Mapear el estado de la BD a los valores que espera LabRoomCard
-  const mapEstado = (estado: string): "activo" | "inactivo" | "alerta" => {
+  const mapEstado = (estado?: string): "activo" | "inactivo" | "alerta" => {
+    if (!estado) return 'activo'; // Valor por defecto si es undefined
     const lower = estado.toLowerCase();
     if (lower === 'activo') return 'activo';
     if (lower === 'inactivo') return 'inactivo';
@@ -140,7 +172,11 @@ const Laboratory = () => {
         {/* Renderizado dinámico del componente */}
         <div className="h-48">
           {component.type === 'air-conditioner' && <AirConditionerControl />}
-          {component.type === 'light' && <LightControl />}
+          {component.type === 'light' && <LightControl 
+            entityId="switch.sonoff_luz" // Se puede hacer dinámico en el futuro
+            haState={haStates['switch.sonoff_luz']} 
+            onToggle={sendHACommand} 
+          />}
           {component.type === 'camera' && <RealTimeCamera />}
           {component.type === 'valve' && <WaterValveControl />}
         </div>

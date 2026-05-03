@@ -1,9 +1,27 @@
 import { Power, Settings, BarChart3, RotateCcw, Zap } from 'lucide-react';
 import { useState } from 'react';
 
-const LightControlSimple = () => {
-    const [isOn, setIsOn] = useState(true);
+interface LightControlProps {
+    entityId?: string;
+    haState?: string;
+    onToggle?: (entityId: string, turnOn: boolean) => void;
+}
+
+const LightControlSimple = ({ entityId = 'switch.sonoff_luz', haState, onToggle }: LightControlProps) => {
+    // Si Home Assistant provee el estado, lo usamos; si no, usamos el local
+    const [localIsOn, setLocalIsOn] = useState(true);
     const [isFlipped, setIsFlipped] = useState(false);
+
+    const isOn = haState ? haState === 'on' : localIsOn;
+
+    const handleToggle = () => {
+        const newState = !isOn;
+        if (onToggle) {
+            onToggle(entityId, newState);
+        } else {
+            setLocalIsOn(newState);
+        }
+    };
 
     return (
         <div className="w-64 h-36 group">
@@ -42,7 +60,7 @@ const LightControlSimple = () => {
 
                         <div className="flex gap-2 mt-1">
                             <button
-                                onClick={() => setIsOn(!isOn)}
+                                onClick={handleToggle}
                                 className={`flex-[3] py-1.5 text-xs font-semibold rounded-lg transition-all
                 ${isOn
                                         ? 'bg-gray-900 text-white hover:bg-black'

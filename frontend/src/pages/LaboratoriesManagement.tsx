@@ -1,6 +1,6 @@
 // components/LaboratoriesManagement.tsx
 import { useState, useEffect } from 'react';
-import { Plus, Search, Building2, Users, Thermometer, Droplets, Eye, Edit3, Trash2 } from 'lucide-react';
+import { Plus, Search, Building2, Users, Thermometer, Edit3, Trash2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import LabCard from '../components/LabCard';
 import CreateLabModal from '../modals/CreateLabModal';
@@ -41,7 +41,6 @@ const getStatusText = (status: string) => {
 };
 
 export default function LaboratoriesManagement() {
-    const navigate = useNavigate();
     const [laboratories, setLaboratories] = useState<Laboratory[]>([]);
     const [filteredLabs, setFilteredLabs] = useState<Laboratory[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -50,37 +49,7 @@ export default function LaboratoriesManagement() {
     const [editingLab, setEditingLab] = useState<Laboratory | null>(null);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-    // Datos de ejemplo basados en HU-06 a HU-09
-    const initialLabs: Laboratory[] = [
-        {
-            id: 1,
-            code: 'LAB-001',
-            name: 'Laboratorio de Microbiología',
-            description: 'Laboratorio especializado en análisis microbiológicos',
-            status: 'active',
-            associatedUsers: 0,
-            createdAt: '2024-01-15',
-            automationStatus: 'on',
-            isZoneDisabled: false,
-            activeSensors: 12,
-            devices: 18,
-            sensors: []
-        },
-        {
-            id: 2,
-            code: 'LAB-002',
-            name: 'Laboratorio de Química Orgánica',
-            description: 'Análisis y experimentos en química orgánica',
-            status: 'maintenance',
-            associatedUsers: 0,
-            createdAt: '2024-01-20',
-            automationStatus: 'off',
-            isZoneDisabled: true,
-            activeSensors: 8,
-            devices: 15,
-            sensors: []
-        }
-    ];
+    // Datos de laboratorios cargados desde la API
 
     useEffect(() => {
         // Cargar laboratorios desde API
@@ -90,8 +59,7 @@ export default function LaboratoriesManagement() {
                 setLaboratories(response.data);
             } catch (error) {
                 console.error('Error al cargar laboratorios:', error);
-                // Mantener datos de ejemplo en caso de error
-                setLaboratories(initialLabs);
+                setLaboratories([]);
             }
         };
         fetchLaboratories();
@@ -162,10 +130,7 @@ export default function LaboratoriesManagement() {
         }
     };
 
-    // Navegar a la página del laboratorio
-    const handleViewLaboratory = (labId: number) => {
-        navigate(`/laboratory/${labId}`);
-    };
+
 
     const handleEditLab = (lab: Laboratory) => {
         setEditingLab(lab);
