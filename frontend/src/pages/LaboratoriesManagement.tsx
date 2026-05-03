@@ -52,39 +52,8 @@ export default function LaboratoriesManagement() {
     const [editingLab, setEditingLab] = useState<Laboratory | null>(null);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-    // Datos de ejemplo basados en HU-06 a HU-09
-    const initialLabs: Laboratory[] = [
-        {
-            id: 1,
-            code: 'LAB-001',
-            name: 'Laboratorio de Microbiología',
-            description: 'Laboratorio especializado en análisis microbiológicos',
-            temperature: 23.5,
-            humidity: 45,
-            status: 'active',
-            associatedUsers: 0,
-            createdAt: '2024-01-15',
-            automationStatus: 'on',
-            isZoneDisabled: false,
-            activeSensors: 12,
-            devices: 18
-        },
-        {
-            id: 2,
-            code: 'LAB-002',
-            name: 'Laboratorio de Química Orgánica',
-            description: 'Análisis y experimentos en química orgánica',
-            temperature: 31.2,
-            humidity: 62,
-            status: 'maintenance',
-            associatedUsers: 0,
-            createdAt: '2024-01-20',
-            automationStatus: 'off',
-            isZoneDisabled: true,
-            activeSensors: 8,
-            devices: 15
-        }
-    ];
+    // Datos de laboratorios inicializados vacíos
+    const [laboratories, setLaboratories] = useState<Laboratory[]>([]);
 
     useEffect(() => {
         // Cargar laboratorios desde API
@@ -94,8 +63,7 @@ export default function LaboratoriesManagement() {
                 setLaboratories(response.data);
             } catch (error) {
                 console.error('Error al cargar laboratorios:', error);
-                // Mantener datos de ejemplo en caso de error
-                setLaboratories(initialLabs);
+                setLaboratories([]);
             }
         };
         fetchLaboratories();
