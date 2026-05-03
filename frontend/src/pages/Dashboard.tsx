@@ -63,91 +63,35 @@ export default function Dashboard() {
     dataAccuracy: 98.5
   });
 
-  const [alerts, setAlerts] = useState<Alert[]>([
-    {
-      id: 1,
-      message: "Temperatura crítica en Lab Química Orgánica",
-      time: "hace 5 min",
-      type: "warning",
-      priority: "high"
-    },
-    {
-      id: 2,
-      message: "Sistema de ventilación en mantenimiento programado",
-      time: "hace 1 hora",
-      type: "info",
-      priority: "medium"
-    },
-    {
-      id: 3,
-      message: "Calibración automática completada exitosamente",
-      time: "hace 2 horas",
-      type: "success",
-      priority: "low"
-    },
-    {
-      id: 4,
-      message: "Nuevo usuario registrado en el sistema",
-      time: "hace 3 horas",
-      type: "info",
-      priority: "low"
-    },
-  ]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
 
-  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([
-    {
-      id: 1,
-      type: 'sensor',
-      message: 'Sensor de humedad calibrado automáticamente',
-      time: 'hace 5 min',
-      lab: 'LAB-002'
-    },
-    {
-      id: 2,
-      type: 'user',
-      message: 'Usuario María García accedió al sistema',
-      time: 'hace 15 min',
-      lab: 'LAB-001'
-    },
-    {
-      id: 3,
-      type: 'system',
-      message: 'Backup de base de datos completado',
-      time: 'hace 1 hora'
-    },
-    {
-      id: 4,
-      type: 'alert',
-      message: 'Alerta de temperatura resuelta',
-      time: 'hace 2 horas',
-      lab: 'LAB-002'
-    }
-  ]);
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
 
   // Carga de datos del sistema
   useEffect(() => {
     const fetchSystemData = async () => {
       try {
-        // En una implementación futura, podrías tener un endpoint de "stats"
-        // Por ahora, obtenemos el total de usuarios de la lista de usuarios
-        const response = await fetch('http://localhost:4000/api/users');
-        if (response.ok) {
-          const users = await response.json();
-          setSystemStats(prev => ({
-            ...prev,
-            totalUsers: users.length
-          }));
+        // Obtener estadísticas generales
+        const statsRes = await fetch('http://localhost:4000/api/dashboard/stats');
+        if (statsRes.ok) {
+          const stats = await statsRes.json();
+          setSystemStats(stats);
         }
 
-        // Otros datos simulados (o podrías añadir más fetch aquí)
-        setSystemStats(prev => ({
-          ...prev,
-          totalLabs: 8,
-          activeLabs: 6,
-          activeSensors: 156,
-          totalDevices: 89,
-          automationEnabled: 5
-        }));
+        // Obtener alertas
+        const alertsRes = await fetch('http://localhost:4000/api/dashboard/alerts');
+        if (alertsRes.ok) {
+          const alertsData = await alertsRes.json();
+          // Se formatea la hora en base al formato requerido o se deja tal cual la retorna la BD
+          setAlerts(alertsData);
+        }
+
+        // Obtener actividad reciente
+        const activitiesRes = await fetch('http://localhost:4000/api/dashboard/activities');
+        if (activitiesRes.ok) {
+          const activities = await activitiesRes.json();
+          setRecentActivities(activities);
+        }
 
       } catch (error) {
         console.error('Error al cargar datos del sistema:', error);
