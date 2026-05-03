@@ -8,6 +8,7 @@ import { pool } from './config/db';
 import homeAssistantRoutes from './routes/homeAssistantRoutes';
 import rolRoutes from './routes/rolRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
+import { startHAWebsocketServer } from './services/haWebSocketService';
 
 dotenv.config();
 
@@ -40,6 +41,8 @@ const startServer = async () => {
     connection.release();
     app.listen(PORT, () => {
       console.log(`Servidor corriendo en http://localhost:${PORT}`);
+      // Iniciar el puente WebSocket para Unity y Home Assistant
+      startHAWebsocketServer();
     });
   } catch (error) {
     console.error('Error al iniciar el servidor:', error);
