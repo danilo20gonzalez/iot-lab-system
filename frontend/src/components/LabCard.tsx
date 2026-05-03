@@ -1,17 +1,14 @@
 import {
-  Thermometer,
-  Droplets,
   ChevronRight,
   Activity,
   Trash2,
-  Users,
-  Power,
   ShieldOff,
   Microscope,
   Wifi,
-  Eye,
   Edit3,
 } from "lucide-react";
+import TemperatureControl from './deviceControl/TemperatureControl';
+import HumidityControl from './deviceControl/HumidityControl';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -21,32 +18,26 @@ interface LabCardProps {
   id: number;
   code?: string;
   name: string;
-  temperature: number;
-  humidity: number;
   activeSensors: number;
   associatedUsers: number;
   status: "activo" | "alerta" | "mantenimiento";
   automationStatus: "on" | "off";
   isZoneDisabled: boolean;
+  sensors?: { id: string; type: string; name: string }[];
   onDelete?: () => void;
   onEdit?: () => void;
-  onView?: () => void;
 }
 
 export default function LabCard({
   id,
   code,
   name,
-  temperature,
-  humidity,
   activeSensors,
-  associatedUsers,
   status,
-  automationStatus,
   isZoneDisabled,
+  sensors = [],
   onDelete,
   onEdit,
-  onView,
 }: LabCardProps) {
   const navigate = useNavigate();
   const getStatusConfig = (status: string) => {
@@ -87,25 +78,12 @@ export default function LabCard({
     if (onEdit) onEdit();
   };
 
-  const handleView = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onView) onView();
-  };
 
   return (
     <div className="bg-white rounded-xl border border-gray-300 shadow-md hover:shadow-lg transition-all duration-300 p-5 flex flex-col gap-5 group hover:border-gray-600 relative">
 
       {/* Botones de acción superiores */}
       <div className="absolute top-4 right-4 z-10 flex items-center gap-1">
-        {onView && (
-          <button
-            onClick={handleView}
-            className="p-2 text-gray-400 hover:text-emerald-600 bg-white rounded-full transition-colors duration-300 ring-1 ring-gray-100 hover:ring-emerald-200"
-            title="Ver detalles"
-          >
-            <Eye size={16} />
-          </button>
-        )}
         {onEdit && (
           <button
             onClick={handleEdit}
@@ -162,40 +140,17 @@ export default function LabCard({
         )}
       </div>
 
-      {/* --- Métricas clave (Temperatura y Humedad) --- */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-red-300 transition-colors duration-300">
-          <div className="flex items-center justify-between mb-2">
-            <Thermometer className="text-red-500" size={18} />
-            <span className="text-xs font-semibold text-red-600">TEMP</span>
-          </div>
-          <div className="text-2xl font-extrabold text-gray-900 mb-0.5">{temperature}°C</div>
-          <div className="text-xs text-gray-500">Temperatura Amb.</div>
-        </div>
 
-        <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-colors duration-300">
-          <div className="flex items-center justify-between mb-2">
-            <Droplets className="text-blue-500" size={18} />
-            <span className="text-xs font-semibold text-blue-600">HUM</span>
-          </div>
-          <div className="text-2xl font-extrabold text-gray-900 mb-0.5">{humidity}%</div>
-          <div className="text-xs text-gray-500">Humedad Prom.</div>
+      {/* --- Sensores Asignados --- */}
+      {sensors && sensors.length > 0 && (
+        <div className="grid grid-cols-2 gap-3 mt-4">
+          {sensors.map((sensor) => (
+            <div key={sensor.id} className="h-[140px] transform scale-90 origin-top-left -mb-6">
+              {sensor.type === 'temperature' ? <TemperatureControl /> : <HumidityControl />}
+            </div>
+          ))}
         </div>
-      </div>
-
-      {/* --- Resumen de Gestión --- */}
-      <div className="flex justify-between items-center text-sm pt-2 border-t border-gray-100">
-        <div className="flex items-center gap-2 text-gray-600">
-          <Users size={16} className="text-gray-400" />
-          <span className="font-semibold">{associatedUsers}</span>
-          <span className="text-xs text-gray-500">Usuarios Asoc.</span>
-        </div>
-
-        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold capitalize ${automationStatus === 'on' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'}`}>
-          <Power size={14} />
-          {automationStatus === 'on' ? 'Automatizado' : 'Manual'}
-        </div>
-      </div>
+      )}
 
       {/* --- Botón de Acción --- */}
       <button
