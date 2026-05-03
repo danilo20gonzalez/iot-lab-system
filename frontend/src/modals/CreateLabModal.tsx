@@ -1,30 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, FlaskConical, Beaker, Tag, FileText, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import api from '../api/api';
+
 
 interface CreateLabModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onCreated?: () => void; // callback para refrescar la lista después de crear
+    onSave: (labData: { name: string; description: string; status: 'active' | 'maintenance' | 'inactive' }) => void;
+    editingLab?: { name: string; description: string; status: 'active' | 'maintenance' | 'inactive' } | null;
 }
 
-export default function CreateLabModal({ isOpen, onClose, onCreated }: CreateLabModalProps) {
+export default function CreateLabModal({ isOpen, onClose, onSave, editingLab }: CreateLabModalProps) {
     const [formData, setFormData] = useState({
-        nombre: '',
-        descripcion: '',
-        estadoId: '1', // 1 = Activo por defecto
+        name: '',
+        description: '',
+        status: 'active' as 'active' | 'maintenance' | 'inactive',
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
+    // Reset form when modal opens/closes or editingLab changes
+    useEffect(() => {
+        if (editingLab) {
+            setFormData(editingLab);
+        } else {
+            setFormData({ name: '', description: '', status: 'active' });
+        }
+    }, [isOpen, editingLab]);
+
     const validate = () => {
         const newErrors: Record<string, string> = {};
-        if (!formData.nombre.trim()) newErrors.nombre = 'El nombre es obligatorio';
-        if (formData.nombre.trim().length > 100) newErrors.nombre = 'Máximo 100 caracteres';
-        if (!formData.descripcion.trim()) newErrors.descripcion = 'La descripción es obligatoria';
-        if (formData.descripcion.trim().length > 500) newErrors.descripcion = 'Máximo 500 caracteres';
+        if (!formData.name.trim()) newErrors.name = 'El nombre es obligatorio';
+        if (formData.name.trim().length > 100) newErrors.name = 'Máximo 100 caracteres';
+        if (!formData.description.trim()) newErrors.description = 'La descripción es obligatoria';
+        if (formData.description.trim().length > 500) newErrors.description = 'Máximo 500 caracteres';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -47,19 +57,13 @@ export default function CreateLabModal({ isOpen, onClose, onCreated }: CreateLab
 
         setIsSubmitting(true);
         try {
-            await api.post('/createLaboratorio', {
-                nombre: formData.nombre.trim(),
-                descripcion: formData.descripcion.trim(),
-                estadoId: Number(formData.estadoId),
-            });
-
+            await onSave(formData);
             // Reset form
-            setFormData({ nombre: '', descripcion: '', estadoId: '1' });
+            setFormData({ name: '', description: '', status: 'active' });
             setErrors({});
-            onCreated?.();
             onClose();
         } catch (error: any) {
-            const msg = error.response?.data?.message || 'Error al crear el laboratorio';
+            const msg = error.response?.data?.message || 'Error al guardar el laboratorio';
             alert(msg);
             console.error(error);
         } finally {
@@ -107,10 +111,10 @@ export default function CreateLabModal({ isOpen, onClose, onCreated }: CreateLab
                                 </div>
                                 <div>
                                     <h2 className="text-base font-bold text-gray-900">
-                                        Nuevo Laboratorio
+                                        {editingLab ? 'Editar Laboratorio' : 'Nuevo Laboratorio'}
                                     </h2>
                                     <p className="text-[11px] text-gray-500">
-                                        Registra un nuevo laboratorio
+                                        {editingLab ? 'Modifica los datos del laboratorio' : 'Registra un nuevo laboratorio'}
                                     </p>
                                 </div>
                             </div>
@@ -135,19 +139,19 @@ export default function CreateLabModal({ isOpen, onClose, onCreated }: CreateLab
                                 </label>
                                 <input
                                     type="text"
-                                    value={formData.nombre}
-                                    onChange={(e) => handleChange('nombre', e.target.value)}
+                                    value={formData.name}
+                                    onChange={(e) => handleChange('name', e.target.value)}
                                     placeholder="Ej: Laboratorio de Física Avanzada"
-                                    className={`w-full px-3 py-2 text-sm border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all duration-200 bg-gray-50 hover:bg-white focus:bg-white ${errors.nombre ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'
+                                    className={`w-full px-3 py-2 text-sm border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all duration-200 bg-gray-50 hover:bg-white focus:bg-white ${errors.name ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'
                                         }`}
                                 />
-                                {errors.nombre && (
+                                {errors.name && (
                                     <motion.p
                                         initial={{ opacity: 0, y: -5 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         className="text-red-500 text-xs mt-1.5 flex items-center gap-1"
                                     >
-                                        <span>⚠</span> {errors.nombre}
+                                        <span>⚠</span> {errors.name}
                                     </motion.p>
                                 )}
                             </div>
@@ -159,25 +163,25 @@ export default function CreateLabModal({ isOpen, onClose, onCreated }: CreateLab
                                     Descripción
                                 </label>
                                 <textarea
-                                    value={formData.descripcion}
-                                    onChange={(e) => handleChange('descripcion', e.target.value)}
+                                    value={formData.description}
+                                    onChange={(e) => handleChange('description', e.target.value)}
                                     placeholder="Describe brevemente el propósito del laboratorio..."
                                     rows={2}
-                                    className={`w-full px-3 py-2 text-sm border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all duration-200 resize-none bg-gray-50 hover:bg-white focus:bg-white ${errors.descripcion ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'
+                                    className={`w-full px-3 py-2 text-sm border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all duration-200 resize-none bg-gray-50 hover:bg-white focus:bg-white ${errors.description ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'
                                         }`}
                                 />
                                 <div className="flex justify-between items-center mt-1">
-                                    {errors.descripcion ? (
+                                    {errors.description ? (
                                         <motion.p
                                             initial={{ opacity: 0, y: -5 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             className="text-red-500 text-xs flex items-center gap-1"
                                         >
-                                            <span>⚠</span> {errors.descripcion}
+                                            <span>⚠</span> {errors.description}
                                         </motion.p>
                                     ) : <span />}
-                                    <span className={`text-xs ${formData.descripcion.length > 450 ? 'text-amber-500' : 'text-gray-400'}`}>
-                                        {formData.descripcion.length}/500
+                                    <span className={`text-xs ${formData.description.length > 450 ? 'text-amber-500' : 'text-gray-400'}`}>
+                                        {formData.description.length}/500
                                     </span>
                                 </div>
                             </div>
@@ -190,15 +194,15 @@ export default function CreateLabModal({ isOpen, onClose, onCreated }: CreateLab
                                 </label>
                                 <div className="grid grid-cols-3 gap-2">
                                     {[
-                                        { value: '1', label: 'Activo', icon: '🟢', color: 'emerald' },
-                                        { value: '2', label: 'Mantenimiento', icon: '🟡', color: 'amber' },
-                                        { value: '3', label: 'Inactivo', icon: '🔴', color: 'red' },
+                                        { value: 'active', label: 'Activo', icon: '🟢', color: 'emerald' },
+                                        { value: 'maintenance', label: 'Mantenimiento', icon: '🟡', color: 'amber' },
+                                        { value: 'inactive', label: 'Inactivo', icon: '🔴', color: 'red' },
                                     ].map((option) => (
                                         <button
                                             key={option.value}
                                             type="button"
-                                            onClick={() => handleChange('estadoId', option.value)}
-                                            className={`relative p-2 rounded-lg border-2 transition-all duration-200 text-center ${formData.estadoId === option.value
+                                            onClick={() => handleChange('status', option.value as 'active' | 'maintenance' | 'inactive')}
+                                            className={`relative p-2 rounded-lg border-2 transition-all duration-200 text-center ${formData.status === option.value
                                                 ? option.color === 'emerald'
                                                     ? 'border-emerald-500 bg-emerald-50 shadow-md shadow-emerald-500/10'
                                                     : option.color === 'amber'
@@ -208,11 +212,11 @@ export default function CreateLabModal({ isOpen, onClose, onCreated }: CreateLab
                                                 }`}
                                         >
                                             <span className="text-sm block">{option.icon}</span>
-                                            <span className={`text-[11px] font-semibold ${formData.estadoId === option.value ? 'text-gray-800' : 'text-gray-500'
+                                            <span className={`text-[11px] font-semibold ${formData.status === option.value ? 'text-gray-800' : 'text-gray-500'
                                                 }`}>
                                                 {option.label}
                                             </span>
-                                            {formData.estadoId === option.value && (
+                                            {formData.status === option.value && (
                                                 <motion.div
                                                     layoutId="estadoIndicator"
                                                     className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center"
@@ -261,7 +265,7 @@ export default function CreateLabModal({ isOpen, onClose, onCreated }: CreateLab
                                             Creando...
                                         </>
                                     ) : (
-                                        'Crear Laboratorio'
+                                        'crear Laboratorio'
                                     )}
                                 </button>
                             </div>
