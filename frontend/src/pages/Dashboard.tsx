@@ -5,17 +5,12 @@ import {
   Users,
   Building2,
   Thermometer,
-  Droplets,
   Camera,
   AlertTriangle,
-  CheckCircle,
   Clock,
   BarChart3,
   Settings,
-  Shield,
-  Cpu,
-  Zap,
-  Eye
+  Cpu
 } from 'lucide-react';
 import Navbar from "../components/Navbar";
 import SummaryCard from "../components/SummaryCard";

@@ -73,7 +73,7 @@ export default function UserCard({ user, onEdit, onDelete }: UserCardProps) {
 
         <div className="flex items-center gap-3 text-sm text-gray-600">
           <Calendar size={16} className="text-gray-400" />
-          <span>Creado: {formatDate(user.creado_en)}</span>
+          <span>Creado: {user.creado_en ? formatDate(user.creado_en) : 'N/A'}</span>
         </div>
       </div>
     </div>

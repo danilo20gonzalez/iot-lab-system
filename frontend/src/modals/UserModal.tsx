@@ -42,7 +42,7 @@ export default function UserModal({ isOpen, onClose, user }: UserModalProps) {
     useEffect(() => {
         if (user) {
             setFormData({
-                nombre_completo: user.nombre_completo,
+                nombre_completo: user.nombre_completo || '',
                 username: user.username,
                 password: '', // Por seguridad no cargamos la contraseña vieja
                 email: user.email,

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Layers, Beaker, Tag, FileText, Activity, Hash, Lightbulb, Trash2 } from 'lucide-react';
+import { X, Layers, Tag, FileText, Activity, Lightbulb, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ComponentPanel from '../components/ComponentPanel';
 import LightControl from '../components/deviceControl/LightControl';

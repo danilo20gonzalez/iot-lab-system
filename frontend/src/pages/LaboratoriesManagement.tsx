@@ -1,6 +1,6 @@
 // components/LaboratoriesManagement.tsx
 import { useState, useEffect } from 'react';
-import { Plus, Search, Building2, Users, Thermometer, Droplets, Eye, Edit3, Trash2 } from 'lucide-react';
+import { Plus, Search, Building2, Users, Thermometer, Edit3, Trash2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import LabCard from '../components/LabCard';
 import CreateLabModal from '../modals/CreateLabModal';
@@ -41,7 +41,6 @@ const getStatusText = (status: string) => {
 };
 
 export default function LaboratoriesManagement() {
-    const navigate = useNavigate();
     const [laboratories, setLaboratories] = useState<Laboratory[]>([]);
     const [filteredLabs, setFilteredLabs] = useState<Laboratory[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -131,10 +130,7 @@ export default function LaboratoriesManagement() {
         }
     };
 
-    // Navegar a la página del laboratorio
-    const handleViewLaboratory = (labId: number) => {
-        navigate(`/laboratory/${labId}`);
-    };
+
 
     const handleEditLab = (lab: Laboratory) => {
         setEditingLab(lab);
