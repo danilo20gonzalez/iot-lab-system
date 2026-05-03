@@ -5,18 +5,12 @@ import { RowDataPacket } from 'mysql2';
 // Obtener todos los usuarios
 export const getUsers = async (req: Request, res: Response) => {
   try {
-    const [rows] = await pool.query<RowDataPacket[]>(`
-      SELECT 
-        id_usuario,
-        username,
-        email,
-        fk_id_rol,
-        creado_en
-      FROM usuario
-      ORDER BY id_usuario DESC;
-    `);
+    const [rows] = await pool.query<RowDataPacket[]>('CALL OBTENER_USUARIOS()');
 
-    res.json(rows);
+    // Al usar CALL, mysql2 devuelve un arreglo de arreglos
+    const users = rows[0];
+
+    res.json(users);
   } catch (error) {
     console.error('Error al obtener usuarios:', error);
     res.status(500).json({ message: 'Error al obtener los usuarios' });
@@ -27,11 +21,7 @@ export const getUsers = async (req: Request, res: Response) => {
 export const deleteUser = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
-    const [result] = await pool.query<RowDataPacket[]>('DELETE FROM usuario WHERE id_usuario = ?', [id]);
-
-    if ((result as any).affectedRows === 0) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
+    await pool.query('CALL ELIMINAR_USUARIO(?)', [id]);
 
     res.json({ message: 'Usuario eliminado correctamente' });
   } catch (error) {
@@ -46,16 +36,10 @@ export const updateUser = async (req: Request, res: Response) => {
   const { nombre_completo, username, email, estado, fk_id_rol } = req.body;
 
   try {
-    const [result] = await pool.query(
-      `UPDATE usuario 
-       SET username = ?, email = ?, estado = ?, fk_id_rol = ? 
-       WHERE id_usuario = ?`,
-      [username, email, estado, fk_id_rol, id]
+    await pool.query(
+      'CALL ACTUALIZAR_USUARIO(?, ?, ?, ?, ?, ?)',
+      [id, nombre_completo, username, email, estado, fk_id_rol]
     );
-
-    if ((result as any).affectedRows === 0) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
 
     res.json({ message: 'Usuario actualizado correctamente' });
   } catch (error) {

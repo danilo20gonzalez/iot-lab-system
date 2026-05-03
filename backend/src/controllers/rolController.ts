@@ -5,11 +5,11 @@ import { RowDataPacket } from 'mysql2';
 // Obtener todos los roles
 export const getRoles = async (req: Request, res: Response) => {
   try {
-    const [rows] = await pool.query<RowDataPacket[]>(`
-      SELECT * FROM rol ORDER BY id_rol ASC;
-    `);
+    const [rows] = await pool.query<RowDataPacket[]>('CALL OBTENER_ROLES()');
 
-    res.json(rows);
+    const roles = rows[0];
+
+    res.json(roles);
   } catch (error) {
     console.error('Error al obtener roles:', error);
     res.status(500).json({ message: 'Error al obtener los roles' });
