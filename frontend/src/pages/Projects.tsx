@@ -13,11 +13,9 @@ interface Proyecto {
   id: number;
   nombre: string;
   descripcion: string;
-  estanteriasTotal: number;
-  estanteriasUsadas: number;
-  phAgua: number;
-  modulosActivos: number;
+  estadoId: string;
   status: "activo" | "inactivo" | "alerta";
+  sensors?: { id: string; type: string; name: string }[];
 }
 
 
@@ -25,35 +23,19 @@ interface Proyecto {
 const Projects = () => {
   const [proyectos, setProyectos] = useState<Proyecto[]>([
     {
-      id: 1,
-      nombre: "Proyecto 1",
-      descripcion: "Tanque de agua principal",
-      estanteriasTotal: 12,
-      estanteriasUsadas: 8,
-      phAgua: 7.2,
-      modulosActivos: 3,
+      id: 9999,
+      nombre: "Proyecto de Prueba (Ejemplo)",
+      descripcion: "Este es un proyecto de ejemplo para probar los sensores.",
+      estadoId: '1',
       status: "activo",
-    },
-    {
-      id: 2,
-      nombre: "Proyecto 2",
-      descripcion: "Tanque de agua secundario",
-      estanteriasTotal: 8,
-      estanteriasUsadas: 5,
-      phAgua: 6.8,
-      modulosActivos: 2,
-      status: "inactivo",
+      sensors: [
+        { id: "ph-1", type: "ph", name: "Sensor de pH Principal" }
+      ]
     },
   ]);
 
   const [placedComponents, setPlacedComponents] = useState<ComponentData[]>([]);
-  const [nombreProyecto, setNombreProyecto] = useState("");
-  const [descripcionProyecto, setDescripcionProyecto] = useState("");
-  const [estanteriasTotal, setEstanteriasTotal] = useState(0);
-  const [estanteriasUsadas, setEstanteriasUsadas] = useState(0);
-  const [phAgua, setPhAgua] = useState(7.0);
-  const [modulosActivos, setModulosActivos] = useState(0);
-  const [status, setStatus] = useState<"activo" | "inactivo" | "alerta">("activo");
+  const [editingProject, setEditingProject] = useState<Proyecto | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
@@ -120,29 +102,28 @@ const Projects = () => {
     );
   };
 
-  const crearProyecto = () => {
-    if (!nombreProyecto.trim() || !descripcionProyecto.trim()) return;
-
-    const nuevoProyecto: Proyecto = {
-      id: Date.now(),
-      nombre: nombreProyecto,
-      descripcion: descripcionProyecto,
-      estanteriasTotal: estanteriasTotal,
-      estanteriasUsadas: estanteriasUsadas,
-      phAgua: phAgua,
-      modulosActivos: modulosActivos,
-      status: status,
-    };
-
-    setProyectos([...proyectos, nuevoProyecto]);
-    setNombreProyecto("");
-    setDescripcionProyecto("");
-    setEstanteriasTotal(0);
-    setEstanteriasUsadas(0);
-    setPhAgua(7.0);
-    setModulosActivos(0);
-    setStatus("activo");
+  const handleSaveProject = async (projectData: any) => {
+    // Aquí iría la llamada a la API. Como es un mock local, solo actualizamos el estado.
+    if (editingProject) {
+      setProyectos(prev => prev.map(p => p.id === editingProject.id ? {
+        ...p,
+        ...projectData,
+        status: projectData.estadoId === '1' ? 'activo' : projectData.estadoId === '2' ? 'alerta' : 'inactivo'
+      } : p));
+    } else {
+      setProyectos(prev => [...prev, {
+        ...projectData,
+        id: Date.now(),
+        status: projectData.estadoId === '1' ? 'activo' : projectData.estadoId === '2' ? 'alerta' : 'inactivo'
+      }]);
+    }
     setShowCreateForm(false);
+  };
+
+  const handleDeleteProject = (id: number) => {
+    if (window.confirm("¿Estás seguro de eliminar este proyecto?")) {
+      setProyectos(prev => prev.filter(p => p.id !== id));
+    }
   };
 
   return (
@@ -218,7 +199,10 @@ const Projects = () => {
 
           <div className="flex gap-4">
             <button
-              onClick={() => setShowCreateForm(true)}
+              onClick={() => {
+                setEditingProject(null);
+                setShowCreateForm(true);
+              }}
               className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 cursor-pointer"
             >
               <span className="text-lg">+</span>
@@ -233,13 +217,13 @@ const Projects = () => {
             <ProjectCard
               key={proyecto.id}
               nombre={proyecto.nombre}
-              estanteriasTotal={proyecto.estanteriasTotal}
-              estanteriasUsadas={proyecto.estanteriasUsadas}
-              phAgua={proyecto.phAgua}
-              modulosActivos={proyecto.modulosActivos}
               status={proyecto.status}
-              onEdit={() => console.log('Editar proyecto', proyecto.id)}
-              onDelete={() => console.log('Eliminar proyecto', proyecto.id)}
+              sensors={proyecto.sensors}
+              onEdit={() => {
+                setEditingProject(proyecto);
+                setShowCreateForm(true);
+              }}
+              onDelete={() => handleDeleteProject(proyecto.id)}
             />
           ))}
         </div>
@@ -248,8 +232,12 @@ const Projects = () => {
 
       <CreateProjectModal
         isOpen={showCreateForm}
-        onClose={() => setShowCreateForm(false)}
-        onCreated={() => setShowCreateForm(false)}
+        onClose={() => {
+          setShowCreateForm(false);
+          setEditingProject(null);
+        }}
+        onSave={handleSaveProject}
+        editingProject={editingProject}
       />
 
       <ComponentPanel

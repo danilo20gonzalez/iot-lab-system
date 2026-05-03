@@ -1,68 +1,53 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { Eye, Edit3, Trash2 } from "lucide-react";
+import { Edit3, Trash2 } from "lucide-react";
 import LightControl from './deviceControl/LightControl';
 
 interface ShelfCardProps {
   nombre: string;
-  proyectoNombre: string;
-  filasTotal: number;
-  filasUsadas: number;
-  modulosActivos: number;
-  status: "activo" | "inactivo" | "alerta";
+  status: "active" | "maintenance" | "inactive";
+  sensors?: { id: string; type: string; name: string }[];
   onDelete?: () => void;
   onEdit?: () => void;
-  onView?: () => void;
 }
 
 const ShelfCard = ({
   nombre,
-  proyectoNombre,
-  filasTotal,
-  filasUsadas,
-  modulosActivos,
   status,
+  sensors = [],
   onDelete,
   onEdit,
-  onView,
 }: ShelfCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
   const getStatusColor = () => {
     switch (status) {
-      case "activo":
+      case "active":
         return "bg-gradient-to-r from-gray-700 to-gray-800";
-      case "inactivo":
-        return "bg-gradient-to-r from-gray-400 to-gray-600";
-      case "alerta":
+      case "maintenance":
         return "bg-gradient-to-r from-yellow-400 to-orange-600";
+      case "inactive":
+        return "bg-gradient-to-r from-gray-400 to-gray-600";
       default:
         return "bg-gradient-to-r from-gray-400 to-gray-600";
     }
   };
 
-  const usagePercentage = filasTotal > 0
-    ? Math.min((filasUsadas / filasTotal) * 100, 100)
-    : 0;
-
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     if (onDelete) onDelete();
   };
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     if (onEdit) onEdit();
-  };
-
-  const handleView = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onView) onView();
   };
 
   return (
     <motion.div
-      className="relative bg-gradient-to-br from-white to-gray-50 p-6 rounded-2xl shadow-lg border border-gray-100 overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col gap-4 group"
+      className="relative bg-gradient-to-br from-white to-gray-50 p-6 rounded-2xl shadow-lg border border-gray-100 overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -70,76 +55,70 @@ const ShelfCard = ({
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Background decoration */}
-      <div className="absolute inset-0 bg-gradient-to-r from-purple-100/30 to-pink-100/30 opacity-50 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-r from-gray-100/30 to-gray-200/30 opacity-50 pointer-events-none" />
 
       {/* Botones de acción superiores */}
-      <div className="absolute top-4 right-4 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <button
-          onClick={handleView}
-          className="p-2 text-gray-400 hover:text-gray-700 bg-white rounded-full transition-colors duration-300 ring-1 ring-gray-100 hover:ring-gray-200 shadow-sm"
-          title="Ver detalles"
-        >
-          <Eye size={16} />
-        </button>
-        <button
-          onClick={handleEdit}
-          className="p-2 text-gray-400 hover:text-gray-700 bg-white rounded-full transition-colors duration-300 ring-1 ring-gray-100 hover:ring-gray-200 shadow-sm"
-          title="Editar estantería"
-        >
-          <Edit3 size={16} />
-        </button>
-        <button
-          onClick={handleDelete}
-          className="p-2 text-gray-400 hover:text-red-500 bg-white rounded-full transition-colors duration-300 ring-1 ring-gray-100 hover:ring-red-100 shadow-sm"
-          title="Eliminar estantería"
-        >
-          <Trash2 size={16} />
-        </button>
-      </div>
-
-      <div className="relative z-0">
-        {/* Header con nombre y status */}
-        <div className="flex justify-between items-start mb-3 pr-28">
-          <div>
-            <h3 className="text-xl font-bold text-gray-800 tracking-tight leading-tight">{nombre}</h3>
-            {/* Proyecto asignado alineado debajo del nombre */}
-            <div className="mt-2 flex items-center">
-              <span className="text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-1 rounded-lg">
-                📦 {proyectoNombre}
-              </span>
-            </div>
-          </div>
-          <span
-            className={`text-white px-3 py-1 rounded-full text-xs font-bold uppercase transition-transform duration-300 ${getStatusColor()}`}
-            style={{ transform: isHovered ? 'scale(1.05)' : 'scale(1)' }}
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-1 opacity-100 transition-opacity duration-300">
+        {onEdit && (
+          <button
+            onClick={handleEdit}
+            className="p-2 text-gray-400 hover:text-gray-900 bg-white rounded-full transition-colors duration-300 ring-1 ring-gray-100 hover:ring-gray-200 shadow-sm"
+            title="Editar estantería"
           >
-            {status}
-          </span>
-        </div>
-
-        {/* Filas Usadas - Rediseño Horizontal */}
-        <div className="mb-6">
-          <div className="flex justify-between items-end mb-1">
-            <span className="text-gray-800 text-xl font-semibold">Filas</span>
-            <span className="text-gray-800 text-xl font-bold">{filasUsadas} / {filasTotal}</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-            <motion.div
-              className="bg-gradient-to-r from-gray-700 to-gray-800 h-1.5 rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${usagePercentage}%` }}
-              transition={{ duration: 1, ease: 'easeInOut' }}
-            />
-          </div>
-        </div>
-
-        {/* Light Control dentro de la card */}
-        <div className="flex justify-center border-t border-gray-100 pt-5">
-          <LightControl />
-        </div>
+            <Edit3 size={16} />
+          </button>
+        )}
+        {onDelete && (
+          <button
+            onClick={handleDelete}
+            className="p-2 text-gray-400 hover:text-red-500 bg-white rounded-full transition-colors duration-300 ring-1 ring-gray-100 hover:ring-red-100 shadow-sm"
+            title="Eliminar estantería"
+          >
+            <Trash2 size={16} />
+          </button>
+        )}
       </div>
+
+      <div className="relative flex justify-between items-start mb-6 pr-20">
+        <h3 className="text-xl font-bold text-gray-800 tracking-tight leading-tight">{nombre}</h3>
+        <motion.span
+          className={`text-white px-3 py-1 rounded-full text-xs font-medium ${getStatusColor()}`}
+          animate={{ scale: isHovered ? 1.1 : 1 }}
+          transition={{ duration: 0.2 }}
+        >
+          {status === 'active' ? 'Activo' : status === 'maintenance' ? 'Mantenimiento' : 'Inactivo'}
+        </motion.span>
+      </div>
+
+      {/* --- Sensores Asignados --- */}
+      {sensors && sensors.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 z-10 relative">
+          {sensors.map((sensor) => (
+            <div key={sensor.id} className="h-[165px] relative overflow-hidden rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center">
+              <div className="absolute top-0 left-0 w-[115%] transform scale-[0.85] origin-top-left -ml-1 -mt-1">
+                {sensor.type === 'light' ? <LightControl /> : null}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Interactive button */}
+      <motion.button
+        className="relative z-20 mt-6 w-full bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-black text-white py-2 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl items-center gap-2 cursor-pointer"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={(e) => {
+          e.stopPropagation();
+          // Navegación o acción adicional si se requiere
+        }}
+      >
+        Gestionar Filas
+      </motion.button>
     </motion.div>
   );
 };
 
+
 export default ShelfCard;
+

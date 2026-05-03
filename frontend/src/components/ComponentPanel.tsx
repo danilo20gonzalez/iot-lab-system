@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Wind, Lightbulb, Camera, Droplets } from 'lucide-react';
+import { X, Wind, Lightbulb, Camera, Droplets, Thermometer, Beaker } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 interface ComponentPanelProps {
@@ -38,6 +38,27 @@ const availableComponents = [
     icon: Droplets,
     color: 'bg-blue-500',
   },
+  {
+    type: 'temperature',
+    name: 'Sensor de Temperatura',
+    description: 'Monitoreo de temperatura ambiental',
+    icon: Thermometer,
+    color: 'bg-red-500',
+  },
+  {
+    type: 'humidity',
+    name: 'Sensor de Humedad',
+    description: 'Monitoreo de humedad ambiental',
+    icon: Droplets,
+    color: 'bg-indigo-500',
+  },
+  {
+    type: 'ph',
+    name: 'Sensor de pH',
+    description: 'Monitoreo de alcalinidad/acidez',
+    icon: Beaker,
+    color: 'bg-emerald-500',
+  },
 ];
 
 export default function ComponentPanel({ isOpen, onClose, onAddComponent, allowedTypes }: ComponentPanelProps) {
@@ -71,14 +92,14 @@ export default function ComponentPanel({ isOpen, onClose, onAddComponent, allowe
       {/* Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm"
+          className="fixed inset-0 bg-black/30 z-[110] backdrop-blur-sm"
           onClick={onClose}
         ></div>
       )}
 
       {/* Panel lateral */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'
+        className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-[120] transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
       >
         {/* Header del panel */}
