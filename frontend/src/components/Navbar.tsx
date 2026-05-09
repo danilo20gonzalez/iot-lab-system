@@ -18,7 +18,7 @@ export default function Navbar() {
 
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isComponentsPanelOpen, setIsComponentsPanelOpen] = useState(false);
+
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Refs para la animación del indicador
@@ -94,15 +94,6 @@ export default function Navbar() {
   const handleNavigation = (path: string) => {
     navigate(path);
     setIsMenuOpen(false);
-  };
-
-  const handleOpenComponentsPanel = () => {
-    setIsComponentsPanelOpen(true);
-    setIsMenuOpen(false);
-  };
-
-  const handleCloseComponentsPanel = () => {
-    setIsComponentsPanelOpen(false);
   };
 
   return (
@@ -353,7 +344,7 @@ export default function Navbar() {
 
             <button
               className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200"
-              onClick={handleOpenComponentsPanel}
+              onClick={() => {}}
             >
               <Activity size={18} className="text-emerald-400" />
               <span className="font-medium text-sm">Componentes</span>
@@ -439,7 +430,7 @@ export default function Navbar() {
 
               <button
                 className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200"
-                onClick={handleOpenComponentsPanel}
+                onClick={() => {}}
               >
                 <Activity size={16} className="text-emerald-400" />
                 <span className="text-sm font-medium">Componentes</span>

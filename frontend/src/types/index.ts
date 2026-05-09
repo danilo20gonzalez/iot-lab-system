@@ -2,11 +2,13 @@
 
 export interface User {
   id_usuario: number;
+  nombre_completo?: string;
   username: string;
-  password: string;
+  password?: string;
   email: string;
   fk_id_rol: number;
-  creado_en: string;
+  estado?: string;
+  creado_en?: string;
 }
 
 // Estos tipos ayudan para validaciones en formularios

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Cpu, Tag, FileText, Activity, Wind, Lightbulb, Camera, Droplets } from 'lucide-react';
+import { X, Cpu, Tag, FileText, Activity, Wind, Lightbulb, Camera, Droplets, Thermometer, Beaker } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface CreateSensorModalProps {
@@ -16,6 +16,10 @@ export interface SensorFormData {
     tipo: string;
     estado: 'activo' | 'inactivo' | 'mantenimiento';
     ubicacion: string;
+    valor?: number | string;
+    unidad?: string;
+    deviceName?: string;
+    entityId?: string;
 }
 
 const sensorTypes = [
@@ -55,6 +59,36 @@ const sensorTypes = [
         description: 'Control del sistema hidráulico',
         icon: Droplets,
         color: 'from-blue-500 to-indigo-600',
+        bgLight: 'bg-blue-50',
+        borderActive: 'border-blue-500',
+        shadowActive: 'shadow-blue-500/10',
+    },
+    {
+        type: 'temperature',
+        name: 'Sensor de Temperatura',
+        description: 'Monitoreo de temperatura ambiental',
+        icon: Thermometer,
+        color: 'from-orange-500 to-red-500',
+        bgLight: 'bg-red-50',
+        borderActive: 'border-red-500',
+        shadowActive: 'shadow-red-500/10',
+    },
+    {
+        type: 'humidity',
+        name: 'Sensor de Humedad',
+        description: 'Monitoreo de humedad ambiental',
+        icon: Droplets,
+        color: 'from-indigo-500 to-purple-600',
+        bgLight: 'bg-indigo-50',
+        borderActive: 'border-indigo-500',
+        shadowActive: 'shadow-indigo-500/10',
+    },
+    {
+        type: 'ph',
+        name: 'Sensor de pH',
+        description: 'Monitoreo de acidez/alcalinidad del agua',
+        icon: Beaker,
+        color: 'from-blue-600 to-cyan-600',
         bgLight: 'bg-blue-50',
         borderActive: 'border-blue-500',
         shadowActive: 'shadow-blue-500/10',

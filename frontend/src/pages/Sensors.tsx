@@ -1,15 +1,19 @@
 // src/pages/Sensors.tsx
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import AirConditionerControl from '../components/deviceControl/AirConditionerControl';
 import LightControl from '../components/deviceControl/LightControl';
 import RealTimeCamera from '../components/deviceControl/RealTimeCamera';
 import WaterValveControl from '../components/deviceControl/WaterValveControl';
+import TemperatureControl from '../components/deviceControl/TemperatureControl';
+import HumidityControl from '../components/deviceControl/HumidityControl';
+import PhControl from '../components/deviceControl/PhControl';
 import CreateSensorModal from '../modals/CreateSensorModal';
 import type { SensorFormData } from '../modals/CreateSensorModal';
+import { obtenerSensoresHA, obtenerSwitchesHA } from '../api/api';
 import {
   Wind, Lightbulb, Camera, Droplets, Plus, Search,
-  Filter, Cpu, Trash2, MapPin, ChevronDown
+  Filter, Cpu, Trash2, MapPin, ChevronDown, Thermometer, Beaker
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -49,6 +53,27 @@ const SENSOR_TYPE_META: Record<string, {
     dot: 'bg-blue-400',
     badge: 'bg-blue-500/10 text-blue-600 border-blue-200',
   },
+  temperature: {
+    name: 'Sensor Temperatura',
+    icon: Thermometer,
+    gradient: 'from-orange-500 to-red-500',
+    dot: 'bg-red-400',
+    badge: 'bg-red-500/10 text-red-600 border-red-200',
+  },
+  humidity: {
+    name: 'Sensor Humedad',
+    icon: Droplets,
+    gradient: 'from-indigo-500 to-purple-600',
+    dot: 'bg-indigo-400',
+    badge: 'bg-indigo-500/10 text-indigo-600 border-indigo-200',
+  },
+  ph: {
+    name: 'Sensor pH',
+    icon: Beaker,
+    gradient: 'from-blue-600 to-cyan-600',
+    dot: 'bg-blue-400',
+    badge: 'bg-blue-500/10 text-blue-600 border-blue-200',
+  },
 };
 
 const FILTER_OPTIONS = [
@@ -57,6 +82,9 @@ const FILTER_OPTIONS = [
   { value: 'light', label: 'Luces' },
   { value: 'camera', label: 'Cámaras' },
   { value: 'valve', label: 'Válvulas' },
+  { value: 'temperature', label: 'Temperatura' },
+  { value: 'humidity', label: 'Humedad' },
+  { value: 'ph', label: 'pH' },
 ];
 
 /* ─── Sensores iniciales (los 4 que ya existen) ─── */
@@ -93,19 +121,54 @@ const DEFAULT_SENSORS: SensorFormData[] = [
     estado: 'activo',
     ubicacion: 'Jardín Exterior',
   },
+  {
+    id: 'default-temp-1',
+    nombre: 'TEMP-Lab-Principal',
+    descripcion: 'Sensor de temperatura ambiental del laboratorio principal',
+    tipo: 'temperature',
+    estado: 'activo',
+    ubicacion: 'Laboratorio Principal',
+  },
+  {
+    id: 'default-hum-1',
+    nombre: 'HUM-Lab-Principal',
+    descripcion: 'Sensor de humedad ambiental del laboratorio principal',
+    tipo: 'humidity',
+    estado: 'activo',
+    ubicacion: 'Laboratorio Principal',
+  },
+  {
+    id: 'default-ph-1',
+    nombre: 'PH-Lab-01',
+    descripcion: 'Sensor de pH del tanque de agua principal',
+    tipo: 'ph',
+    estado: 'activo',
+    ubicacion: 'Laboratorio Principal',
+  },
 ];
 
 /* ─── Componente que renderiza el control real ─── */
-function SensorControlWidget({ tipo }: { tipo: string }) {
+function SensorControlWidget({ tipo, valor, sensor }: { tipo: string; valor?: number | string; sensor?: any }) {
   switch (tipo) {
     case 'air-conditioner':
       return <AirConditionerControl />;
     case 'light':
-      return <LightControl />;
+      return <LightControl 
+        entityId={sensor?.entityId} 
+        haState={valor as string} 
+        nombre={sensor?.nombre}
+      />;
     case 'camera':
       return <RealTimeCamera />;
     case 'valve':
       return <WaterValveControl />;
+    case 'temperature':
+      
+      return <TemperatureControl valorReal={valor} />;
+    case 'humidity':
+      return <HumidityControl valorReal={valor} />;
+    case 'ph':
+      return <PhControl valorReal={valor} />;
     default:
       return null;
   }
@@ -116,6 +179,7 @@ function SensorCard({
   sensor,
   onDelete,
   index,
+
 }: {
   sensor: SensorFormData;
   onDelete: (id: string) => void;
@@ -185,7 +249,7 @@ function SensorCard({
 
       {/* Widget del control real */}
       <div className="p-3">
-        <SensorControlWidget tipo={sensor.tipo} />
+        <SensorControlWidget tipo={sensor.tipo} valor={sensor.valor} sensor={sensor} />
       </div>
     </motion.div>
   );
@@ -198,6 +262,51 @@ const Sensors = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+
+  /* Cargar sensores y switches desde Home Assistant al montar el componente */
+  useEffect(() => {
+    const cargarSensoresYSwitches = async () => {
+      try {
+        const [sensoresHA, switchesHA] = await Promise.all([
+          obtenerSensoresHA(),
+          obtenerSwitchesHA(),
+        ]);
+        
+        // Convertir sensores de HA al formato SensorFormData
+        const sensoresFormateados = sensoresHA.map((sensor: any) => ({
+          id: sensor.entityId,
+          nombre: sensor.nombre,
+          descripcion: `Sensor de ${sensor.tipo === 'temperature' ? 'temperatura' : 'humedad'} - ${sensor.valor} ${sensor.unidad}`,
+          tipo: sensor.tipo,
+          estado: 'activo',
+          ubicacion: sensor.ubicacion,
+          valor: sensor.valor,
+          unidad: sensor.unidad,
+        }));
+
+        // Convertir switches al formato SensorFormData
+        const switchesFormateados = switchesHA.map((device: any) => ({
+          id: device.entityId,
+          nombre: device.nombre,
+          descripcion: `Switch ${device.nombre} - Estado: ${device.estado}`,
+          tipo: 'light',
+          estado: device.estado === 'on' ? 'activo' : 'inactivo',
+          ubicacion: device.ubicacion,
+          valor: device.estado,
+          deviceName: device.deviceName,
+          entityId: device.entityId,
+        }));
+
+        // Combinar sensores y switches del HA con los componentes por defecto
+        setSensors([...switchesFormateados, ...sensoresFormateados, ...DEFAULT_SENSORS]);
+      } catch (error) {
+        console.error('Error al cargar sensores y switches:', error);
+        // Si hay error, se mantienen los componentes por defecto
+      }
+    };
+
+    cargarSensoresYSwitches();
+  }, []);
 
   /* Filtrado */
   const filteredSensors = useMemo(() => {
@@ -388,6 +497,7 @@ const Sensors = () => {
                   sensor={sensor}
                   onDelete={handleDeleteSensor}
                   index={i}
+                  
                 />
               ))}
             </AnimatePresence>

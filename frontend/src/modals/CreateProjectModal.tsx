@@ -1,23 +1,50 @@
-import { useState } from 'react';
-import { X, LayoutGrid, Beaker, Tag, FileText, Activity } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, LayoutGrid, Tag, FileText, Activity, Beaker, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import api from '../api/api';
+import ComponentPanel from '../components/ComponentPanel';
+import PhControl from '../components/deviceControl/PhControl';
+
+interface PlacedSensor {
+    id: string;
+    type: string;
+    name: string;
+}
 
 interface CreateProjectModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onCreated?: () => void;
+    onSave: (projectData: { nombre: string; descripcion: string;  sensors: PlacedSensor[] }) => void;
+    editingProject?: { id: number; nombre: string; descripcion: string; sensors?: PlacedSensor[] } | null;
 }
 
-export default function CreateProjectModal({ isOpen, onClose, onCreated }: CreateProjectModalProps) {
+export default function CreateProjectModal({ isOpen, onClose, onSave, editingProject }: CreateProjectModalProps) {
     const [formData, setFormData] = useState({
         nombre: '',
         descripcion: '',
-        estadoId: '1',
+     
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [isPanelOpen, setIsPanelOpen] = useState(false);
+    const [placedSensors, setPlacedSensors] = useState<PlacedSensor[]>([]);
+
+    useEffect(() => {
+        if (isOpen) {
+            if (editingProject) {
+                setFormData({
+                    nombre: editingProject.nombre,
+                    descripcion: editingProject.descripcion,
+                });
+                setPlacedSensors(editingProject.sensors || []);
+            } else {
+                setFormData({ nombre: '', descripcion: '' });
+                setPlacedSensors([]);
+            }
+            setErrors({});
+            setIsPanelOpen(false);
+        }
+    }, [isOpen, editingProject]);
 
     const validate = () => {
         const newErrors: Record<string, string> = {};
@@ -40,26 +67,59 @@ export default function CreateProjectModal({ isOpen, onClose, onCreated }: Creat
         }
     };
 
+    const handleAddSensor = (component: any) => {
+        const newSensor: PlacedSensor = {
+            id: `${component.type}-${Date.now()}`,
+            type: component.type,
+            name: component.name,
+        };
+        setPlacedSensors(prev => [...prev, newSensor]);
+    };
+
+    const handleRemoveSensor = (sensorId: string) => {
+        setPlacedSensors(prev => prev.filter(s => s.id !== sensorId));
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        const data = e.dataTransfer.getData('application/json');
+        if (!data) return;
+        try {
+            const componentData = JSON.parse(data);
+            if (componentData.type === 'ph') {
+                handleAddSensor(componentData);
+            }
+        } catch (error) {
+            console.error('Error al procesar componente:', error);
+        }
+    };
+
+    const renderSensorWidget = (sensor: PlacedSensor) => {
+        switch (sensor.type) {
+            case 'ph':
+                return <PhControl />;
+            default:
+                return null;
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validate()) return;
 
         setIsSubmitting(true);
         try {
-            // TODO: Ajustar endpoint cuando exista la ruta de proyectos en el backend
-            await api.post('/createProject', {
-                nombre: formData.nombre.trim(),
-                descripcion: formData.descripcion.trim(),
-                estadoId: Number(formData.estadoId),
-            });
-
-            setFormData({ nombre: '', descripcion: '', estadoId: '1' });
+            await onSave({ ...formData, sensors: placedSensors });
+            setFormData({ nombre: '', descripcion: '' });
             setErrors({});
-            onCreated?.();
+            setPlacedSensors([]);
             onClose();
         } catch (error: any) {
-            const msg = error.response?.data?.message || 'Error al crear el proyecto';
-            alert(msg);
             console.error(error);
         } finally {
             setIsSubmitting(false);
@@ -71,185 +131,201 @@ export default function CreateProjectModal({ isOpen, onClose, onCreated }: Creat
     };
 
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <div
-                    className="fixed inset-0 z-[100] flex items-center justify-center"
-                    onClick={handleOverlayClick}
-                >
-                    {/* Overlay */}
-                    <motion.div
-                        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                    />
-
-                    {/* Modal Card */}
-                    <motion.div
-                        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-hidden flex flex-col"
-                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        transition={{ duration: 0.25, ease: 'easeOut' }}
-                        onClick={(e) => e.stopPropagation()}
+        <>
+            <AnimatePresence>
+                {isOpen && (
+                    <div
+                        className="fixed inset-0 z-[100] flex items-center justify-center"
+                        onClick={handleOverlayClick}
                     >
-                        {/* Línea decorativa superior con gradiente azul */}
-                        <div className="h-1 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600" />
+                        <motion.div
+                            className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                        />
 
-                        {/* Header */}
-                        <div className="flex justify-between items-center px-5 py-3">
-                            <div className="flex items-center gap-2.5">
-                                <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center shadow-md shadow-blue-500/25">
-                                    <LayoutGrid size={18} className="text-white" />
-                                </div>
-                                <div>
-                                    <h2 className="text-base font-bold text-gray-900">
-                                        Nuevo Proyecto
-                                    </h2>
-                                    <p className="text-[11px] text-gray-500">
-                                        Registra un nuevo proyecto en el módulo
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={onClose}
-                                className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-all duration-200"
-                            >
-                                <X size={16} />
-                            </button>
-                        </div>
-
-                        {/* Divider sutil */}
-                        <div className="mx-5 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
-
-                        {/* Form */}
-                        <form onSubmit={handleSubmit} className="px-5 py-4 space-y-3 overflow-y-auto">
-                            {/* Nombre del Proyecto */}
-                            <div>
-                                <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-1">
-                                    <Tag size={12} className="text-blue-600" />
-                                    Nombre del Proyecto
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.nombre}
-                                    onChange={(e) => handleChange('nombre', e.target.value)}
-                                    placeholder="Ej: Proyecto 1"
-                                    className={`w-full px-3 py-2 text-sm border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-gray-50 hover:bg-white focus:bg-white ${errors.nombre ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'
-                                        }`}
-                                />
-                                {errors.nombre && (
-                                    <motion.p
-                                        initial={{ opacity: 0, y: -5 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="text-red-500 text-xs mt-1.5 flex items-center gap-1"
+                        <motion.div
+                            className={`relative bg-white rounded-2xl shadow-2xl w-full ${editingProject ? 'max-w-2xl' : 'max-w-md'} mx-4 max-h-[90vh] overflow-hidden flex flex-col`}
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            transition={{ duration: 0.2, ease: 'easeOut' }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 flex-shrink-0">
+                                <div className="h-1 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600" />
+                                
+                                <div className="flex justify-between items-center px-5 py-3">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-md shadow-blue-500/25">
+                                            <LayoutGrid size={18} className="text-white" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-base font-bold text-gray-900">
+                                                {editingProject ? 'Editar Proyecto' : 'Nuevo Proyecto'}
+                                            </h2>
+                                            <p className="text-[11px] text-gray-500 font-medium">
+                                                {editingProject ? 'Modifica los datos del proyecto' : 'Registra un nuevo proyecto'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={onClose}
+                                        className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                                     >
-                                        <span>⚠</span> {errors.nombre}
-                                    </motion.p>
-                                )}
-                            </div>
-
-                            {/* Descripción */}
-                            <div>
-                                <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-1">
-                                    <FileText size={12} className="text-blue-600" />
-                                    Descripción
-                                </label>
-                                <textarea
-                                    value={formData.descripcion}
-                                    onChange={(e) => handleChange('descripcion', e.target.value)}
-                                    placeholder="Describe brevemente el propósito del proyecto..."
-                                    rows={2}
-                                    className={`w-full px-3 py-2 text-sm border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 resize-none bg-gray-50 hover:bg-white focus:bg-white ${errors.descripcion ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'
-                                        }`}
-                                />
-                                <div className="flex justify-between items-center mt-1">
-                                    {errors.descripcion ? (
-                                        <motion.p
-                                            initial={{ opacity: 0, y: -5 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="text-red-500 text-xs flex items-center gap-1"
-                                        >
-                                            <span>⚠</span> {errors.descripcion}
-                                        </motion.p>
-                                    ) : <span />}
-                                    <span className={`text-xs ${formData.descripcion.length > 450 ? 'text-amber-500' : 'text-gray-400'}`}>
-                                        {formData.descripcion.length}/500
-                                    </span>
+                                        <X size={18} />
+                                    </button>
                                 </div>
                             </div>
 
-                            {/* Estado */}
-                            <div>
-                                <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-1">
-                                    <Activity size={12} className="text-blue-600" />
-                                    Estado Inicial
-                                </label>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {[
-                                        { value: '1', label: 'Activo', icon: '🟢', color: 'blue' },
-                                        { value: '2', label: 'Mantenimiento', icon: '🟡', color: 'amber' },
-                                        { value: '3', label: 'Inactivo', icon: '🔴', color: 'red' },
-                                    ].map((option) => (
-                                        <button
-                                            key={option.value}
-                                            type="button"
-                                            onClick={() => handleChange('estadoId', option.value)}
-                                            className={`relative p-2 rounded-lg border-2 transition-all duration-200 text-center ${formData.estadoId === option.value
-                                                ? option.color === 'blue'
-                                                    ? 'border-blue-500 bg-blue-50 shadow-md shadow-blue-500/10'
-                                                    : option.color === 'amber'
-                                                        ? 'border-amber-500 bg-amber-50 shadow-md shadow-amber-500/10'
-                                                        : 'border-red-500 bg-red-50 shadow-md shadow-red-500/10'
-                                                : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-white'
-                                                }`}
+                            <form id="projectForm" onSubmit={handleSubmit} className="px-5 py-4 space-y-4 overflow-y-auto flex-1">
+                                <div>
+                                    <label className="flex items-center gap-1.5 text-xs font-bold text-gray-700 mb-1.5">
+                                        <Tag size={14} className="text-blue-500" />
+                                        Nombre del Proyecto
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.nombre}
+                                        onChange={(e) => handleChange('nombre', e.target.value)}
+                                        placeholder="Ej: Proyecto Hidropónico"
+                                        className={`w-full px-3.5 py-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-50/50 hover:bg-white focus:bg-white ${errors.nombre ? 'border-red-400 ring-1 ring-red-400 focus:ring-red-400/20' : 'border-gray-200'}`}
+                                    />
+                                    {errors.nombre && <p className="text-red-500 text-[11px] mt-1 font-medium pl-1">{errors.nombre}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="flex items-center gap-1.5 text-xs font-bold text-gray-700 mb-1.5">
+                                        <FileText size={14} className="text-blue-500" />
+                                        Descripción
+                                    </label>
+                                    <textarea
+                                        value={formData.descripcion}
+                                        onChange={(e) => handleChange('descripcion', e.target.value)}
+                                        placeholder="Describe el propósito del proyecto..."
+                                        rows={3}
+                                        className={`w-full px-3.5 py-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-200 resize-none bg-gray-50/50 hover:bg-white focus:bg-white ${errors.descripcion ? 'border-red-400 ring-1 ring-red-400 focus:ring-red-400/20' : 'border-gray-200'}`}
+                                    />
+                                    <div className="flex justify-between items-center mt-1 px-1">
+                                        <p className="text-red-500 text-[11px] font-medium">{errors.descripcion}</p>
+                                        <span className="text-[10px] text-gray-400 font-medium">
+                                            {formData.descripcion.length}/500
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="flex items-center gap-1.5 text-xs font-bold text-gray-700 mb-2">
+                                        <Activity size={14} className="text-blue-500" />
+                                        Estado
+                                    </label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {[
+                                            { value: '1', label: 'Activo', icon: '🟢', color: 'blue' },
+                                            { value: '2', label: 'Mantenimiento', icon: '🟡', color: 'amber' },
+                                            { value: '3', label: 'Inactivo', icon: '🔴', color: 'red' },
+                                        ].map((option) => (
+                                            <button
+                                                key={option.value}
+                                                type="button"
+                                                onClick={() => handleChange('estadoId', option.value)}
+                                                className={`relative p-2 rounded-lg border-2 transition-all duration-200 text-center 
+                                                    ? option.color === 'blue'
+                                                        ? 'border-blue-500 bg-blue-50 shadow-md shadow-blue-500/10'
+                                                        : option.color === 'amber'
+                                                            ? 'border-amber-500 bg-amber-50 shadow-md shadow-amber-500/10'
+                                                            : 'border-red-500 bg-red-50 shadow-md shadow-red-500/10'
+                                                    : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-white'
+                                                    }`}
+                                            >
+                                                <span className="text-sm block">{option.icon}</span>
+                                                <span className={`text-[11px] font-semibold $e ? 'text-gray-800' : 'text-gray-500'}`}>
+                                                    {option.label}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {editingProject && (
+                                    <div className="mt-6 border-t border-gray-100 pt-5">
+                                        <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2 mb-3">
+                                            <Beaker size={16} className="text-blue-500" />
+                                            Sensores IoT del Proyecto
+                                        </h3>
+                                        <p className="text-xs text-gray-500 mb-3">
+                                            Arrastra sensores desde el panel o haz clic para añadir
+                                        </p>
+
+                                        <div
+                                            className={`border-2 border-dashed rounded-2xl p-4 transition-all duration-200 ${placedSensors.length === 0 ? 'border-blue-200 bg-blue-50/30 min-h-[160px] flex items-center justify-center' : 'border-gray-200 bg-white shadow-inner'}`}
+                                            onDragOver={handleDragOver}
+                                            onDrop={handleDrop}
                                         >
-                                            <span className="text-sm block">{option.icon}</span>
-                                            <span className={`text-[11px] font-semibold ${formData.estadoId === option.value ? 'text-gray-800' : 'text-gray-500'
-                                                }`}>
-                                                {option.label}
-                                            </span>
-                                            {formData.estadoId === option.value && (
-                                                <motion.div
-                                                    layoutId="projectEstadoIndicator"
-                                                    className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center"
-                                                    initial={{ scale: 0 }}
-                                                    animate={{ scale: 1 }}
-                                                    transition={{ type: 'spring', stiffness: 300 }}
-                                                >
-                                                    <span className="text-white text-[8px]">✓</span>
-                                                </motion.div>
+                                            {placedSensors.length === 0 ? (
+                                                <div className="text-center px-6">
+                                                    <div className="w-12 h-12 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                                                        <Beaker size={24} />
+                                                    </div>
+                                                    <p className="text-sm font-medium text-gray-600 mb-3">No hay sensores instalados</p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsPanelOpen(true)}
+                                                        className="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors"
+                                                    >
+                                                        Abrir Panel de Componentes
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    {placedSensors.map((sensor) => (
+                                                        <div key={sensor.id} className="relative group">
+                                                            <div className="h-[120px] relative overflow-hidden rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center">
+                                                                <div className="absolute top-0 left-0 w-full transform scale-[0.65] origin-top-left -ml-2 -mt-4">
+                                                                    {renderSensorWidget(sensor)}
+                                                                </div>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleRemoveSensor(sensor.id)}
+                                                                className="absolute -top-2 -right-2 w-7 h-7 bg-white text-red-500 rounded-full shadow-lg border border-red-100 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-50 hover:scale-110 z-10"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsPanelOpen(true)}
+                                                        className="h-[120px] border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center text-gray-400 hover:text-blue-500 hover:border-blue-300 hover:bg-blue-50/50 transition-all duration-200"
+                                                    >
+                                                        <span className="text-2xl mb-1">+</span>
+                                                        <span className="text-xs font-semibold">Añadir Sensor</span>
+                                                    </button>
+                                                </div>
                                             )}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
-                            {/* Info card */}
-                            <div className="bg-blue-50/60 border border-blue-100 rounded-xl p-3 flex items-start gap-3">
-                                <Beaker size={18} className="text-blue-600 mt-0.5 flex-shrink-0" />
-                                <p className="text-xs text-blue-700 leading-relaxed">
-                                    Una vez creado el proyecto, podrás asignarle estanterías, sensores y
-                                    configurar los parámetros de monitoreo desde el panel de control.
-                                </p>
-                            </div>
+                            </form>
 
-                            {/* Botones */}
-                            <div className="flex gap-3 pt-1">
+                            <div className="p-5 border-t border-gray-100 bg-white flex gap-3 flex-shrink-0">
                                 <button
                                     type="button"
                                     onClick={onClose}
                                     disabled={isSubmitting}
-                                    className="flex-1 px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl border border-gray-200 transition-all duration-200 disabled:opacity-50"
+                                    className="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl border border-gray-200 transition-all duration-200 disabled:opacity-50"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
+                                    form="projectForm"
                                     disabled={isSubmitting}
-                                    className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 rounded-xl shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 rounded-xl shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     {isSubmitting ? (
                                         <>
@@ -257,17 +333,26 @@ export default function CreateProjectModal({ isOpen, onClose, onCreated }: Creat
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                             </svg>
-                                            Creando...
+                                            Guardando...
                                         </>
                                     ) : (
-                                        'Crear Proyecto'
+                                        editingProject ? 'Guardar Cambios' : 'Crear Proyecto'
                                     )}
                                 </button>
                             </div>
-                        </form>
-                    </motion.div>
-                </div>
-            )}
-        </AnimatePresence>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+            <ComponentPanel
+                isOpen={isPanelOpen}
+                onClose={() => setIsPanelOpen(false)}
+                onAddComponent={(comp) => {
+                    handleAddSensor(comp);
+                    setIsPanelOpen(false);
+                }}
+                allowedTypes={['ph']}
+            />
+        </>
     );
 }

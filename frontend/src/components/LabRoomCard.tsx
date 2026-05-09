@@ -2,25 +2,27 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Edit3, Trash2 } from "lucide-react";
+import TemperatureControl from './deviceControl/TemperatureControl';
+import HumidityControl from './deviceControl/HumidityControl';
 
 interface LabRoomCardProps {
+  id: number;
   nombre: string;
-  dispositivosConectados: number;
-  temperatura: number;
-  modulosActivos: number;
-  status: "activo" | "inactivo" | "alerta";
+  descripcion: string;
+  sensors?: { id: string; type: string; name: string }[];
   onDelete?: () => void;
   onEdit?: () => void;
+  onClick?: () => void;
 }
 
 const LabRoomCard = ({
+  id,
   nombre,
-  dispositivosConectados,
-  temperatura,
-  modulosActivos,
-  status,
+  descripcion,
+  sensors = [],
   onDelete,
   onEdit,
+  onClick
 }: LabRoomCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -39,17 +41,13 @@ const LabRoomCard = ({
 
   const navigate = useNavigate();
 
-  // Calculate temperature percentage for the progress ring (assuming 0-50°C range)
-  const tempPercentage = Math.min((temperatura / 50) * 100, 100);
-
-  // Función para navegar directamente a la vista 3D estática para pruebas
   const handleViewDetails = (e: React.MouseEvent) => {
-    // *** IMPORTANTE: Prevenir la propagación del evento ***
     e.stopPropagation();
     e.preventDefault();
-
     console.log(`Navigating from ${nombre} to /project`);
-    navigate(`/project`);
+    navigate(`/project/${id}`, { 
+      state: { nombre, descripcion } 
+    });
   };
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -72,12 +70,11 @@ const LabRoomCard = ({
       transition={{ duration: 0.5 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
     >
-      {/* Background decoration */}
       <div className="absolute inset-0 bg-gradient-to-r from-green-100/30 to-green-100/30 opacity-50 pointer-events-none" />
 
-      {/* Botones de acción superiores */}
-      <div className="absolute top-4 right-4 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-1 opacity-100 group-hover:opacity-100 transition-opacity duration-300">
         {onEdit && (
           <button
             onClick={handleEdit}
@@ -99,7 +96,10 @@ const LabRoomCard = ({
       </div>
 
       <div className="relative flex justify-between items-start mb-6 pr-20">
-        <h3 className="text-xl font-bold text-gray-800 tracking-tight">{nombre}</h3>
+        <h3 className="text-xl font-bold text-gray-800 tracking-tight">
+          {nombre}
+        </h3>
+        <p className="text-sm text-gray-500 font-medium mt-0.5">Descripción: {descripcion}</p>
         <motion.span
           className={`text-white px-3 py-1 rounded-full text-sm font-medium ${getStatusColor()}`}
           animate={{ scale: isHovered ? 1.1 : 1 }}
@@ -109,68 +109,27 @@ const LabRoomCard = ({
         </motion.span>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
-        <div className="space-y-1">
-          <p className="text-gray-500 text-sm">Dispositivos conectados</p>
-          <motion.p
-            className="text-2xl font-bold text-gray-800"
-            animate={{ color: isHovered ? '#0B750E' : '#1F2937' }}
-            transition={{ duration: 0.3 }}
-          >
-            {dispositivosConectados}
-          </motion.p>
-        </div>
-        <div className="space-y-1">
-          <p className="text-gray-500 text-sm">Módulos activos</p>
-          <motion.p
-            className="text-2xl font-bold text-gray-800"
-            animate={{ color: isHovered ? '#0B750E' : '#1F2937' }}
-            transition={{ duration: 0.3 }}
-          >
-            {modulosActivos}
-          </motion.p>
-        </div>
-        <div className="col-span-2 flex items-center space-x-4">
-          <p className="text-gray-500 text-sm">Temperatura</p>
-          <div className="relative w-16 h-16">
-            <svg className="w-full h-full" viewBox="0 0 36 36">
-              <path
-                d="M18 2.0845
-                  a 15.9155 15.9155 0 0 1 0 31.831
-                  a 15.9155 15.9155 0 0 1 0 -31.831"
-                fill="none"
-                stroke="#E5E7EB"
-                strokeWidth="3"
-              />
-              <motion.path
-                d="M18 2.0845
-                  a 15.9155 15.9155 0 0 1 0 31.831
-                  a 15.9155 15.9155 0 0 1 0 -31.831"
-                fill="none"
-                stroke="#0B750E"
-                strokeWidth="3"
-                strokeDasharray={`${tempPercentage}, 100`}
-                initial={{ strokeDasharray: '0, 100' }}
-                animate={{ strokeDasharray: `${tempPercentage}, 100` }}
-                transition={{ duration: 1, ease: 'easeInOut' }}
-              />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <p className="text-lg font-bold text-gray-800">{temperatura}°C</p>
+      {/* --- Sensores Asignados --- */}
+      {sensors && sensors.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 z-10 relative">
+          {sensors.map((sensor) => (
+            <div key={sensor.id} className="h-[165px] relative overflow-hidden rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center">
+              <div className="absolute top-0 left-0 w-[115%] transform scale-[0.85] origin-top-left -ml-1 -mt-1">
+                {sensor.type === 'temperature' ? <TemperatureControl /> : <HumidityControl />}
+              </div>
             </div>
-          </div>
+          ))}
         </div>
-      </div>
+      )}
 
-      {/* Interactive button - VERSIÓN CORREGIDA */}
       <motion.button
-        className="mt-6 w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white py-2 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-100 items-center gap-2 cursor-pointer" // Agregado relative z-10
+        className="relative z-20 mt-6 w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white py-2 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-100 items-center gap-2 cursor-pointer"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={handleViewDetails}
-        // Agregar estas props para asegurar que el click funcione
         onMouseDown={(e) => e.stopPropagation()}
         onMouseUp={(e) => e.stopPropagation()}
+
       >
         Ver Detalles
       </motion.button>

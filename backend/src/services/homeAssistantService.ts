@@ -42,3 +42,81 @@ export async function apagarSwitch(entityId: string) {
         throw new Error(error.message);
     }
 }
+
+export async function obtenerSensores() {
+    try {
+        const response = await axios.get(
+            `http://${HA_HOST}/api/states`,
+            {
+                headers: {
+                    Authorization: `Bearer ${TOKEN}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        // Filtrar solo sensores de temperatura y humedad
+        const sensores = response.data.filter((entity: any) => {
+            const entityId = entity.entity_id;
+            return entityId.startsWith("sensor.") && 
+                   (entityId.toLowerCase().includes("temperature") || 
+                    entityId.toLowerCase().includes("temperatura") ||
+                    entityId.toLowerCase().includes("humidity") || 
+                    entityId.toLowerCase().includes("humedad"));
+        }).map((entity: any) => {
+            const eId = entity.entity_id.toLowerCase();
+            return {
+                entityId: entity.entity_id,
+                nombre: entity.attributes?.friendly_name || entity.entity_id,
+                valor: entity.state,
+                unidad: entity.attributes?.unit_of_measurement || "",
+                tipo: eId.includes("temperature") || eId.includes("temperatura") 
+                    ? "temperature" 
+                    : "humidity",
+                ubicacion: entity.attributes?.area_id || "Desconocida",
+                deviceName: entity.attributes?.device_name || ""
+            };
+        });
+
+        return sensores;
+
+    } catch (error: any) {
+        throw new Error(error.message);
+    }
+}
+
+export async function obtenerSwitches() {
+    try {
+        const response = await axios.get(
+            `http://${HA_HOST}/api/states`,
+            {
+                headers: {
+                    Authorization: `Bearer ${TOKEN}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        // Filtrar solo switches (luces, Sonoff, etc)
+        const switches = response.data.filter((entity: any) => {
+            const entityId = entity.entity_id.toLowerCase();
+            return entityId.startsWith("light.");
+        }).map((entity: any) => {
+            const eId = entity.entity_id.toLowerCase();
+            return {
+                entityId: entity.entity_id,
+                nombre: entity.attributes?.friendly_name || entity.entity_id,
+                estado: entity.state, // "on" o "off"
+                tipo: "light", // Tipo de dispositivo
+                ubicacion: entity.attributes?.area_id || "Desconocida",
+                deviceName: entity.attributes?.device_name || "",
+                icon: entity.attributes?.icon || "mdi:lightbulb"
+            };
+        });
+
+        return switches;
+
+    } catch (error: any) {
+        throw new Error(error.message);
+    }
+}

@@ -1,9 +1,28 @@
 import { Power, Settings, BarChart3, RotateCcw, Zap } from 'lucide-react';
 import { useState } from 'react';
 
-const LightControlSimple = () => {
-    const [isOn, setIsOn] = useState(true);
+interface LightControlProps {
+    entityId?: string;
+    haState?: string;
+    nombre?: string;
+    onToggle?: (entityId: string, turnOn: boolean) => void;
+}
+
+const LightControlSimple = ({ entityId = 'light.minir4m', haState, nombre, onToggle }: LightControlProps) => {
+    // Si Home Assistant provee el estado, lo usamos; si no, usamos el local
+    const [localIsOn, setLocalIsOn] = useState(haState === 'on' ? true : false);
     const [isFlipped, setIsFlipped] = useState(false);
+
+    const isOn = haState ? haState === 'on' : localIsOn;
+
+    const handleToggle = () => {
+        const newState = !isOn;
+        if (onToggle) {
+            onToggle(entityId, newState);
+        } else {
+            setLocalIsOn(newState);
+        }
+    };
 
     return (
         <div className="w-64 h-36 group">
@@ -18,7 +37,7 @@ const LightControlSimple = () => {
                     <div className="absolute inset-0 backface-hidden bg-white rounded-2xl p-3 flex flex-col justify-between border border-gray-100">
                         <div className="flex justify-between items-start">
                             <div>
-                                <h2 className="text-gray-800 font-bold text-xs tracking-tight">Sala Principal</h2>
+                                <h2 className="text-gray-800 font-bold text-xs tracking-tight">{nombre || 'Sala Principal'}</h2>
                                 <p className="text-[9px] text-gray-400 uppercase tracking-wider font-medium">Iluminación</p>
                             </div>
                             <button className="text-gray-300 hover:text-indigo-500 transition-colors">
@@ -42,7 +61,7 @@ const LightControlSimple = () => {
 
                         <div className="flex gap-2 mt-1">
                             <button
-                                onClick={() => setIsOn(!isOn)}
+                                onClick={handleToggle}
                                 className={`flex-[3] py-1.5 text-xs font-semibold rounded-lg transition-all
                 ${isOn
                                         ? 'bg-gray-900 text-white hover:bg-black'
