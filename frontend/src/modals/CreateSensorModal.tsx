@@ -16,6 +16,10 @@ export interface SensorFormData {
     tipo: string;
     estado: 'activo' | 'inactivo' | 'mantenimiento';
     ubicacion: string;
+    valor?: number | string;
+    unidad?: string;
+    deviceName?: string;
+    entityId?: string;
 }
 
 const sensorTypes = [

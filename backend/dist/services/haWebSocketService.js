@@ -10,7 +10,7 @@ const axios_1 = __importDefault(require("axios"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const HA_TOKEN = process.env.HA_TOKEN || "";
-const HA_HOST = process.env.HA_HOST || "192.168.1.7:8123";
+const HA_HOST = process.env.HA_HOST || "192.168.1.12:8123";
 const HA_WS_URL = `ws://${HA_HOST}/api/websocket`;
 const HA_HTTP_URL = `http://${HA_HOST}/api`;
 let haWs = null;

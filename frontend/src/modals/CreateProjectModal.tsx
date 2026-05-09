@@ -13,15 +13,15 @@ interface PlacedSensor {
 interface CreateProjectModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (projectData: { nombre: string; descripcion: string; estadoId: string; sensors: PlacedSensor[] }) => void;
-    editingProject?: { id: number; nombre: string; descripcion: string; estadoId: string; sensors?: PlacedSensor[] } | null;
+    onSave: (projectData: { nombre: string; descripcion: string;  sensors: PlacedSensor[] }) => void;
+    editingProject?: { id: number; nombre: string; descripcion: string; sensors?: PlacedSensor[] } | null;
 }
 
 export default function CreateProjectModal({ isOpen, onClose, onSave, editingProject }: CreateProjectModalProps) {
     const [formData, setFormData] = useState({
         nombre: '',
         descripcion: '',
-        estadoId: '1',
+     
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,11 +35,10 @@ export default function CreateProjectModal({ isOpen, onClose, onSave, editingPro
                 setFormData({
                     nombre: editingProject.nombre,
                     descripcion: editingProject.descripcion,
-                    estadoId: editingProject.estadoId,
                 });
                 setPlacedSensors(editingProject.sensors || []);
             } else {
-                setFormData({ nombre: '', descripcion: '', estadoId: '1' });
+                setFormData({ nombre: '', descripcion: '' });
                 setPlacedSensors([]);
             }
             setErrors({});
@@ -116,7 +115,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSave, editingPro
         setIsSubmitting(true);
         try {
             await onSave({ ...formData, sensors: placedSensors });
-            setFormData({ nombre: '', descripcion: '', estadoId: '1' });
+            setFormData({ nombre: '', descripcion: '' });
             setErrors({});
             setPlacedSensors([]);
             onClose();
@@ -232,7 +231,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSave, editingPro
                                                 key={option.value}
                                                 type="button"
                                                 onClick={() => handleChange('estadoId', option.value)}
-                                                className={`relative p-2 rounded-lg border-2 transition-all duration-200 text-center ${formData.estadoId === option.value
+                                                className={`relative p-2 rounded-lg border-2 transition-all duration-200 text-center 
                                                     ? option.color === 'blue'
                                                         ? 'border-blue-500 bg-blue-50 shadow-md shadow-blue-500/10'
                                                         : option.color === 'amber'
@@ -242,7 +241,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSave, editingPro
                                                     }`}
                                             >
                                                 <span className="text-sm block">{option.icon}</span>
-                                                <span className={`text-[11px] font-semibold ${formData.estadoId === option.value ? 'text-gray-800' : 'text-gray-500'}`}>
+                                                <span className={`text-[11px] font-semibold $e ? 'text-gray-800' : 'text-gray-500'}`}>
                                                     {option.label}
                                                 </span>
                                             </button>

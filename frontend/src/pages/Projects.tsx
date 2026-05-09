@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useLocation, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import ProjectCard from "../components/ProjectCard";
 import ComponentPanel from "../components/ComponentPanel";
@@ -8,36 +9,52 @@ import RealTimeCamera from "../components/deviceControl/RealTimeCamera";
 import CreateProjectModal from '../modals/CreateProjectModal';
 import { ReactSortable } from 'react-sortablejs';
 import type { ComponentData } from "../context/AppContext";
+import api from "../api/api";
 
 interface Proyecto {
   id: number;
   nombre: string;
   descripcion: string;
-  estadoId: string;
-  status: "activo" | "inactivo" | "alerta";
   sensors?: { id: string; type: string; name: string }[];
 }
 
 
 
 const Projects = () => {
-  const [proyectos, setProyectos] = useState<Proyecto[]>([
-    {
-      id: 9999,
-      nombre: "Proyecto de Prueba (Ejemplo)",
-      descripcion: "Este es un proyecto de ejemplo para probar los sensores.",
-      estadoId: '1',
-      status: "activo",
-      sensors: [
-        { id: "ph-1", type: "ph", name: "Sensor de pH Principal" }
-      ]
-    },
-  ]);
-
+  const location = useLocation();
+  const { id } = useParams<{ id: string }>();
+  const moduloState = location.state as { nombre: string; descripcion: string } | undefined;
+  
+  const [proyectos, setProyectos] = useState<Proyecto[]>([]);
   const [placedComponents, setPlacedComponents] = useState<ComponentData[]>([]);
   const [editingProject, setEditingProject] = useState<Proyecto | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+
+  // Cargar proyectos desde la API
+  const fetchProyectos = useCallback(async () => {
+    if (!id) return;
+    try {
+      const res = await api.get(`/getProyectos/${id}`);
+      const data = res.data.map((p: any) => ({
+        id: p.ID_PROYECTO || p.id,
+        nombre: p.NOMBRE_PROYECTO || p.nombre,
+        descripcion: p.DESCRIPCION_PROYECTO || p.descripcion,
+        estadoId: p.ESTADO_ID || '1',
+        status: (p.ESTADO_ID || '1') === '1' ? 'activo' : (p.ESTADO_ID || '1') === '2' ? 'alerta' : 'inactivo',
+        sensors: p.sensors || []
+      }));
+      setProyectos(data);
+      console.log('Proyectos cargados:', data);
+    } catch (error) {
+      console.error('Error al cargar proyectos:', error);
+      setProyectos([]);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchProyectos();
+  }, [fetchProyectos]);
 
   // Manejar cuando se arrastra sobre el área
   const handleDragOver = (e: React.DragEvent) => {
@@ -103,35 +120,66 @@ const Projects = () => {
   };
 
   const handleSaveProject = async (projectData: any) => {
-    // Aquí iría la llamada a la API. Como es un mock local, solo actualizamos el estado.
-    if (editingProject) {
-      setProyectos(prev => prev.map(p => p.id === editingProject.id ? {
-        ...p,
-        ...projectData,
-        status: projectData.estadoId === '1' ? 'activo' : projectData.estadoId === '2' ? 'alerta' : 'inactivo'
-      } : p));
-    } else {
-      setProyectos(prev => [...prev, {
-        ...projectData,
-        id: Date.now(),
-        status: projectData.estadoId === '1' ? 'activo' : projectData.estadoId === '2' ? 'alerta' : 'inactivo'
-      }]);
+    if (!id) {
+      alert('Error: ID del módulo no encontrado');
+      return;
     }
-    setShowCreateForm(false);
+
+    try {
+      const payload = {
+        idproyecto: id,
+        nombre: projectData.nombre,
+        descripcion: projectData.descripcion
+      };
+
+      if (editingProject && editingProject.id !== 9999) {
+        // Modo edición
+        await api.put(`/updateProyecto/${editingProject.id}`, payload);
+        setProyectos(prev => prev.map(p => p.id === editingProject.id ? {
+          ...p,
+          ...projectData,
+        } : p));
+      } else {
+        // Modo creación
+        const res = await api.post('/createProyecto', payload);
+        const nuevoProyecto: Proyecto = {
+          id: res.data.proyecto?.id,
+          nombre: projectData.nombre,
+          descripcion: projectData.descripcion,
+          sensors: []
+        };
+        setProyectos(prev => [...prev, nuevoProyecto]);
+      }
+      
+      setShowCreateForm(false);
+      setEditingProject(null);
+      console.log('Proyecto guardado exitosamente');
+    } catch (error) {
+      console.error('Error al guardar proyecto:', error);
+      alert('Hubo un error al guardar el proyecto. Por favor, verifica la conexión.');
+    }
   };
 
-  const handleDeleteProject = (id: number) => {
+  const handleDeleteProject = (projectId: number) => {
     if (window.confirm("¿Estás seguro de eliminar este proyecto?")) {
-      setProyectos(prev => prev.filter(p => p.id !== id));
+      (async () => {
+        try {
+          await api.delete(`/deleteProyecto/${projectId}`);
+          setProyectos(prev => prev.filter(p => p.id !== projectId));
+          console.log('Proyecto eliminado exitosamente');
+        } catch (error) {
+          console.error('Error al eliminar proyecto:', error);
+          alert('Error al eliminar el proyecto');
+        }
+      })();
     }
   };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="max-w-7xl mx-auto p-6" style={{ zoom: 0.8 }}>
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold text-gray-900">Control del Modulo (Nombre del modulo)</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Control del Modulo {moduloState?.nombre || "Nombre del modulo"}</h1>
           <button
             onClick={() => setIsPanelOpen(true)}
             className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 cursor-pointer"
@@ -216,8 +264,9 @@ const Projects = () => {
           {proyectos.map((proyecto) => (
             <ProjectCard
               key={proyecto.id}
+              id={proyecto.id}
               nombre={proyecto.nombre}
-              status={proyecto.status}
+              descripcion={proyecto.descripcion}
               sensors={proyecto.sensors}
               onEdit={() => {
                 setEditingProject(proyecto);

@@ -5,16 +5,19 @@ import { Edit3, Trash2 } from "lucide-react";
 import PhControl from './deviceControl/PhControl';
 
 interface ProjectCardProps {
+  id: number; 
   nombre: string;
-  status: "activo" | "inactivo" | "alerta";
+  descripcion: string;
   sensors?: { id: string; type: string; name: string }[];
   onDelete?: () => void;
   onEdit?: () => void;
+  onClick?: () => void;
 }
 
 const ProjectCard = ({
+  id,
   nombre,
-  status,
+  descripcion,
   sensors = [],
   onDelete,
   onEdit,
@@ -25,7 +28,8 @@ const ProjectCard = ({
   const handleViewDetails = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    navigate(`/stand`);
+    console.log(`Navigating from ${nombre} to /stand`);
+    navigate(`/stand/${id}`, { state: { nombre, descripcion } });
   };
 
   const handleEdit = (e: React.MouseEvent) => {

@@ -21,15 +21,12 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/users" element={<UsersManagement />} />
-            <Route path="/laboratory" element={<Laboratory />} />
+            <Route path="/laboratory/:id" element={<Laboratory />} />
             <Route path="/laboratories-management" element={<LaboratoriesManagement />} />
-            <Route path="/project" element={<Project />} />
-            <Route path="/stand" element={<Stand />} />
+            <Route path="/project/:id" element={<Project />} />
+            <Route path="/stand/:id" element={<Stand />} />
             <Route path="/sensors" element={<Sensors />} />
             <Route path="/settings" element={<Settings />} />
-
-            {/* Ruta detalle de laboratorio */}
-            <Route path="/laboratorios/:id" element={<h1>Detalle de laboratorio</h1>} />
           </Route>
         </Routes>
       </Router>

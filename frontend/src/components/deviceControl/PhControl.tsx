@@ -22,11 +22,23 @@ const generateHourlyData = () => {
   return data;
 };
 
-const PhControl = () => {
+interface PhControlProps {
+  valorReal?: number | string;
+}
+
+const PhControl = ({ valorReal }: PhControlProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const componentRef = useRef(null);
 
-  const hourlyData = useMemo(() => generateHourlyData(), []);
+  const actualPh = valorReal != null ? Number(valorReal) : undefined;
+  const hourlyData = useMemo(() => {
+    const data = generateHourlyData();
+    if (actualPh !== undefined && !Number.isNaN(actualPh)) {
+      data[data.length - 1].ph = Number(actualPh.toFixed(1));
+    }
+    return data;
+  }, [actualPh]);
+
   const currentPh = hourlyData[hourlyData.length - 1]?.ph ?? 7.0;
   const prevPh = hourlyData[hourlyData.length - 2]?.ph ?? currentPh;
   const trend = currentPh >= prevPh ? 'up' : 'down';
