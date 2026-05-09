@@ -6,6 +6,7 @@ import WaterValveControl from "../components/deviceControl/WaterValveControl";
 import { ReactSortable } from 'react-sortablejs';
 import type { ComponentData } from "../context/AppContext";
 import CreateEstanteriaModal from '../modals/CreateEstanteriaModal';
+import { useLocation } from "react-router-dom";
 
 interface Estanteria {
   id: number;
@@ -16,6 +17,8 @@ interface Estanteria {
 }
 
 const Shelves = () => {
+  const location = useLocation();
+  const proyectoState = location.state as { nombre: string; descripcion: string } | undefined;
   const [estanterias, setEstanterias] = useState<Estanteria[]>([
     {
       id: 1,
@@ -127,7 +130,7 @@ const Shelves = () => {
 
       <div className="max-w-7xl mx-auto p-6" style={{ zoom: 0.8 }}>
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold text-gray-900">Control del Proyecto Hidropónico</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Control del Proyecto {proyectoState?.nombre}</h1>
           <button
             onClick={() => setIsPanelOpen(true)}
             className="bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 cursor-pointer"

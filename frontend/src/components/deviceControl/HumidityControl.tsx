@@ -22,11 +22,22 @@ const generateHourlyData = () => {
   return data;
 };
 
-const HumidityControl = () => {
+interface HumidityControlProps {
+  valorReal?: number | string;
+}
+const HumidityControl = ({ valorReal }: HumidityControlProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const componentRef = useRef(null);
 
-  const hourlyData = useMemo(() => generateHourlyData(), []);
+  const actualHumidity = valorReal != null ? Number(valorReal) : undefined;
+  const hourlyData = useMemo(() => {
+    const data = generateHourlyData();
+    if (actualHumidity !== undefined && !Number.isNaN(actualHumidity)) {
+      data[data.length - 1].humedad = Number(actualHumidity.toFixed(1));
+    }
+    return data;
+  }, [actualHumidity]);
+
   const currentHumidity = hourlyData[hourlyData.length - 1]?.humedad ?? 60;
   const prevHumidity = hourlyData[hourlyData.length - 2]?.humedad ?? currentHumidity;
   const trend = currentHumidity >= prevHumidity ? 'up' : 'down';

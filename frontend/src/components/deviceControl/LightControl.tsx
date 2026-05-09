@@ -4,12 +4,13 @@ import { useState } from 'react';
 interface LightControlProps {
     entityId?: string;
     haState?: string;
+    nombre?: string;
     onToggle?: (entityId: string, turnOn: boolean) => void;
 }
 
-const LightControlSimple = ({ entityId = 'switch.sonoff_luz', haState, onToggle }: LightControlProps) => {
+const LightControlSimple = ({ entityId = 'light.minir4m', haState, nombre, onToggle }: LightControlProps) => {
     // Si Home Assistant provee el estado, lo usamos; si no, usamos el local
-    const [localIsOn, setLocalIsOn] = useState(true);
+    const [localIsOn, setLocalIsOn] = useState(haState === 'on' ? true : false);
     const [isFlipped, setIsFlipped] = useState(false);
 
     const isOn = haState ? haState === 'on' : localIsOn;
@@ -36,7 +37,7 @@ const LightControlSimple = ({ entityId = 'switch.sonoff_luz', haState, onToggle 
                     <div className="absolute inset-0 backface-hidden bg-white rounded-2xl p-3 flex flex-col justify-between border border-gray-100">
                         <div className="flex justify-between items-start">
                             <div>
-                                <h2 className="text-gray-800 font-bold text-xs tracking-tight">Sala Principal</h2>
+                                <h2 className="text-gray-800 font-bold text-xs tracking-tight">{nombre || 'Sala Principal'}</h2>
                                 <p className="text-[9px] text-gray-400 uppercase tracking-wider font-medium">Iluminación</p>
                             </div>
                             <button className="text-gray-300 hover:text-indigo-500 transition-colors">

@@ -1,5 +1,6 @@
 // src/pages/Laboratory.tsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import Navbar from "../components/Navbar";
 import ComponentPanel from "../components/ComponentPanel";
 import AirConditionerControl from "../components/deviceControl/AirConditionerControl";
@@ -14,6 +15,8 @@ import CreateSalaModal from '../modals/CreateSalaModal';
 import api from '../api/api';
 
 const Laboratory = () => {
+  const { id } = useParams<{ id: string }>();
+  const [selectedLabName, setSelectedLabName] = useState<string>('Cargando...');
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isSalaModalOpen, setIsSalaModalOpen] = useState(false);
   const { laboratoryComponents, addComponent, updateComponentOrder, removeComponent } = useAppContext();
@@ -55,89 +58,130 @@ const Laboratory = () => {
     }
   };
 
-  // Estado para laboratorios desde la API
-  const [labs, setLabs] = useState<Array<{
+
+  const [modulos, setModulos] = useState<Array<{
     id: number;
     nombre: string;
     descripcion: string;
-    estado: string;
     sensors?: { id: string; type: string; name: string }[];
   }>>([]);
   const [editingRoom, setEditingRoom] = useState<any>(null);
 
-  const fetchLabs = useCallback(async () => {
-    try {
-      const res = await api.get('/getLaboratorios');
-      const data = res.data.map((l: any) => ({
-        id: l.id,
-        nombre: l.name,
-        descripcion: l.description,
-        estado: l.status,
-        estadoId: l.status === 'active' ? '1' : l.status === 'maintenance' ? '2' : '3',
-        sensors: [] // Los sensores se mapearán más adelante
-      }));
-      setLabs(data);
-    } catch (error) {
-      console.error('Error al cargar laboratorios:', error);
-      setLabs([]);
+  // Efecto para cargar el nombre del laboratorio cuando el ID cambia
+  useEffect(() => {
+    if (id) {
+      const fetchLabName = async () => {
+        try {
+          const res = await api.get('/getLaboratorios');
+          const lab = res.data.find((l: any) => l.id.toString() === id);
+          if (lab) {
+            setSelectedLabName(lab.name || lab.nombre || 'Laboratorio');
+            console.log('Laboratorio cargado:', lab.name || lab.nombre);
+          } else {
+            console.warn(`No se encontró laboratorio con id ${id}`);
+            setSelectedLabName('Laboratorio no encontrado');
+          }
+        } catch (error) {
+          console.error('Error al cargar laboratorio:', error);
+          setSelectedLabName('Error al cargar laboratorio');
+        }
+      };
+      fetchLabName();
     }
-  }, []);
+  }, [id]);
+
+  const fetchModulos = useCallback(async () => {
+    try {
+      if (!id) return; // Si no hay ID, no hacer la llamada
+      const res = await api.get(`/getModulos/${id}`);
+      const data = res.data.map((m: any) => ({
+        id: m.ID_MODULO,
+        nombre: m.NOMBRE_MODULO,
+        descripcion: m.DESCRIPCION_MODULO,
+      }));
+      setModulos(data);
+      console.log('Módulos cargados:', data);
+    } catch (error) {
+      console.error('Error al cargar módulos:', error);
+      setModulos([]);
+    }
+  }, [id]);
 
   useEffect(() => {
-    fetchLabs();
-  }, [fetchLabs]);
+    fetchModulos();
+  }, [fetchModulos]);
 
-  // Mapear el estado de la BD a los valores que espera LabRoomCard
-  const mapEstado = (estado?: string): "activo" | "inactivo" | "alerta" => {
-    if (!estado) return 'activo'; // Valor por defecto si es undefined
-    const lower = estado.toLowerCase();
-    if (lower === 'activo') return 'activo';
-    if (lower === 'inactivo') return 'inactivo';
-    if (lower === 'mantenimiento') return 'alerta';
-    return 'activo';
-  };
 
-  const handleEditSala = (sala: any) => {
-    setEditingRoom(sala);
-    setIsSalaModalOpen(true);
-  };
 
-  const handleDeleteSala = async (id: number) => {
+ const handleEditModulo = (modulo: any) => {
+  setEditingRoom(modulo);
+  setIsSalaModalOpen(true);
+};
+
+  const handleDeleteModulo = async (id: number) => {
     if (window.confirm('¿Estás seguro de eliminar este módulo?')) {
       try {
-        await api.delete(`/deleteSala/${id}`); // Ajustar ruta
-        setLabs(prev => prev.filter(lab => lab.id !== id));
+        await api.delete(`/deleteModulo/${id}`);
+        setModulos(prev => prev.filter(modulo => modulo.id !== id));
       } catch (error) {
-        console.error('Error al eliminar sala:', error);
+        console.error('Error al eliminar módulo:', error);
       }
     }
   };
 
-  const handleSaveSala = async (salaData: any) => {
-    try {
-      if (editingRoom) {
-        if (editingRoom.id === 9999) {
-          // Actualización simulada para el módulo de ejemplo
-          setLabs(prev => prev.map(lab => lab.id === editingRoom.id ? {
-            ...lab,
-            ...salaData,
-            nombre: salaData.nombre,
-            estado: salaData.estadoId === '1' ? 'Activo' : salaData.estadoId === '2' ? 'Mantenimiento' : 'Inactivo'
-          } : lab));
-        } else {
-          await api.put(`/updateSala/${editingRoom.id}`, salaData);
-          setLabs(prev => prev.map(lab => lab.id === editingRoom.id ? { ...lab, ...salaData } : lab));
-        }
-      } else {
-        const response = await api.post('/createSala', salaData);
-        setLabs(prev => [...prev, { ...response.data.sala, sensors: salaData.sensors || [] }]);
+const handleSaveSala = async (moduloData: any) => {
+  try {
+    // 1. Preparamos el objeto que se enviará al backend
+    // Asegúrate de que los nombres de los campos coincidan con lo que espera tu API
+    const payload = {
+      idlaboratorio: id,
+      nombre: moduloData.nombre,
+      descripcion: moduloData.descripcion
+      // El ID del laboratorio que viene de useParams
+    };
+
+    if (editingRoom) {
+      // --- MODO EDICIÓN ---
+      if (editingRoom.id !== 9999) {
+        await api.put(`/updateModulo/${editingRoom.id}`, payload);
       }
-      setIsSalaModalOpen(false);
-      setEditingRoom(null);
-    } catch (error) {
-      console.error('Error al guardar sala:', error);
+
+      // Actualizamos el estado local
+      setModulos(prev => prev.map(m => 
+        m.id === editingRoom.id 
+          ? { 
+              ...m, 
+              nombre: moduloData.nombre,
+              descripcion: moduloData.descripcion
+            } 
+          : m
+      ));
+
+    } else {
+      // --- MODO CREACIÓN ---
+      const response = await api.post('/createModulo', payload);
+      
+      // Es mejor recargar los módulos para obtener el ID real generado por la DB
+      // Pero si quieres agregarlo manualmente:
+      const nuevoModulo = {
+        id: response.data.id || Date.now(), // ID devuelto por la DB
+        nombre: moduloData.nombre,
+        descripcion: moduloData.descripcion
+      };
+      
+      setModulos(prev => [...prev, nuevoModulo]);
     }
-  };
+
+    // Cerrar modal y limpiar
+    setIsSalaModalOpen(false);
+    setEditingRoom(null);
+  
+
+  } catch (error) {
+    console.error('Error al guardar módulo:', error);
+    alert('Hubo un error al intentar guardar el módulo. Por favor, verifica la conexión.');
+  }
+};
 
   // Manejar drop de componentes
   const handleDrop = (e: React.DragEvent) => {
@@ -190,7 +234,7 @@ const Laboratory = () => {
 
       <div className="max-w-7xl mx-auto p-6" style={{ zoom: 0.8 }}>
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold text-gray-900">Control del Laboratorio (nombre del laboratorio)</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Control del Laboratorio {selectedLabName}</h1>
           <button
             onClick={() => setIsPanelOpen(true)}
             className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 cursor-pointer"
@@ -272,16 +316,16 @@ const Laboratory = () => {
 
         {/* Tarjetas de Módulos */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
-          {labs.length > 0 ? (
-            labs.map((lab) => (
+          {modulos.length > 0 ? (
+            modulos.map((modulos) => (
               <LabRoomCard
-                key={lab.id}
-                nombre={lab.nombre}
-                modulosActivos={0}
-                status={mapEstado(lab.estado)}
-                sensors={lab.sensors || []}
-                onEdit={() => handleEditSala(lab)}
-                onDelete={() => handleDeleteSala(lab.id)}
+                key={modulos.id}
+                id={modulos.id}
+                nombre={modulos.nombre}
+                descripcion={modulos.descripcion}
+                sensors={modulos.sensors}
+                onEdit={() => handleEditModulo(modulos)}
+                onDelete={() => handleDeleteModulo(modulos.id)}
               />
             ))
           ) : (

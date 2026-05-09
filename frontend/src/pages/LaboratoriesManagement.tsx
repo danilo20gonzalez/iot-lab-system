@@ -149,6 +149,7 @@ export default function LaboratoriesManagement() {
             await handleCreateLab(labData);
         }
     };
+    
 
     const stats = {
         total: laboratories.length,
@@ -355,8 +356,10 @@ function LabTableRow({ lab, onEdit, onDelete }: {
         <tr className="hover:bg-gray-50 transition-colors duration-200">
             <td
                 className="px-6 py-4 cursor-pointer"
-                onClick={() => navigate('/laboratory')}
+                onClick={() => navigate(`/laboratory/${lab.id}`)}
+                
             >
+            
                 <div>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">

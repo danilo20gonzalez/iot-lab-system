@@ -15,4 +15,22 @@ api.interceptors.request.use((config) => {
     return Promise.reject(error);
 });
 
+export const obtenerSensoresHA = async () => {
+    try {
+        const response = await api.get('/sensores');
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.message);
+    }
+};
+
+export const obtenerSwitchesHA = async () => {
+    try {
+        const response = await api.get('/switches');
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.message);
+    }
+};
+
 export default api;

@@ -22,11 +22,23 @@ const generateHourlyData = () => {
   return data;
 };
 
-const TemperatureControl = () => {
+interface TemperatureControlProps {
+  valorReal?: number | string;
+}
+
+const TemperatureControl = ({ valorReal }: TemperatureControlProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const componentRef = useRef(null);
 
-  const hourlyData = useMemo(() => generateHourlyData(), []);
+  const actualTemp = valorReal != null ? Number(valorReal) : undefined;
+  const hourlyData = useMemo(() => {
+    const data = generateHourlyData();
+    if (actualTemp !== undefined && !Number.isNaN(actualTemp)) {
+      data[data.length - 1].temperatura = Number(actualTemp.toFixed(1));
+    }
+    return data;
+  }, [actualTemp]);
+
   const currentTemp = hourlyData[hourlyData.length - 1]?.temperatura ?? 24;
   const prevTemp = hourlyData[hourlyData.length - 2]?.temperatura ?? currentTemp;
   const trend = currentTemp >= prevTemp ? 'up' : 'down';
