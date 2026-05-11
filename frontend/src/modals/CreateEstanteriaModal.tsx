@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Layers, Tag, FileText, Activity, Lightbulb, Trash2 } from 'lucide-react';
+import { X, Layers, Tag, FileText, Activity, Lightbulb, Trash2, Beaker } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ComponentPanel from '../components/ComponentPanel';
 import LightControl from '../components/deviceControl/LightControl';
@@ -323,23 +323,36 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
                                 )}
                             </form>
 
-                            <div className="p-5 border-t border-gray-100 bg-white flex gap-3 flex-shrink-0">
-                                <button
-                                    type="button"
-                                    onClick={onClose}
-                                    disabled={isSubmitting}
-                                    className="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl border border-gray-200 transition-all duration-200 disabled:opacity-50"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="submit"
-                                    form="shelfForm"
-                                    disabled={isSubmitting}
-                                    className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-black rounded-xl shadow-md shadow-gray-900/25 hover:shadow-lg transition-all duration-200 disabled:opacity-60 flex items-center justify-center gap-2"
-                                >
-                                    {isSubmitting ? 'Guardando...' : editingEstanteria ? 'Guardar Cambios' : 'Crear Estantería'}
-                                </button>
+                            <div className="p-5 border-t border-gray-100 bg-white flex-shrink-0">
+                                {/* Info card (solo en creación) */}
+                                {!editingEstanteria && (
+                                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-start gap-3 mb-4">
+                                        <Beaker size={18} className="text-gray-600 mt-0.5 flex-shrink-0" />
+                                        <p className="text-xs text-gray-600 leading-relaxed">
+                                            Una vez creada la estantería, podrás asignarle controladores de iluminación 
+                                            y monitorear el estado de cada nivel desde el panel de gestión.
+                                        </p>
+                                    </div>
+                                )}
+
+                                <div className="flex gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={onClose}
+                                        disabled={isSubmitting}
+                                        className="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl border border-gray-200 transition-all duration-200 disabled:opacity-50"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        form="shelfForm"
+                                        disabled={isSubmitting}
+                                        className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-black rounded-xl shadow-md shadow-gray-900/25 hover:shadow-lg transition-all duration-200 disabled:opacity-60 flex items-center justify-center gap-2"
+                                    >
+                                        {isSubmitting ? 'Guardando...' : editingEstanteria ? 'Guardar Cambios' : 'Crear Estantería'}
+                                    </button>
+                                </div>
                             </div>
                         </motion.div>
                     </div>

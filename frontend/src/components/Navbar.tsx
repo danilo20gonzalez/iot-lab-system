@@ -30,7 +30,6 @@ export default function Navbar() {
     { name: 'Dashboard', path: '/dashboard' },
     { name: 'Laboratorios', path: '/laboratories-management' },
     { name: 'Sensores', path: '/sensors' },
-    { name: 'Reportes', path: '/reports' },
   ];
 
   // Calcular posición del indicador relativo al nav
@@ -344,18 +343,10 @@ export default function Navbar() {
 
             <button
               className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200"
-              onClick={() => {}}
+              onClick={() => { }}
             >
               <Activity size={18} className="text-emerald-400" />
               <span className="font-medium text-sm">Componentes</span>
-            </button>
-
-            <button
-              className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200"
-              onClick={() => handleNavigation('/reports')}
-            >
-              <BarChart3 size={18} className="text-emerald-400" />
-              <span className="font-medium text-sm">Reportes y Análisis</span>
             </button>
 
             <button
@@ -430,18 +421,10 @@ export default function Navbar() {
 
               <button
                 className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200"
-                onClick={() => {}}
+                onClick={() => { }}
               >
                 <Activity size={16} className="text-emerald-400" />
                 <span className="text-sm font-medium">Componentes</span>
-              </button>
-
-              <button
-                className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200"
-                onClick={() => handleNavigation('/reports')}
-              >
-                <BarChart3 size={16} className="text-emerald-400" />
-                <span className="text-sm font-medium">Reportes</span>
               </button>
 
               {isAdmin && (

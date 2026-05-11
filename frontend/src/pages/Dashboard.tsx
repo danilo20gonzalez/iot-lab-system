@@ -112,32 +112,11 @@ export default function Dashboard() {
       color: "bg-green-500"
     },
     {
-      icon: BarChart3,
-      label: "Reportes y Análisis",
-      description: "Ver reportes y estadísticas detalladas",
-      action: () => navigate('/reports'),
-      color: "bg-purple-500"
-    },
-    {
       icon: Settings,
       label: "Configuración del Sistema",
       description: "Configurar parámetros del sistema",
       action: () => navigate('/settings'),
       color: "bg-gray-500"
-    },
-    {
-      icon: Cpu,
-      label: "Monitoreo en Tiempo Real",
-      description: "Ver datos de sensores en vivo",
-      action: () => navigate('/monitoring'),
-      color: "bg-orange-500"
-    },
-    {
-      icon: Camera,
-      label: "Cámaras de Seguridad",
-      description: "Monitoreo visual de laboratorios",
-      action: () => navigate('/cameras'),
-      color: "bg-red-500"
     }
   ];
 

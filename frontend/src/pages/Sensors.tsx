@@ -210,20 +210,20 @@ function SensorCard({
       <div className={`bg-gradient-to-r ${meta.gradient} px-4 py-2.5 flex items-center justify-between`}>
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-            <Icon size={15} className="text-white" />
+            <Icon size={18} className="text-white" />
           </div>
           <div>
-            <h3 className="text-white font-bold text-sm leading-tight truncate max-w-[180px]">
+            <h3 className="text-white font-bold text-base leading-tight truncate max-w-[180px]">
               {sensor.nombre}
             </h3>
-            <p className="text-white/70 text-[10px] font-medium">{meta.name}</p>
+            <p className="text-white/70 text-xs font-medium">{meta.name}</p>
           </div>
         </div>
         <div className="flex items-center gap-1.5">
           {/* Estado badge */}
           <span className={`flex items-center gap-1 bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full`}>
             <span className={`w-1.5 h-1.5 rounded-full ${est.dot} animate-pulse`} />
-            <span className="text-white text-[9px] font-bold uppercase tracking-wider">{est.label}</span>
+            <span className="text-white text-xs font-bold uppercase tracking-wider">{est.label}</span>
           </span>
           {/* Delete */}
           <button
@@ -231,7 +231,7 @@ function SensorCard({
             className="p-1.5 text-white/40 hover:text-white hover:bg-white/20 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
             title="Eliminar sensor"
           >
-            <Trash2 size={13} />
+            <Trash2 size={15} />
           </button>
         </div>
       </div>
@@ -239,11 +239,11 @@ function SensorCard({
       {/* Info row */}
       <div className="px-4 py-2 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
         <div className="flex items-center gap-1.5 text-gray-500">
-          <MapPin size={11} />
-          <span className="text-[11px] font-medium">{sensor.ubicacion}</span>
+          <MapPin size={14} />
+          <span className="text-sm font-medium">{sensor.ubicacion}</span>
         </div>
         {sensor.descripcion && (
-          <span className="text-[10px] text-gray-400 italic truncate max-w-[160px]">{sensor.descripcion}</span>
+          <span className="text-xs text-gray-400 italic truncate max-w-[160px]">{sensor.descripcion}</span>
         )}
       </div>
 
@@ -345,7 +345,7 @@ const Sensors = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <div className="max-w-7xl mx-auto p-6" style={{ zoom: 0.8 }}>
+      <div className="max-w-7xl mx-auto p-6">
         {/* ─── Header ─── */}
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -354,7 +354,7 @@ const Sensors = () => {
                 <div className="w-1 h-8 bg-gradient-to-b from-emerald-600 to-green-700 rounded-full" />
                 Sensores
               </h1>
-              <p className="text-sm text-gray-500 mt-1 ml-4">
+              <p className="text-gray-500 mt-1 ml-4">
                 Gestiona y monitorea todos los dispositivos IoT del sistema
               </p>
             </div>
@@ -385,14 +385,14 @@ const Sensors = () => {
               >
                 <div className="flex items-center justify-between">
                   <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${meta.gradient} flex items-center justify-center`}>
-                    <Icon size={18} className="text-white" />
+                    <Icon size={20} className="text-white" />
                   </div>
                   <span className="text-2xl font-black text-gray-900">{count}</span>
                 </div>
                 <p className="text-xs font-semibold text-gray-600 mt-2 truncate">{meta.name}</p>
                 <div className="flex items-center gap-1 mt-0.5">
                   <span className={`w-1.5 h-1.5 rounded-full ${meta.dot} animate-pulse`} />
-                  <span className="text-[10px] text-gray-400">
+                  <span className="text-xs text-gray-400">
                     {count === 1 ? '1 dispositivo' : `${count} dispositivos`}
                   </span>
                 </div>
