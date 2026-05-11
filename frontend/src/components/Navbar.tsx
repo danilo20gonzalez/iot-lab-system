@@ -137,7 +137,7 @@ export default function Navbar() {
                     key={link.path}
                     ref={(el) => { buttonRefs.current[link.path] = el; }}
                     onClick={() => handleNavigation(link.path)}
-                    className={`relative px-4 h-12 text-sm font-medium transition-all duration-300 flex items-center justify-center rounded-lg ${isActive ? 'text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    className={`relative px-4 h-12 text-sm font-medium transition-all duration-300 flex items-center justify-center rounded-lg cursor-pointer ${isActive ? 'text-white' : 'text-gray-400 hover:text-white hover:bg-white/5 '
                       }`}
                   >
                     {link.name}
@@ -188,7 +188,7 @@ export default function Navbar() {
 
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="h-11 w-11 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg border border-gray-700 hover:border-gray-600 transition-all duration-200"
+                className="h-11 w-11 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg border border-gray-700 hover:border-gray-600 transition-all duration-200 cursor-pointer"
               >
                 {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
@@ -196,7 +196,7 @@ export default function Navbar() {
               {/* Cerrar sesión */}
               <button
                 onClick={handleLogout}
-                className="h-11 w-11 flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg border border-gray-700 hover:border-red-400/30 transition-all duration-200"
+                className="h-11 w-11 flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg border border-gray-700 hover:border-red-400/30 transition-all duration-200 cursor-pointer"
                 title="Cerrar sesión"
               >
                 <LogOut size={20} />
@@ -240,7 +240,7 @@ export default function Navbar() {
                 {/* Menú hamburguesa */}
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg border border-gray-700 hover:border-gray-600 transition-all duration-200"
+                  className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg border border-gray-700 hover:border-gray-600 transition-all duration-200 cursor-pointer"
                 >
                   {isMenuOpen ? <X size={18} /> : <Menu size={18} />}
                 </button>
@@ -308,7 +308,7 @@ export default function Navbar() {
 
       {/* Desktop Menu Dropdown */}
       <div
-        className={`hidden lg:block fixed right-4 top-20 z-40 transition-all duration-300 ease-in-out ${isMenuOpen
+        className={`hidden lg:block fixed right-4 top-20 z-40 transition-all duration-300 ease-in-out cursor-pointer ${isMenuOpen
           ? 'opacity-100 translate-y-0 pointer-events-auto'
           : 'opacity-0 -translate-y-4 pointer-events-none'
           }`}
@@ -333,7 +333,7 @@ export default function Navbar() {
           <div className="space-y-2">
             {isAdmin && (
               <button
-                className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200"
+                className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200 cursor-pointer"
                 onClick={() => handleNavigation('/users')}
               >
                 <User size={18} className="text-emerald-400" />
@@ -342,7 +342,7 @@ export default function Navbar() {
             )}
 
             <button
-              className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200"
+              className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200 cursor-pointer"
               onClick={() => { }}
             >
               <Activity size={18} className="text-emerald-400" />
@@ -350,7 +350,7 @@ export default function Navbar() {
             </button>
 
             <button
-              className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200"
+              className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200 cursor-pointer"
               onClick={() => handleNavigation('/settings')}
             >
               <Settings size={18} className="text-emerald-400" />
@@ -358,7 +358,7 @@ export default function Navbar() {
             </button>
 
             <button
-              className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200"
+              className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200 cursor-pointer"
               onClick={() => window.open('/docs', '_blank')}
             >
               <FileText size={18} className="text-emerald-400" />
@@ -370,7 +370,7 @@ export default function Navbar() {
 
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 p-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg border border-transparent hover:border-red-400/30 transition-all duration-200"
+              className="w-full flex items-center gap-3 p-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg border border-transparent hover:border-red-400/30 transition-all duration-200 cursor-pointer"
             >
               <LogOut size={18} />
               <span className="font-medium text-sm">Cerrar Sesión</span>
@@ -381,7 +381,7 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       <div
-        className={`lg:hidden transition-all duration-300 ease-in-out overflow-hidden ${isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+        className={`lg:hidden transition-all duration-300 ease-in-out overflow-hidden cursor-pointer ${isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
           }`}
       >
         <div className="bg-gray-800 border-b border-gray-700 shadow-xl">
@@ -404,7 +404,7 @@ export default function Navbar() {
             {/* Menú móvil */}
             <div className="grid grid-cols-2 gap-2">
               <button
-                className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200"
+                className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200 cursor-pointer"
                 onClick={() => handleNavigation('/dashboard')}
               >
                 <Activity size={16} className="text-emerald-400" />
@@ -412,7 +412,7 @@ export default function Navbar() {
               </button>
 
               <button
-                className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200"
+                className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200 cursor-pointer"
                 onClick={() => handleNavigation('/laboratories')}
               >
                 <Activity size={16} className="text-emerald-400" />
@@ -420,7 +420,7 @@ export default function Navbar() {
               </button>
 
               <button
-                className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200"
+                className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200 cursor-pointer"
                 onClick={() => { }}
               >
                 <Activity size={16} className="text-emerald-400" />
@@ -429,7 +429,7 @@ export default function Navbar() {
 
               {isAdmin && (
                 <button
-                  className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200"
+                  className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200 cursor-pointer"
                   onClick={() => handleNavigation('/users')}
                 >
                   <User size={16} className="text-emerald-400" />
@@ -438,7 +438,7 @@ export default function Navbar() {
               )}
 
               <button
-                className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200"
+                className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200 cursor-pointer"
                 onClick={() => handleNavigation('/settings')}
               >
                 <Settings size={16} className="text-emerald-400" />
@@ -449,7 +449,7 @@ export default function Navbar() {
             {/* Cerrar sesión móvil */}
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-2 p-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg border border-red-400/30 transition-all duration-200 mt-2"
+              className="w-full flex items-center gap-2 p-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg border border-red-400/30 transition-all duration-200 cursor-pointer"
             >
               <LogOut size={16} />
               <span className="text-sm font-medium">Cerrar Sesión</span>
