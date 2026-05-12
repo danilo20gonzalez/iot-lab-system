@@ -312,33 +312,46 @@ export default function CreateProjectModal({ isOpen, onClose, onSave, editingPro
 
                             </form>
 
-                            <div className="p-5 border-t border-gray-100 bg-white flex gap-3 flex-shrink-0">
-                                <button
-                                    type="button"
-                                    onClick={onClose}
-                                    disabled={isSubmitting}
-                                    className="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl border border-gray-200 transition-all duration-200 disabled:opacity-50"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="submit"
-                                    form="projectForm"
-                                    disabled={isSubmitting}
-                                    className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 rounded-xl shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                            </svg>
-                                            Guardando...
-                                        </>
-                                    ) : (
-                                        editingProject ? 'Guardar Cambios' : 'Crear Proyecto'
-                                    )}
-                                </button>
+                            <div className="p-5 border-t border-gray-100 bg-white flex-shrink-0">
+                                {/* Info card (solo en creación) */}
+                                {!editingProject && (
+                                    <div className="bg-blue-50/60 border border-blue-100 rounded-xl p-3 flex items-start gap-3 mb-4">
+                                        <Beaker size={18} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                                        <p className="text-xs text-blue-700 leading-relaxed">
+                                            Una vez creado el proyecto, podrás asignarle sensores de pH y otros componentes 
+                                            de monitoreo desde el panel de control del proyecto.
+                                        </p>
+                                    </div>
+                                )}
+
+                                <div className="flex gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={onClose}
+                                        disabled={isSubmitting}
+                                        className="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl border border-gray-200 transition-all duration-200 disabled:opacity-50"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        form="projectForm"
+                                        disabled={isSubmitting}
+                                        className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 rounded-xl shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                                </svg>
+                                                Guardando...
+                                            </>
+                                        ) : (
+                                            editingProject ? 'Guardar Cambios' : 'Crear Proyecto'
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         </motion.div>
                     </div>

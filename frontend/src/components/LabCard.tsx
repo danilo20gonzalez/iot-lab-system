@@ -143,10 +143,12 @@ export default function LabCard({
 
       {/* --- Sensores Asignados --- */}
       {sensors && sensors.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 mt-4">
+        <div className="grid grid-cols-2 gap-2">
           {sensors.map((sensor) => (
-            <div key={sensor.id} className="h-[140px] transform scale-90 origin-top-left -mb-6">
-              {sensor.type === 'temperature' ? <TemperatureControl /> : <HumidityControl />}
+            <div key={sensor.id} className="h-[140px] overflow-hidden rounded-lg border border-gray-100 bg-gray-50/50">
+              <div className="w-[133%] transform scale-[0.75] origin-top-left">
+                {sensor.type === 'temperature' ? <TemperatureControl /> : <HumidityControl />}
+              </div>
             </div>
           ))}
         </div>

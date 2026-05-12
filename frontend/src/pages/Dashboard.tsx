@@ -112,32 +112,11 @@ export default function Dashboard() {
       color: "bg-green-500"
     },
     {
-      icon: BarChart3,
-      label: "Reportes y Análisis",
-      description: "Ver reportes y estadísticas detalladas",
-      action: () => navigate('/reports'),
-      color: "bg-purple-500"
-    },
-    {
       icon: Settings,
       label: "Configuración del Sistema",
       description: "Configurar parámetros del sistema",
       action: () => navigate('/settings'),
       color: "bg-gray-500"
-    },
-    {
-      icon: Cpu,
-      label: "Monitoreo en Tiempo Real",
-      description: "Ver datos de sensores en vivo",
-      action: () => navigate('/monitoring'),
-      color: "bg-orange-500"
-    },
-    {
-      icon: Camera,
-      label: "Cámaras de Seguridad",
-      description: "Monitoreo visual de laboratorios",
-      action: () => navigate('/cameras'),
-      color: "bg-red-500"
     }
   ];
 
@@ -246,7 +225,7 @@ export default function Dashboard() {
                     <button
                       key={index}
                       onClick={action.action}
-                      className="flex flex-col items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-all duration-200 hover:shadow-md group"
+                      className="flex flex-col items-center p-4 bg-gray-50 hover:bg-gray-200 rounded-lg border border-gray-200 transition-all duration-200 hover:shadow-md group cursor-pointer transform hover:-translate-y-1"
                     >
                       <div className={`w-12 h-12 ${action.color} rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200`}>
                         <action.icon size={24} className="text-white" />
@@ -261,94 +240,11 @@ export default function Dashboard() {
                   ))}
                 </div>
               </div>
-
-              {/* Actividad Reciente */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900">Actividad Reciente</h2>
-                  <button className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
-                    Ver todo
-                  </button>
-                </div>
-                <div className="space-y-3">
-                  {recentActivities.map(activity => (
-                    <div key={activity.id} className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors duration-200">
-                      <div className={`p-2 rounded-lg ${activity.type === 'sensor' ? 'bg-blue-500' :
-                        activity.type === 'user' ? 'bg-green-500' :
-                          activity.type === 'system' ? 'bg-purple-500' :
-                            activity.type === 'alert' ? 'bg-orange-500' : 'bg-gray-500'
-                        }`}>
-                        {getActivityIcon(activity.type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {activity.message}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Clock size={12} className="text-gray-400" />
-                          <span className="text-xs text-gray-500">{activity.time}</span>
-                          {activity.lab && (
-                            <>
-                              <span className="text-gray-300">•</span>
-                              <span className="text-xs text-blue-600 font-medium">{activity.lab}</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
 
             {/* Columna Derecha: Alertas */}
             <div className="lg:col-span-1">
-              <div>
-
-                <AlertsPanel alerts={alerts} />
-              </div>
-              {/* Estado del Sistema */}
-              {/* <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Estado del Sistema</h2>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-                      <CheckCircle size={20} className="text-white" />
-                    </div>
-                    <span className="font-medium text-green-800">Todos los sistemas operativos</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                      <Cpu size={20} className="text-white" />
-                    </div>
-                    <span className="font-medium text-blue-800">Base de datos estable</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-200">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-                      <Zap size={20} className="text-white" />
-                    </div>
-                    <span className="font-medium text-purple-800">Automatización activa</span>
-                  </div>
-                </div>
-
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">Uso de recursos</span>
-                    <span className="text-sm text-gray-500">65%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-green-600 h-2 rounded-full" style={{ width: '65%' }}></div>
-                  </div>
-                </div>
-              </div>
-            </div> */}
+              <AlertsPanel alerts={alerts} />
             </div>
           </div>
         </div>

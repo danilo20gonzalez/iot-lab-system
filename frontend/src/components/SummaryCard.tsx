@@ -15,7 +15,7 @@ export default function SummaryCard({
 }: SummaryCardProps) {
   return (
     <div
-      className="bg-white p-3 rounded-lg border border-gray-200 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 cursor-pointer w-full min-h-[90px] flex flex-col justify-between group/card"
+      className="bg-white p-3 rounded-lg border border-gray-200 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 w-full min-h-[90px] flex flex-col justify-between group/card"
       style={{ boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}
     >
       {/* Línea Superior: Icono y Título */}
