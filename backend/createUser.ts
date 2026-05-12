@@ -9,7 +9,7 @@ async function run() {
   const nombre_completo = "Jaime Daniel";
   const username = "jaime";
   const password = "123456";
-  const fk_id_rol = 1; // 1 = Admin, 2 = Supervisor, 3 = Operador
+  const fk_id_rol = 1; // 1 = Admin, 2 = Operador, 3 = Supervisor
   const email = "jaime@test.com";
 
   try {

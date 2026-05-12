@@ -1,6 +1,7 @@
 // src/pages/Sensors.tsx
 import { useState, useMemo, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import { useAppContext } from '../context/AppContext';
 import AirConditionerControl from '../components/deviceControl/AirConditionerControl';
 import LightControl from '../components/deviceControl/LightControl';
 import RealTimeCamera from '../components/deviceControl/RealTimeCamera';
@@ -179,11 +180,12 @@ function SensorCard({
   sensor,
   onDelete,
   index,
-
+  isOperador
 }: {
   sensor: SensorFormData;
   onDelete: (id: string) => void;
   index: number;
+  isOperador?: boolean;
 }) {
   const meta = SENSOR_TYPE_META[sensor.tipo];
   if (!meta) return null;
@@ -224,13 +226,15 @@ function SensorCard({
             <span className={`w-1.5 h-1.5 rounded-full ${est.dot} animate-pulse`} />
             <span className="text-white text-[10px] font-bold uppercase tracking-wider">{est.label}</span>
           </span>
-          <button
-            onClick={() => onDelete(sensor.id)}
-            className="p-1 text-white/40 hover:text-white hover:bg-white/20 rounded-md transition-all duration-200 opacity-0 group-hover:opacity-100"
-            title="Eliminar sensor"
-          >
-            <Trash2 size={13} />
-          </button>
+          {!isOperador && (
+            <button
+              onClick={() => onDelete(sensor.id)}
+              className="p-1 text-white/40 hover:text-white hover:bg-white/20 rounded-md transition-all duration-200 opacity-0 group-hover:opacity-100"
+              title="Eliminar sensor"
+            >
+              <Trash2 size={13} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -255,6 +259,8 @@ function SensorCard({
 
 /* ─── PÁGINA PRINCIPAL ─── */
 const Sensors = () => {
+  const { user } = useAppContext();
+  const isOperador = user?.fk_id_rol === 2;
   const [sensors, setSensors] = useState<SensorFormData[]>(DEFAULT_SENSORS);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
@@ -356,13 +362,15 @@ const Sensors = () => {
                 Gestiona y monitorea todos los dispositivos IoT del sistema
               </p>
             </div>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 cursor-pointer self-start sm:self-auto"
-            >
-              <Plus size={18} />
-              Nuevo Sensor
-            </button>
+            {!isOperador && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 cursor-pointer self-start sm:self-auto"
+              >
+                <Plus size={18} />
+                Nuevo Sensor
+              </button>
+            )}
           </div>
         </div>
 
@@ -533,6 +541,7 @@ const Sensors = () => {
                           sensor={sensor}
                           onDelete={handleDeleteSensor}
                           index={i}
+                          isOperador={isOperador}
                         />
                       ))}
                     </AnimatePresence>
@@ -572,6 +581,7 @@ const Sensors = () => {
                           sensor={sensor}
                           onDelete={handleDeleteSensor}
                           index={i}
+                          isOperador={isOperador}
                         />
                       ))}
                     </AnimatePresence>

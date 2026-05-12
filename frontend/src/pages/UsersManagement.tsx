@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAppContext } from '../context/AppContext';
 import { Plus, Search, Users } from 'lucide-react';
 import type { User, UserRoleID, UserStatus } from '../types/index';
 import UserCard from '../components/UserCard';
@@ -15,6 +17,14 @@ export default function UsersManagement() {
   const [statusFilter, setStatusFilter] = useState<UserStatus | 'all'>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const { user } = useAppContext();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user && user.fk_id_rol !== 1) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
 
   const fetchUsers = async () => {
@@ -78,7 +88,9 @@ export default function UsersManagement() {
   const stats = {
     total: users.length,
 
-    admins: users.filter(u => u.fk_id_rol === 1).length
+    admins: users.filter(u => u.fk_id_rol === 1).length,
+    operators: users.filter(u => u.fk_id_rol === 2).length,
+    supervisors: users.filter(u => u.fk_id_rol === 3).length
   };
 
   return (
@@ -98,6 +110,8 @@ export default function UsersManagement() {
             <StatCard icon={<Users className="text-indigo-600" />} label="Total Usuarios" value={stats.total} bgColor="bg-indigo-100" />
            {/* <StatCard icon={<Users className="text-green-600" />} label="Usuarios Activos" value={stats.active} bgColor="bg-green-100" />*/}
             <StatCard icon={<Users className="text-red-600" />} label="Administradores" value={stats.admins} bgColor="bg-red-100" />
+            <StatCard icon={<Users className="text-blue-600" />} label="Supervisores" value={stats.supervisors} bgColor="bg-blue-100" />
+            <StatCard icon={<Users className="text-green-600" />} label="Operadores" value={stats.operators} bgColor="bg-green-100" />
           </div>
 
           {/* Controls / Filters */}
@@ -123,6 +137,7 @@ export default function UsersManagement() {
                   <option value="all">Todos los roles</option>
                   <option value="1">Administrador</option>
                   <option value="2">Operador</option>
+                  <option value="3">Supervisor</option>
                 </select>
 
                 <select

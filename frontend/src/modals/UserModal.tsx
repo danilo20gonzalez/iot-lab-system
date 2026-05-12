@@ -175,6 +175,7 @@ export default function UserModal({ isOpen, onClose, user }: UserModalProps) {
                                     <>
                                         <option value="1">Administrador</option>
                                         <option value="2">Operador</option>
+                                        <option value="3">Supervisor</option>
                                     </>
                                 )}
                             </select>

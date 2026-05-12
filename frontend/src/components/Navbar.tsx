@@ -1,5 +1,5 @@
 // components/Navbar.tsx
-import { Activity, User, Clock, Settings, LogOut, Menu, X, FileText, BarChart3 } from 'lucide-react';
+import { Activity, User, Clock, Settings, LogOut, Menu, X, FileText } from 'lucide-react';
 import { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 //import ComponentPanel from './ComponentPanel';
@@ -13,8 +13,15 @@ export default function Navbar() {
 
   // Variables derivadas del contexto
   const username = user?.username || 'Usuario';
-  const roleName = user?.fk_id_rol === 1 ? 'Administrador' : 'Operador';
+  const roleNames: Record<number, string> = {
+    1: 'Administrador',
+    2: 'Operador',
+    3: 'Supervisor'
+  };
+  const roleName = roleNames[user?.fk_id_rol || 2] || 'Operador';
   const isAdmin = user?.fk_id_rol === 1;
+  const isOperador = user?.fk_id_rol === 2;
+
 
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -28,7 +35,7 @@ export default function Navbar() {
 
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard' },
-    { name: 'Laboratorios', path: '/laboratories-management' },
+    ...(!isOperador ? [{ name: 'Laboratorios', path: '/laboratories-management' }] : []),
     { name: 'Sensores', path: '/sensors' },
   ];
 
@@ -349,13 +356,15 @@ export default function Navbar() {
               <span className="font-medium text-sm">Componentes</span>
             </button>
 
-            <button
-              className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200 cursor-pointer"
-              onClick={() => handleNavigation('/settings')}
-            >
-              <Settings size={18} className="text-emerald-400" />
-              <span className="font-medium text-sm">Configuración</span>
-            </button>
+            {!isOperador && (
+              <button
+                className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200 cursor-pointer"
+                onClick={() => handleNavigation('/settings')}
+              >
+                <Settings size={18} className="text-emerald-400" />
+                <span className="font-medium text-sm">Configuración</span>
+              </button>
+            )}
 
             <button
               className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200 cursor-pointer"
@@ -437,13 +446,15 @@ export default function Navbar() {
                 </button>
               )}
 
-              <button
-                className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200 cursor-pointer"
-                onClick={() => handleNavigation('/settings')}
-              >
-                <Settings size={16} className="text-emerald-400" />
-                <span className="text-sm font-medium">Configuración</span>
-              </button>
+              {!isOperador && (
+                <button
+                  className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200 cursor-pointer"
+                  onClick={() => handleNavigation('/settings')}
+                >
+                  <Settings size={16} className="text-emerald-400" />
+                  <span className="text-sm font-medium">Configuración</span>
+                </button>
+              )}
             </div>
 
             {/* Cerrar sesión móvil */}

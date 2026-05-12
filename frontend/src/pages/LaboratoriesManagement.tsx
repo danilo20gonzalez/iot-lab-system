@@ -6,6 +6,7 @@ import LabCard from '../components/LabCard';
 import CreateLabModal from '../modals/CreateLabModal';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/api';
+import { useAppContext } from '../context/AppContext';
 
 interface Laboratory {
     id: number;
@@ -41,6 +42,10 @@ const getStatusText = (status: string) => {
 };
 
 export default function LaboratoriesManagement() {
+    const { user } = useAppContext();
+    const navigate = useNavigate();
+    const isAdmin = user?.fk_id_rol === 1;
+    const isOperador = user?.fk_id_rol === 2;
     const [laboratories, setLaboratories] = useState<Laboratory[]>([]);
     const [filteredLabs, setFilteredLabs] = useState<Laboratory[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -49,7 +54,11 @@ export default function LaboratoriesManagement() {
     const [editingLab, setEditingLab] = useState<Laboratory | null>(null);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-    // Datos de laboratorios cargados desde la API
+    useEffect(() => {
+        if (isOperador) {
+            navigate('/dashboard');
+        }
+    }, [isOperador, navigate]);
 
     useEffect(() => {
         // Cargar laboratorios desde API
@@ -177,13 +186,15 @@ export default function LaboratoriesManagement() {
                     <div className="mb-4">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <h1 className="text-3xl font-bold text-gray-900">Gestión Global de los Laboratorios</h1>
-                            <button
-                                onClick={() => setIsModalOpen(true)}
-                                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer"
-                            >
-                                <Plus size={20} />
-                                Nuevo Laboratorio
-                            </button>
+                            {isAdmin && (
+                                <button
+                                    onClick={() => setIsModalOpen(true)}
+                                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer"
+                                >
+                                    <Plus size={20} />
+                                    Nuevo Laboratorio
+                                </button>
+                            )}
                         </div>
                         <p className="text-gray-600">Administra los laboratorios y su configuración</p>
                     </div>
@@ -273,7 +284,7 @@ export default function LaboratoriesManagement() {
                                     isZoneDisabled={lab.isZoneDisabled}
                                     sensors={lab.sensors || []}
                                     onEdit={() => handleEditLab(lab)}
-                                    onDelete={() => handleDeleteLab(lab.id)}
+                                    onDelete={isAdmin ? () => handleDeleteLab(lab.id) : undefined}
                                 />
                             ))}
                         </div>
@@ -295,6 +306,7 @@ export default function LaboratoriesManagement() {
                                             lab={lab}
                                             onEdit={handleEditLab}
                                             onDelete={handleDeleteLab}
+                                            isAdmin={isAdmin}
                                         />
                                     ))}
                                 </tbody>
@@ -345,10 +357,11 @@ export default function LaboratoriesManagement() {
 }
 
 // Componente Fila para vista lista (inline, específico de esta página)
-function LabTableRow({ lab, onEdit, onDelete }: {
+function LabTableRow({ lab, onEdit, onDelete, isAdmin }: {
     lab: Laboratory;
     onEdit: (lab: Laboratory) => void;
     onDelete: (id: number) => void;
+    isAdmin?: boolean;
 }) {
     const navigate = useNavigate();
 
@@ -395,13 +408,15 @@ function LabTableRow({ lab, onEdit, onDelete }: {
                     >
                         <Edit3 size={16} />
                     </button>
-                    <button
-                        onClick={() => onDelete(lab.id)}
-                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
-                        title="Eliminar"
-                    >
-                        <Trash2 size={16} />
-                    </button>
+                    {isAdmin && (
+                        <button
+                            onClick={() => onDelete(lab.id)}
+                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                            title="Eliminar"
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                    )}
                 </div>
             </td>
         </tr>
