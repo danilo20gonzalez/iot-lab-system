@@ -5,14 +5,13 @@ import {
   Users,
   Building2,
   Thermometer,
-  Camera,
   AlertTriangle,
   Clock,
-  BarChart3,
   Settings,
   Cpu
 } from 'lucide-react';
 import Navbar from "../components/Navbar";
+import { useAppContext } from "../context/AppContext";
 import SummaryCard from "../components/SummaryCard";
 import AlertsPanel from "../components/AlertsPanel";
 import Footer from "../components/Footer";
@@ -46,6 +45,7 @@ interface RecentActivity {
 }
 
 export default function Dashboard() {
+  const { user } = useAppContext();
   const navigate = useNavigate();
   const [systemStats, setSystemStats] = useState<SystemStats>({
     totalLabs: 0,
@@ -59,7 +59,6 @@ export default function Dashboard() {
   });
 
   const [alerts, setAlerts] = useState<Alert[]>([]);
-
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
 
   // Carga de datos del sistema
@@ -96,28 +95,31 @@ export default function Dashboard() {
     fetchSystemData();
   }, []);
 
+  const isAdmin = user?.fk_id_rol === 1;
+  const isOperador = user?.fk_id_rol === 2;
+
   const quickActions = [
-    {
+    ...(!isOperador ? [{
       icon: Building2,
       label: "Gestión de Laboratorios",
       description: "Administrar laboratorios y configuraciones",
       action: () => navigate('/laboratories-management'),
       color: "bg-blue-500"
-    },
-    {
+    }] : []),
+    ...(isAdmin ? [{
       icon: Users,
       label: "Gestión de Usuarios",
       description: "Administrar usuarios y permisos",
       action: () => navigate('/users'),
       color: "bg-green-500"
-    },
-    {
+    }] : []),
+    ...(!isOperador ? [{
       icon: Settings,
       label: "Configuración del Sistema",
       description: "Configurar parámetros del sistema",
       action: () => navigate('/settings'),
       color: "bg-gray-500"
-    }
+    }] : [])
   ];
 
   const getActivityIcon = (type: string) => {
@@ -238,6 +240,43 @@ export default function Dashboard() {
                       </p>
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Actividad Reciente */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">Actividad Reciente</h2>
+                  <button className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">Ver todo</button>
+                </div>
+                <div className="space-y-4">
+                  {recentActivities.length > 0 ? (
+                    recentActivities.map((activity) => (
+                      <div key={activity.id} className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                        <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+                          {getActivityIcon(activity.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-900 font-medium">{activity.message}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs text-gray-500 flex items-center gap-1">
+                              <Clock size={12} />
+                              {activity.time}
+                            </span>
+                            {activity.lab && (
+                              <span className="text-xs text-emerald-600 font-medium px-2 py-0.5 bg-emerald-50 rounded-full">
+                                {activity.lab}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500 text-sm">No hay actividad reciente</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
