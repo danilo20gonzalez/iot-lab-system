@@ -62,6 +62,7 @@ export async function obtenerSensores() {
                    (entityId.toLowerCase().includes("temperature") || 
                     entityId.toLowerCase().includes("temperatura") ||
                     entityId.toLowerCase().includes("humidity") || 
+                    entityId.toLowerCase().includes("sonoff_100296c34a") || 
                     entityId.toLowerCase().includes("humedad"));
         }).map((entity: any) => {
             const eId = entity.entity_id.toLowerCase();
