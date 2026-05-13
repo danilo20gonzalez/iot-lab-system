@@ -348,6 +348,17 @@ const handleSaveSala = async (moduloData: any) => {
           )}
         </div>
 
+        {/* Sección de la Cámara de Seguridad */}
+        <div className="p-4 mt-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+            <div className="w-1 h-6 bg-gradient-to-b from-red-600 to-red-800 rounded-full"></div>
+            Cámara de Seguridad
+          </h2>
+          <div className="w-full max-w-4xl mx-auto">
+            <RealTimeCamera />
+          </div>
+        </div>
+
       </div >
 
       {/* Modales reubicados fuera del zoom */}
