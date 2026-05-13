@@ -11,16 +11,22 @@ export default function UserCard({ user, onEdit, onDelete }: UserCardProps) {
 
   // Mapeo para mostrar nombres amigables según el ID de rol
   const getRoleLabel = (roleId: number) => {
-    return roleId === 1 ? 'Administrador' : 'Operador';
+    switch (roleId) {
+      case 1: return 'Administrador';
+      case 2: return 'Operador';
+      case 3: return 'Supervisor';
+      default: return 'Usuario';
+    }
   };
 
   const getRoleConfig = (roleId: number) => {
-    return roleId === 1
-      ? { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200' }
-      : { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-200' };
+    switch (roleId) {
+      case 1: return { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200' };
+      case 3: return { bg: 'bg-amber-100', text: 'text-amber-800', border: 'border-amber-200' };
+      case 2:
+      default: return { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-200' };
+    }
   };
-
-
 
   const roleConfig = getRoleConfig(user.fk_id_rol);
  
@@ -42,8 +48,8 @@ export default function UserCard({ user, onEdit, onDelete }: UserCardProps) {
               <div className={`px-2 py-1 rounded-full text-xs font-medium ${roleConfig.bg} ${roleConfig.text} ${roleConfig.border}`}>
                 {getRoleLabel(user.fk_id_rol)}
               </div>
-              <div className={`px-2 py-1 rounded-full text-xs font-medium $ flex items-center gap-1`}>
-                <div className={`w-1.5 h-1.5 rounded-full $`}></div>
+              <div className="px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                <div className={`w-1.5 h-1.5 rounded-full ${user.estado === 'activo' ? 'bg-emerald-400' : 'bg-gray-400'}`}></div>
               </div>
             </div>
           </div>

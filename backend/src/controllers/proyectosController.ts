@@ -6,9 +6,28 @@ import { RowDataPacket, ResultSetHeader } from 'mysql2';
 export const getProyectos = async (req: Request, res: Response) => {
   try {
     const { idproyecto } = req.params;
+    const user = (req as any).user;
     
     if (!idproyecto) {
       return res.status(400).json({ message: 'El parámetro idproyecto es requerido' });
+    }
+
+    // Verificar permiso via Módulo -> Laboratorio
+    if (user.fk_id_rol !== 1) {
+      const [modulo] = await pool.query<RowDataPacket[]>(
+        'SELECT FK_ID_LABORATORIO FROM MODULO WHERE ID_MODULO = ?',
+        [idproyecto]
+      );
+      if (modulo.length > 0) {
+        const idLab = modulo[0].FK_ID_LABORATORIO;
+        const [assignment] = await pool.query<RowDataPacket[]>(
+          'SELECT * FROM USUARIO_LABORATORIO WHERE FK_ID_USUARIO = ? AND FK_ID_LABORATORIO = ?',
+          [user.id_usuario, idLab]
+        );
+        if (assignment.length === 0) {
+          return res.status(403).json({ message: 'No tienes permiso para ver los proyectos de este laboratorio' });
+        }
+      }
     }
 
     const [rows] = await pool.query<RowDataPacket[]>('CALL OBTENER_PROYECTOS(?)', [idproyecto]);
@@ -24,6 +43,25 @@ export const getProyectos = async (req: Request, res: Response) => {
 export const createProyecto = async (req: Request, res: Response) => {
   try {
     const { idproyecto, nombre, descripcion } = req.body;
+    const user = (req as any).user;
+
+    // Verificar permiso
+    if (user.fk_id_rol !== 1) {
+      const [modulo] = await pool.query<RowDataPacket[]>(
+        'SELECT FK_ID_LABORATORIO FROM MODULO WHERE ID_MODULO = ?',
+        [idproyecto]
+      );
+      if (modulo.length > 0) {
+        const idLab = modulo[0].FK_ID_LABORATORIO;
+        const [assignment] = await pool.query<RowDataPacket[]>(
+          'SELECT * FROM USUARIO_LABORATORIO WHERE FK_ID_USUARIO = ? AND FK_ID_LABORATORIO = ?',
+          [user.id_usuario, idLab]
+        );
+        if (assignment.length === 0) {
+          return res.status(403).json({ message: 'No tienes permiso para crear proyectos en este laboratorio' });
+        }
+      }
+    }
 
     const [result] = await pool.query<RowDataPacket[]>(
       'CALL CREAR_PROYECTO(?, ?, ?)',

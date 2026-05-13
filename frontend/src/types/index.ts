@@ -12,7 +12,7 @@ export interface User {
 }
 
 // Estos tipos ayudan para validaciones en formularios
-export type UserRoleID = 1 | 2; // 1: admin, 2: operador
+export type UserRoleID = 1 | 2 | 3; // 1: admin, 2: operador, 3: supervisor
 export type UserStatus = 'activo' | 'inactivo';
 
 // Interfaces para los laboratorios
