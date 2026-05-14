@@ -1,1 +1,1 @@
-export const apiUrl = 'http://localhost:4000';
+export const apiUrl = 'https://laboratorioiot-ffc7dngxdpgddrd5.mexicocentral-01.azurewebsites.net';
