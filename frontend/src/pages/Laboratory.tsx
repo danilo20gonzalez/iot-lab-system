@@ -16,11 +16,6 @@ import UserModal from '../modals/UserModal';
 import api from '../api/api';
 import { wsUrl } from '../../config';
 
-interface LabDevice {
-  id: string;
-  type: string;
-  name: string;
-}
 
 const Laboratory = () => {
   const { id } = useParams<{ id: string }>();

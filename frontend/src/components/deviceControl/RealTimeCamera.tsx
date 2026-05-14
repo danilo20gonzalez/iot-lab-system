@@ -33,7 +33,7 @@ const RealTimeCamera = () => {
     useEffect(() => {
         let objectUrl: string | null = null;
         let isSubscribed = true;
-        let timeoutId: NodeJS.Timeout;
+        let timeoutId: ReturnType<typeof setTimeout>;
 
         const fetchFrame = async () => {
             if (!isPlaying || hasError) return;
