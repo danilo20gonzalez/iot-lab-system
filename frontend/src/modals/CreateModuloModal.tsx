@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, DoorOpen, Tag, FileText, Activity, Thermometer, Trash2 } from 'lucide-react';
+import { X, DoorOpen, Tag, FileText, Activity, Thermometer, Trash2, Beaker } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ComponentPanel from '../components/ComponentPanel';
 import TemperatureControl from '../components/deviceControl/TemperatureControl';
@@ -299,6 +299,17 @@ export default function CreateSalaModal({ isOpen, onClose, onSave, editingRoom }
                                                 </div>
                                             )}
                                         </div>
+                                    </div>
+                                )}
+
+                                 {/* Info card (solo en creación) */}
+                                {!editingRoom && (
+                                    <div className="bg-emerald-50/60 border border-emerald-100 rounded-xl p-3 flex items-start gap-3">
+                                        <Beaker size={18} className="text-emerald-600 mt-0.5 flex-shrink-0" />
+                                        <p className="text-xs text-emerald-700 leading-relaxed">
+                                            Una vez creado el módulo, podrás asignarle dispositivos IoT, sensores y
+                                            configurar las zonas de automatización desde el panel de control.
+                                        </p>
                                     </div>
                                 )}
 

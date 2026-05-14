@@ -35,16 +35,51 @@ function connectToHA() {
         try {
             const msg = JSON.parse(data);
             if (msg.type === 'auth_ok') {
-                // Suscribirse a cambios de estado
-                haWs?.send(JSON.stringify({ id: 1, type: 'subscribe_events', event_type: 'state_changed' }));
-            } // Aceptamos entidades que contengan 'switch' o 'sensor'
-            else if (msg.type === 'event' && msg.event?.data?.new_state && (msg.event.data.entity_id.includes('switch') || msg.event.data.entity_id.includes('sensor'))) {
-                // Reenviar a todos los clientes Unity
+                console.log('Autenticación exitosa con HA');
+                // 1. PRIMERO: Solicitar todos los estados actuales para conocer los sensores registrados
+                haWs?.send(JSON.stringify({
+                    id: 1,
+                    type: 'get_states'
+                }));
+                // 2. SEGUNDO: Suscribirse a cambios futuros (usamos ID 2 para no chocar)
+                haWs?.send(JSON.stringify({
+                    id: 2,
+                    type: 'subscribe_events',
+                    event_type: 'state_changed'
+                }));
+            }
+            // MANEJO DE LA LISTA INICIAL DE SENSORES (Respuesta a get_states)
+            else if (msg.type === 'result' && Array.isArray(msg.result)) {
+                const sensoresYSwitches = msg.result.filter((entity) => entity.entity_id.includes('sensor') || entity.entity_id.includes('switch'));
+                // --- ESTO ES LO QUE DEBES AGREGAR PARA COMPROBAR ---
+                console.log("\n=== DISPOSITIVOS DETECTADOS EN HOME ASSISTANT ===");
+                console.table(sensoresYSwitches.map((s) => ({
+                    ID: s.entity_id,
+                    Nombre: s.attributes.friendly_name || "Sin nombre",
+                    Estado: s.state,
+                    Unidad: s.attributes.unit_of_measurement || ""
+                })));
+                console.log("================================================\n");
+                // --------------------------------------------------
                 broadcastToUnity({
-                    type: 'state_change',
-                    entity: msg.event.data.entity_id,
-                    state: msg.event.data.new_state?.state
+                    type: 'initial_state',
+                    data: sensoresYSwitches.map((s) => ({
+                        entity: s.entity_id,
+                        state: s.state,
+                        friendly_name: s.attributes.friendly_name
+                    }))
                 });
+            }
+            // MANEJO DE CAMBIOS EN TIEMPO REAL (Respuesta a subscribe_events)
+            else if (msg.type === 'event' && msg.event?.data?.new_state) {
+                const entityId = msg.event.data.entity_id;
+                if (entityId.includes('switch') || entityId.includes('sensor')) {
+                    broadcastToUnity({
+                        type: 'state_change',
+                        entity: entityId,
+                        state: msg.event.data.new_state?.state
+                    });
+                }
             }
         }
         catch (e) {
@@ -60,9 +95,9 @@ function connectToHA() {
     });
 }
 function startHAWebsocketServer() {
-    const wss = new ws_1.WebSocketServer({ port: 8080 });
+    const wss = new ws_1.WebSocketServer({ port: 8081 });
     wss.on('connection', (ws) => {
-        console.log('Cliente Unity conectado (WebSocket puerto 8080)');
+        console.log('Cliente Unity conectado (WebSocket puerto 8081)');
         unityClients.add(ws);
         ws.on('message', async (data) => {
             try {
@@ -91,5 +126,5 @@ function startHAWebsocketServer() {
     });
     // Iniciar la conexión a Home Assistant
     connectToHA();
-    console.log('Servidor WebSocket para Unity escuchando en puerto 8080');
+    console.log('Servidor WebSocket para Unity escuchando en puerto 8081');
 }

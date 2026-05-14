@@ -24,7 +24,7 @@ const Projects = () => {
   const location = useLocation();
   const { id } = useParams<{ id: string }>();
   const moduloState = location.state as { nombre: string; descripcion: string } | undefined;
-  
+
   const [proyectos, setProyectos] = useState<Proyecto[]>([]);
   const [placedComponents, setPlacedComponents] = useState<ComponentData[]>([]);
   const [editingProject, setEditingProject] = useState<Proyecto | null>(null);
@@ -150,7 +150,7 @@ const Projects = () => {
         };
         setProyectos(prev => [...prev, nuevoProyecto]);
       }
-      
+
       setShowCreateForm(false);
       setEditingProject(null);
       console.log('Proyecto guardado exitosamente');

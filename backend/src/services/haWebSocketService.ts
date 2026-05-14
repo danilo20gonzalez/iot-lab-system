@@ -24,37 +24,37 @@ export function broadcastToUnity(messageObj: any) {
 
 function connectToHA() {
   haWs = new WebSocket(HA_WS_URL);
-  
+
   haWs.on('open', () => {
     console.log('Conectado a HA WebSocket');
     // Autenticación
     haWs?.send(JSON.stringify({ type: 'auth', access_token: HA_TOKEN }));
   });
-  
+
   haWs.on('message', (data: string) => {
     try {
       const msg = JSON.parse(data);
-      
+
       if (msg.type === 'auth_ok') {
         console.log('Autenticación exitosa con HA');
-        
+
         // 1. PRIMERO: Solicitar todos los estados actuales para conocer los sensores registrados
-        haWs?.send(JSON.stringify({ 
-          id: 1, 
-          type: 'get_states' 
+        haWs?.send(JSON.stringify({
+          id: 1,
+          type: 'get_states'
         }));
 
         // 2. SEGUNDO: Suscribirse a cambios futuros (usamos ID 2 para no chocar)
-        haWs?.send(JSON.stringify({ 
-          id: 2, 
-          type: 'subscribe_events', 
-          event_type: 'state_changed' 
+        haWs?.send(JSON.stringify({
+          id: 2,
+          type: 'subscribe_events',
+          event_type: 'state_changed'
         }));
-      } 
-      
+      }
+
       // MANEJO DE LA LISTA INICIAL DE SENSORES (Respuesta a get_states)
       else if (msg.type === 'result' && Array.isArray(msg.result)) {
-        const sensoresYSwitches = msg.result.filter((entity: any) => 
+        const sensoresYSwitches = msg.result.filter((entity: any) =>
           entity.entity_id.includes('sensor') || entity.entity_id.includes('switch')
         );
 
@@ -78,11 +78,11 @@ function connectToHA() {
           }))
         });
       }
-      
+
       // MANEJO DE CAMBIOS EN TIEMPO REAL (Respuesta a subscribe_events)
       else if (msg.type === 'event' && msg.event?.data?.new_state) {
         const entityId = msg.event.data.entity_id;
-        
+
         if (entityId.includes('switch') || entityId.includes('sensor')) {
           broadcastToUnity({
             type: 'state_change',
@@ -107,10 +107,10 @@ function connectToHA() {
 }
 
 export function startHAWebsocketServer() {
-  const wss = new WebSocketServer({ port: 8080 });
+  const wss = new WebSocketServer({ port: 8081 });
 
   wss.on('connection', (ws: WebSocket) => {
-    console.log('Cliente Unity conectado (WebSocket puerto 8080)');
+    console.log('Cliente Unity conectado (WebSocket puerto 8081)');
     unityClients.add(ws);
 
     ws.on('message', async (data: string) => {
@@ -143,5 +143,5 @@ export function startHAWebsocketServer() {
 
   // Iniciar la conexión a Home Assistant
   connectToHA();
-  console.log('Servidor WebSocket para Unity escuchando en puerto 8080');
+  console.log('Servidor WebSocket para Unity escuchando en puerto 8081');
 }

@@ -32,13 +32,18 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const laboratorioController = __importStar(require("../controllers/laboratorioController"));
+const authenticate_1 = __importDefault(require("../middlewares/authenticate"));
+const authorizeRole_1 = require("../middlewares/authorizeRole");
 const router = (0, express_1.Router)();
 // ✅ Rutas REST
-router.get('/getLaboratorios', laboratorioController.getLaboratorios);
-router.post('/createLaboratorio', laboratorioController.createLaboratorio);
-router.put('/updateLaboratorio/:id', laboratorioController.updateLaboratorio);
-router.delete('/deleteLaboratorio/:id', laboratorioController.deleteLaboratorio);
+router.get('/getLaboratorios', authenticate_1.default, (0, authorizeRole_1.authorizeRole)([1, 3]), laboratorioController.getLaboratorios);
+router.post('/createLaboratorio', authenticate_1.default, (0, authorizeRole_1.authorizeRole)([1]), laboratorioController.createLaboratorio);
+router.put('/updateLaboratorio/:id', authenticate_1.default, (0, authorizeRole_1.authorizeRole)([1, 3]), laboratorioController.updateLaboratorio);
+router.delete('/deleteLaboratorio/:id', authenticate_1.default, (0, authorizeRole_1.authorizeRole)([1]), laboratorioController.deleteLaboratorio);
 exports.default = router;

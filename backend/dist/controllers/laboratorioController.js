@@ -5,8 +5,35 @@ const db_1 = require("../config/db");
 // ✅ Listar laboratorios
 const getLaboratorios = async (req, res) => {
     try {
-        const [rows] = await db_1.pool.query('CALL OBTENER_LABORATORIOS()');
-        const laboratorios = rows[0];
+        const user = req.user;
+        let laboratorios;
+        if (user.fk_id_rol === 1) {
+            // ADMIN ve todo
+            const [rows] = await db_1.pool.query('CALL OBTENER_LABORATORIOS()');
+            laboratorios = rows[0];
+        }
+        else {
+            // Supervisor y Operador ven solo lo asignado
+            const [rows] = await db_1.pool.query(`SELECT 
+          L.ID_LABORATORIO as id,
+          CONCAT('LAB-', LPAD(L.ID_LABORATORIO, 3, '0')) as code,
+          L.NOMBRE_LABORATORIO as name,
+          L.DESCRIPCION_LABORATORIO as description,
+          EL.NOMBRE_ESTADO_LABORATORIO as status_db,
+          (SELECT COUNT(*) FROM USUARIO_LABORATORIO WHERE FK_ID_LABORATORIO = L.ID_LABORATORIO) as associatedUsers,
+          0 as activeSensors, -- Simplificado por ahora
+          0 as devices
+         FROM LABORATORIO L
+         JOIN ESTADO_LABORATORIO EL ON L.PK_ID_ESTADO_LABORATORIO = EL.ID_ESTADO_LABORATORIO
+         JOIN USUARIO_LABORATORIO UL ON L.ID_LABORATORIO = UL.FK_ID_LABORATORIO
+         WHERE UL.FK_ID_USUARIO = ?`, [user.id_usuario]);
+            laboratorios = rows.map(lab => ({
+                ...lab,
+                status: lab.status_db === 'ACTIVO' ? 'active' : lab.status_db === 'MANTENIMIENTO' ? 'maintenance' : 'inactive',
+                automationStatus: 'off',
+                isZoneDisabled: false
+            }));
+        }
         res.json(laboratorios);
     }
     catch (error) {
@@ -54,6 +81,14 @@ const updateLaboratorio = async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description, status } = req.body;
+        const user = req.user;
+        // Verificar si el supervisor tiene asignado este laboratorio
+        if (user.fk_id_rol !== 1) {
+            const [assignment] = await db_1.pool.query('SELECT * FROM USUARIO_LABORATORIO WHERE FK_ID_USUARIO = ? AND FK_ID_LABORATORIO = ?', [user.id_usuario, id]);
+            if (assignment.length === 0) {
+                return res.status(403).json({ message: 'No tienes permiso para editar este laboratorio' });
+            }
+        }
         const estadoId = status === 'active' ? 1 : status === 'maintenance' ? 2 : 3;
         await db_1.pool.query('CALL ACTUALIZAR_LABORATORIO(?, ?, ?, ?)', [id, name, description, estadoId]);
         res.json({ message: 'Laboratorio actualizado correctamente' });

@@ -11,7 +11,7 @@ import { useAppContext } from "../context/AppContext";
 import type { ComponentData } from "../context/AppContext";
 import { ReactSortable } from 'react-sortablejs';
 import LabRoomCard from '../components/LabRoomCard';
-import CreateSalaModal from '../modals/CreateSalaModal';
+import CreateSalaModal from '../modals/CreateModuloModal';
 import api from '../api/api';
 
 const Laboratory = () => {
@@ -51,9 +51,9 @@ const Laboratory = () => {
 
   const sendHACommand = (entity: string, turnOn: boolean) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ 
-        action: turnOn ? 'turn_on' : 'turn_off', 
-        entity 
+      wsRef.current.send(JSON.stringify({
+        action: turnOn ? 'turn_on' : 'turn_off',
+        entity
       }));
     }
   };
@@ -113,10 +113,10 @@ const Laboratory = () => {
 
 
 
- const handleEditModulo = (modulo: any) => {
-  setEditingRoom(modulo);
-  setIsSalaModalOpen(true);
-};
+  const handleEditModulo = (modulo: any) => {
+    setEditingRoom(modulo);
+    setIsSalaModalOpen(true);
+  };
 
   const handleDeleteModulo = async (id: number) => {
     if (window.confirm('¿Estás seguro de eliminar este módulo?')) {
@@ -129,59 +129,59 @@ const Laboratory = () => {
     }
   };
 
-const handleSaveSala = async (moduloData: any) => {
-  try {
-    // 1. Preparamos el objeto que se enviará al backend
-    // Asegúrate de que los nombres de los campos coincidan con lo que espera tu API
-    const payload = {
-      idlaboratorio: id,
-      nombre: moduloData.nombre,
-      descripcion: moduloData.descripcion
-      // El ID del laboratorio que viene de useParams
-    };
-
-    if (editingRoom) {
-      // --- MODO EDICIÓN ---
-      if (editingRoom.id !== 9999) {
-        await api.put(`/updateModulo/${editingRoom.id}`, payload);
-      }
-
-      // Actualizamos el estado local
-      setModulos(prev => prev.map(m => 
-        m.id === editingRoom.id 
-          ? { 
-              ...m, 
-              nombre: moduloData.nombre,
-              descripcion: moduloData.descripcion
-            } 
-          : m
-      ));
-
-    } else {
-      // --- MODO CREACIÓN ---
-      const response = await api.post('/createModulo', payload);
-      
-      // Es mejor recargar los módulos para obtener el ID real generado por la DB
-      // Pero si quieres agregarlo manualmente:
-      const nuevoModulo = {
-        id: response.data.id || Date.now(), // ID devuelto por la DB
+  const handleSaveSala = async (moduloData: any) => {
+    try {
+      // 1. Preparamos el objeto que se enviará al backend
+      // Asegúrate de que los nombres de los campos coincidan con lo que espera tu API
+      const payload = {
+        idlaboratorio: id,
         nombre: moduloData.nombre,
         descripcion: moduloData.descripcion
+        // El ID del laboratorio que viene de useParams
       };
-      
-      setModulos(prev => [...prev, nuevoModulo]);
+
+      if (editingRoom) {
+        // --- MODO EDICIÓN ---
+        if (editingRoom.id !== 9999) {
+          await api.put(`/updateModulo/${editingRoom.id}`, payload);
+        }
+
+        // Actualizamos el estado local
+        setModulos(prev => prev.map(m =>
+          m.id === editingRoom.id
+            ? {
+              ...m,
+              nombre: moduloData.nombre,
+              descripcion: moduloData.descripcion
+            }
+            : m
+        ));
+
+      } else {
+        // --- MODO CREACIÓN ---
+        const response = await api.post('/createModulo', payload);
+
+        // Es mejor recargar los módulos para obtener el ID real generado por la DB
+        // Pero si quieres agregarlo manualmente:
+        const nuevoModulo = {
+          id: response.data.id || Date.now(), // ID devuelto por la DB
+          nombre: moduloData.nombre,
+          descripcion: moduloData.descripcion
+        };
+
+        setModulos(prev => [...prev, nuevoModulo]);
+      }
+
+      // Cerrar modal y limpiar
+      setIsSalaModalOpen(false);
+      setEditingRoom(null);
+
+
+    } catch (error) {
+      console.error('Error al guardar módulo:', error);
+      alert('Hubo un error al intentar guardar el módulo. Por favor, verifica la conexión.');
     }
-
-    // Cerrar modal y limpiar
-    setIsSalaModalOpen(false);
-    setEditingRoom(null);
-  
-
-  } catch (error) {
-    console.error('Error al guardar módulo:', error);
-    alert('Hubo un error al intentar guardar el módulo. Por favor, verifica la conexión.');
-  }
-};
+  };
 
   // Manejar drop de componentes
   const handleDrop = (e: React.DragEvent) => {
@@ -216,10 +216,10 @@ const handleSaveSala = async (moduloData: any) => {
         {/* Renderizado dinámico del componente */}
         <div className="h-48">
           {component.type === 'air-conditioner' && <AirConditionerControl />}
-          {component.type === 'light' && <LightControl 
+          {component.type === 'light' && <LightControl
             entityId="switch.sonoff_luz" // Se puede hacer dinámico en el futuro
-            haState={haStates['switch.sonoff_luz']} 
-            onToggle={sendHACommand} 
+            haState={haStates['switch.sonoff_luz']}
+            onToggle={sendHACommand}
           />}
           {component.type === 'camera' && <RealTimeCamera />}
           {component.type === 'valve' && <WaterValveControl />}

@@ -5,4 +5,7 @@ const homeAssistantController_1 = require("../controllers/homeAssistantControlle
 const router = (0, express_1.Router)();
 router.post("/luz/on", homeAssistantController_1.encenderLuz);
 router.post("/luz/off", homeAssistantController_1.apagarLuz);
+router.get("/sensores", homeAssistantController_1.getSensores);
+router.get("/switches", homeAssistantController_1.getSwitches);
+router.get("/camera/:entityId", homeAssistantController_1.getCameraStream);
 exports.default = router;

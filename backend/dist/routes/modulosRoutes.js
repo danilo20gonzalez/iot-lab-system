@@ -37,11 +37,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const userController = __importStar(require("../controllers/userController"));
+const modulosController = __importStar(require("../controllers/modulosController"));
 const authenticate_1 = __importDefault(require("../middlewares/authenticate"));
 const authorizeRole_1 = require("../middlewares/authorizeRole");
 const router = (0, express_1.Router)();
-router.get('/users', authenticate_1.default, (0, authorizeRole_1.authorizeRole)([1]), userController.getUsers); // Obtener todos los usuarios
-router.delete('/users/:id', authenticate_1.default, (0, authorizeRole_1.authorizeRole)([1]), userController.deleteUser); // Eliminar un usuario
-router.put('/users/:id', authenticate_1.default, (0, authorizeRole_1.authorizeRole)([1]), userController.updateUser); // Editar un usuario
+router.get('/getModulos/:idlaboratorio', authenticate_1.default, (0, authorizeRole_1.authorizeRole)([1, 2, 3]), modulosController.getModulos);
+router.post('/createModulo', authenticate_1.default, (0, authorizeRole_1.authorizeRole)([1, 3]), modulosController.createModulo);
+router.put('/updateModulo/:id', authenticate_1.default, (0, authorizeRole_1.authorizeRole)([1, 3]), modulosController.updateModulo);
+router.delete('/deleteModulo/:id', authenticate_1.default, (0, authorizeRole_1.authorizeRole)([1, 3]), modulosController.deleteModulo);
 exports.default = router;
