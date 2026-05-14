@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { apiUrl } from '../../config';
 
 const api = axios.create({
-    baseURL: 'http://localhost:4000/api',
+    baseURL: `${apiUrl}/api`,
 });
 
 // Este interceptor adjunta el token automáticamente a todas las peticiones

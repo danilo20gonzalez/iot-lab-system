@@ -12,7 +12,15 @@ import type { ComponentData } from "../context/AppContext";
 import { ReactSortable } from 'react-sortablejs';
 import LabRoomCard from '../components/LabRoomCard';
 import CreateSalaModal from '../modals/CreateModuloModal';
+import UserModal from '../modals/UserModal';
 import api from '../api/api';
+import { wsUrl } from '../../config';
+
+interface LabDevice {
+  id: string;
+  type: string;
+  name: string;
+}
 
 const Laboratory = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,8 +34,8 @@ const Laboratory = () => {
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    // Conectar al WebSocket local (puerto 8080)
-    const ws = new WebSocket('ws://localhost:8080');
+    // Conectar al WebSocket usando la URL de configuración
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen = () => console.log('Conectado al servidor WebSocket local (HA Bridge)');
