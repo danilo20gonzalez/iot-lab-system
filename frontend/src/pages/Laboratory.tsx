@@ -12,7 +12,6 @@ import type { ComponentData } from "../context/AppContext";
 import { ReactSortable } from 'react-sortablejs';
 import LabRoomCard from '../components/LabRoomCard';
 import CreateSalaModal from '../modals/CreateModuloModal';
-import UserModal from '../modals/UserModal';
 import api from '../api/api';
 import { wsUrl } from '../../config';
 
