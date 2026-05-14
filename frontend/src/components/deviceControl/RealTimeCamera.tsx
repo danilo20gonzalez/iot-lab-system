@@ -3,12 +3,13 @@ import {
     Camera, Maximize2,
     RefreshCw, Circle, ShieldAlert, ZoomIn, Play, Square
 } from 'lucide-react';
+import { apiUrl } from '../../../config';
 
 const RealTimeCamera = () => {
     const [isPlaying, setIsPlaying] = useState(false);
 
     const [hasError, setHasError] = useState(false);
-    const [imageSrc, setImageSrc] = useState(`http://localhost:4000/api/camera/camera.192_168_1_18`);
+    const [imageSrc, setImageSrc] = useState(`${apiUrl}/api/camera/camera.192_168_1_18`);
     const [isZoomed, setIsZoomed] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -37,7 +38,7 @@ const RealTimeCamera = () => {
         const fetchFrame = async () => {
             if (!isPlaying || hasError) return;
             try {
-                const response = await fetch(`http://localhost:4000/api/camera/camera.192_168_1_18?t=${Date.now()}`);
+                const response = await fetch(`${apiUrl}/api/camera/camera.192_168_1_18?t=${Date.now()}`);
                 if (!response.ok) throw new Error("Network error");
 
                 const blob = await response.blob();
