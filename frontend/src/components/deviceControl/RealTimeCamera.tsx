@@ -61,7 +61,7 @@ const RealTimeCamera = () => {
                     {isPlaying && !hasError ? (
                         <div className={`w-full h-full transition-transform duration-500 ${isZoomed ? 'scale-150' : 'scale-100'}`}>
                             <ReactPlayer
-                                url={streamUrl}
+                                src={streamUrl}
                                 playing={isPlaying}
                                 width="100%"
                                 height="100%"
@@ -69,6 +69,7 @@ const RealTimeCamera = () => {
                                 onError={(e) => {
                                     console.error('Error al reproducir el stream HLS:', e);
                                     setHasError(true);
+                                }}
                             />
                         </div>
                     ) : (
