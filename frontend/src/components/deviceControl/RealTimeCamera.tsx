@@ -13,7 +13,7 @@ const RealTimeCamera = () => {
     
     // Configura aquí la ruta de tu stream HLS en mediamtx
     // Ej: si tu stream en mediamtx se llama 'camara1', la ruta sería /camara1/index.m3u8
-    const streamUrl = 'https://camara.laboratorioiot.online/stream/index.m3u8';
+    const streamUrl = 'https://camara.laboratorioiot.online/camarasonoff/index.m3u8';
 
     const handleFullscreen = () => {
         if (containerRef.current) {
