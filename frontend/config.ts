@@ -1,3 +1,3 @@
-export const apiUrl = 'https://laboratorioiot-ffc7dngxdpgddrd5.mexicocentral-01.azurewebsites.net';
+export const apiUrl = 'https://api.laboratorioiot.online';
 // Para local usa 'ws://localhost:8081', para la nube ajusta a tu dominio
-export const wsUrl = 'wss://laboratorioiot-ffc7dngxdpgddrd5.mexicocentral-01.azurewebsites.net';
+export const wsUrl = 'wss://api.laboratorioiot.online';

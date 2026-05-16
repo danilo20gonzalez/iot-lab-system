@@ -3,15 +3,17 @@ import {
     Camera, Maximize2,
     RefreshCw, Circle, ShieldAlert, ZoomIn, Play, Square
 } from 'lucide-react';
-import { apiUrl } from '../../../config';
+import ReactPlayer from 'react-player';
 
 const RealTimeCamera = () => {
     const [isPlaying, setIsPlaying] = useState(false);
-
     const [hasError, setHasError] = useState(false);
-    const [imageSrc, setImageSrc] = useState(`${apiUrl}/api/camera/camera.192_168_1_18`);
     const [isZoomed, setIsZoomed] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    
+    // Configura aquí la ruta de tu stream HLS en mediamtx
+    // Ej: si tu stream en mediamtx se llama 'camara1', la ruta sería /camara1/index.m3u8
+    const streamUrl = 'https://camara.laboratorioiot.online/stream/index.m3u8';
 
     const handleFullscreen = () => {
         if (containerRef.current) {
@@ -30,54 +32,13 @@ const RealTimeCamera = () => {
         if (!isPlaying) setIsPlaying(true);
     };
 
-    useEffect(() => {
-        let objectUrl: string | null = null;
-        let isSubscribed = true;
-        let timeoutId: ReturnType<typeof setTimeout>;
-
-        const fetchFrame = async () => {
-            if (!isPlaying || hasError) return;
-            try {
-                const response = await fetch(`${apiUrl}/api/camera/camera.192_168_1_18?t=${Date.now()}`);
-                if (!response.ok) throw new Error("Network error");
-
-                const blob = await response.blob();
-                const newObjectUrl = URL.createObjectURL(blob);
-
-                if (isSubscribed) {
-                    setImageSrc(newObjectUrl);
-                    if (objectUrl) URL.revokeObjectURL(objectUrl);
-                    objectUrl = newObjectUrl;
-                    setHasError(false);
-                    // Llama al siguiente frame en 200ms (5 FPS) para mantener fluidez sin saturar el servidor
-                    timeoutId = setTimeout(fetchFrame, 200);
-                } else {
-                    URL.revokeObjectURL(newObjectUrl);
-                }
-            } catch (error) {
-                if (isSubscribed) setHasError(true);
-            }
-        };
-
-        if (!hasError && isPlaying) {
-            fetchFrame();
-        }
-
-        return () => {
-            isSubscribed = false;
-            clearTimeout(timeoutId);
-            if (objectUrl) URL.revokeObjectURL(objectUrl);
-        };
-    }, [hasError, isPlaying]);
+    // ReactPlayer maneja el stream HLS automáticamente si le pasas la URL correcta.
+    // Ya no necesitamos el useEffect para descargar imágenes.
 
     const handleTakePhoto = () => {
-        if (!imageSrc || !isPlaying) return;
-        const link = document.createElement('a');
-        link.href = imageSrc;
-        link.download = `captura_camara_${new Date().getTime()}.jpg`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // La captura de fotos desde un iframe de video HLS es compleja por políticas de CORS y Canvas.
+        // Se deja el botón como un placeholder o se puede intentar capturar el frame si el reproductor lo permite.
+        alert("La captura de fotos nativa está deshabilitada en el modo HLS (Video en vivo).");
     };
 
     return (
@@ -85,29 +46,40 @@ const RealTimeCamera = () => {
             {/* SECCIÓN DEL VIDEO (Visualizador) */}
             <div ref={containerRef} className="relative flex-1 bg-black rounded-lg overflow-hidden border border-slate-800 group">
                 {/* Overlay Superior */}
-                <div className="absolute top-2 left-2 right-2 flex justify-between items-start z-10">
+                <div className="absolute top-2 left-2 right-2 flex justify-between items-start z-10 pointer-events-none">
                     <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-2 py-1 rounded-md border border-white/10">
                         <Circle className={`fill-red-600 ${isPlaying ? 'animate-pulse text-red-600' : 'text-slate-500'}`} size={8} />
-                        <span className="text-[10px] text-white font-bold uppercase tracking-widest">{isPlaying ? 'Live' : 'Standby'}</span>
+                        <span className="text-[10px] text-white font-bold uppercase tracking-widest">{isPlaying ? 'Live HLS' : 'Standby'}</span>
                     </div>
                     <span className="text-[9px] text-white/70 font-mono bg-black/20 px-1 rounded">
-                        192.168.1.18
+                        mediamtx
                     </span>
                 </div>
 
-                {/* Placeholder de Video (Aquí iría el <video> o <img> stream) */}
+                {/* Reproductor de Video */}
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-900 to-black relative overflow-hidden">
-                    {!hasError ? (
-                        <img
-                            src={imageSrc}
-                            alt="Camera Stream"
-                            className={`w-full h-full object-cover transition-transform duration-500 ${isZoomed ? 'scale-150' : 'scale-100'} ${isPlaying ? '' : 'opacity-30 grayscale blur-sm'}`}
-                            onError={() => setHasError(true)}
-                        />
+                    {isPlaying && !hasError ? (
+                        <div className={`w-full h-full transition-transform duration-500 ${isZoomed ? 'scale-150' : 'scale-100'}`}>
+                            <ReactPlayer
+                                src={streamUrl}
+                                playing={isPlaying}
+                                width="100%"
+                                height="100%"
+                                style={{ objectFit: 'cover' }}
+                                onError={(e) => {
+                                    console.error('Error al reproducir el stream HLS:', e);
+                                    setHasError(true);
+                                }}
+                            />
+                        </div>
                     ) : (
                         <div className="flex flex-col items-center justify-center text-slate-500 z-10">
                             <Camera size={32} className="mb-2" />
-                            <span className="text-[10px] uppercase font-bold tracking-widest text-red-500/80">Sin conexión</span>
+                            {hasError ? (
+                                <span className="text-[10px] uppercase font-bold tracking-widest text-red-500/80">Sin conexión</span>
+                            ) : (
+                                <span className="text-[10px] uppercase font-bold tracking-widest">En espera</span>
+                            )}
                         </div>
                     )}
                     <Camera size={32} className="text-slate-800 absolute -z-10" />
