@@ -69,12 +69,6 @@ const RealTimeCamera = () => {
                                 onError={(e) => {
                                     console.error('Error al reproducir el stream HLS:', e);
                                     setHasError(true);
-                                }}
-                                config={{
-                                    file: {
-                                        forceHLS: true,
-                                    }
-                                }}
                             />
                         </div>
                     ) : (
