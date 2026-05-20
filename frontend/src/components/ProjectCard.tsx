@@ -8,6 +8,7 @@ interface ProjectCardProps {
   id: number; 
   nombre: string;
   descripcion: string;
+  status?: string;
   sensors?: { id: string; type: string; name: string }[];
   onDelete?: () => void;
   onEdit?: () => void;
@@ -18,6 +19,7 @@ const ProjectCard = ({
   id,
   nombre,
   descripcion,
+  status = "activo",
   sensors = [],
   onDelete,
   onEdit,
@@ -29,7 +31,7 @@ const ProjectCard = ({
     e.stopPropagation();
     e.preventDefault();
     console.log(`Navigating from ${nombre} to /stand`);
-    navigate(`/stand/${id}`, { state: { nombre, descripcion } });
+    navigate(`/stand/${id}`, { state: { nombre, descripcion, id } });
   };
 
   const handleEdit = (e: React.MouseEvent) => {
