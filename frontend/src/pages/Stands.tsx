@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Navbar from "../components/Navbar";
 import ShelfCard from "../components/ShelfCard";
 import ComponentPanel from "../components/ComponentPanel";
@@ -6,7 +6,8 @@ import WaterValveControl from "../components/deviceControl/WaterValveControl";
 import { ReactSortable } from 'react-sortablejs';
 import type { ComponentData } from "../context/AppContext";
 import CreateEstanteriaModal from '../modals/CreateEstanteriaModal';
-import { useLocation } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
+import api from "../api/api";
 
 interface Estanteria {
   id: number;
@@ -17,24 +18,39 @@ interface Estanteria {
 }
 
 const Shelves = () => {
+  const { id } = useParams<{ id: string }>();
   const location = useLocation();
-  const proyectoState = location.state as { nombre: string; descripcion: string } | undefined;
-  const [estanterias, setEstanterias] = useState<Estanteria[]>([
-    {
-      id: 1,
-      nombre: "Estantería 1",
-      descripcion: "Estantería principal para cultivo hidropónico",
-      status: "active",
-      sensors: [
-        { id: 'light-1', type: 'light', name: 'Luz Superior' }
-      ]
-    },
-  ]);
-
+  const [estanterias, setEstanterias] = useState<Estanteria[]>([]);
+  const projectState = location.state as { nombre?: string; descripcion?: string; id?: number } | undefined;
+  const projectName = projectState?.nombre || "Proyecto";
   const [placedComponents, setPlacedComponents] = useState<ComponentData[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [editingEstanteria, setEditingEstanteria] = useState<Estanteria | null>(null);
+
+  // Cargar espacios de trabajo del backend
+  const fetchEspaciosTrabajo = useCallback(async () => {
+    if (!id) return;
+    try {
+      const res = await api.get(`/getEspaciosTrabajo/${id}`);
+      const data = res.data.map((e: any) => ({
+        id: e.ID_ESPACIO_TRABAJO || e.id,
+        nombre: e.NOMBRE_ESPACIO_TRABAJO  || e.nombre,
+        descripcion: e.DESCRIPCION_ESPACIO_TRABAJO  || e.descripcion,
+        status: "active" as const,
+        sensors: e.sensors || []
+      }));
+      setEstanterias(data);
+      console.log('Espacios de trabajo cargados:', data);
+    } catch (error) {
+      console.error('Error al cargar espacios de trabajo:', error);
+      setEstanterias([]);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchEspaciosTrabajo();
+  }, [fetchEspaciosTrabajo]);
 
   // Manejar cuando se arrastra sobre el área
   const handleDragOver = (e: React.DragEvent) => {
@@ -97,21 +113,47 @@ const Shelves = () => {
     );
   };
 
-  const handleSaveEstanteria = (data: any) => {
-    if (editingEstanteria) {
-      setEstanterias(prev => prev.map(e => e.id === editingEstanteria.id ? { ...e, ...data } : e));
-    } else {
-      const newEst: Estanteria = {
-        id: Date.now(),
-        nombre: data.nombre,
-        descripcion: data.descripcion,
-        status: data.status,
-        sensors: data.sensors
-      };
-      setEstanterias(prev => [...prev, newEst]);
+  const handleSaveEstanteria = async (data: any) => {
+    if (!id) {
+      alert('Error: ID del proyecto no encontrado');
+      return;
     }
-    setEditingEstanteria(null);
-    setShowCreateForm(false);
+
+    try {
+      const payload = {
+        idproyecto: id,
+        nombre: data.nombre,
+        descripcion: data.descripcion
+      };
+
+      if (editingEstanteria && editingEstanteria.id !== 9999) {
+        // Modo edición
+        await api.put(`/updateEspacioTrabajo/${editingEstanteria.id}`, payload);
+        setEstanterias(prev => prev.map(e => e.id === editingEstanteria.id ? {
+          ...e,
+          nombre: data.nombre,
+          descripcion: data.descripcion,
+        } : e));
+      } else {
+        // Modo creación
+        const res = await api.post('/createEspacioTrabajo', payload);
+        const newEst: Estanteria = {
+          id: res.data.espacioTrabajo?.id || Date.now(),
+          nombre: data.nombre,
+          descripcion: data.descripcion,
+          status: "active",
+          sensors: []
+        };
+        setEstanterias(prev => [...prev, newEst]);
+      }
+
+      setShowCreateForm(false);
+      setEditingEstanteria(null);
+      console.log('Espacio de trabajo guardado exitosamente');
+    } catch (error) {
+      console.error('Error al guardar espacio de trabajo:', error);
+      alert('Hubo un error al guardar el espacio de trabajo. Por favor, verifica la conexión.');
+    }
   };
 
   const handleEditEstanteria = (estanteria: Estanteria) => {
@@ -119,9 +161,19 @@ const Shelves = () => {
     setShowCreateForm(true);
   };
 
-
-  const handleDeleteEstanteria = (id: number) => {
-    setEstanterias(prev => prev.filter(e => e.id !== id));
+  const handleDeleteEstanteria = (estanteriaId: number) => {
+    if (window.confirm("¿Estás seguro de eliminar este espacio de trabajo?")) {
+      (async () => {
+        try {
+          await api.delete(`/deleteEspacioTrabajo/${estanteriaId}`);
+          setEstanterias(prev => prev.filter(e => e.id !== estanteriaId));
+          console.log('Espacio de trabajo eliminado exitosamente');
+        } catch (error) {
+          console.error('Error al eliminar espacio de trabajo:', error);
+          alert('Error al eliminar el espacio de trabajo');
+        }
+      })();
+    }
   };
 
   return (
@@ -130,7 +182,7 @@ const Shelves = () => {
 
       <div className="max-w-7xl mx-auto p-6" style={{ zoom: 0.8 }}>
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold text-gray-900">Control del Proyecto {proyectoState?.nombre}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Espacios de Trabajo {projectName}</h1>
           <button
             onClick={() => setIsPanelOpen(true)}
             className="bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 cursor-pointer"
@@ -191,9 +243,10 @@ const Shelves = () => {
 
         {/* Sección de tarjetas de estanterías */}
         <div className="p-4 flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3 mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
             <div className="w-1 h-8 bg-gradient-to-b from-gray-700 to-gray-800 rounded-full"></div>
-            Estanterías Disponibles</h1>
+            Estanterías Disponibles
+          </h1>
 
           <div className="flex gap-4">
             <button
@@ -211,16 +264,22 @@ const Shelves = () => {
 
         {/* Tarjetas de estanterías */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
-          {estanterias.map((estanteria) => (
-            <ShelfCard
-              key={estanteria.id}
-              nombre={estanteria.nombre}
-              status={estanteria.status}
-              sensors={estanteria.sensors}
-              onDelete={() => handleDeleteEstanteria(estanteria.id)}
-              onEdit={() => handleEditEstanteria(estanteria)}
-            />
-          ))}
+          {estanterias.length === 0 ? (
+            <div className="col-span-full text-center py-8">
+              <p className="text-gray-500">No hay espacios de trabajo creados</p>
+            </div>
+          ) : (
+            estanterias.map((estanteria) => (
+              <ShelfCard
+                key={estanteria.id}
+                nombre={estanteria.nombre}
+                status={estanteria.status}
+                sensors={estanteria.sensors}
+                onDelete={() => handleDeleteEstanteria(estanteria.id)}
+                onEdit={() => handleEditEstanteria(estanteria)}
+              />
+            ))
+          )}
         </div>
       </div>
 
