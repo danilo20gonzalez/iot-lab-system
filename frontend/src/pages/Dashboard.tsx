@@ -16,6 +16,7 @@ import SummaryCard from "../components/SummaryCard";
 import AlertsPanel from "../components/AlertsPanel";
 import Footer from "../components/Footer";
 import { useNavigate } from 'react-router-dom';
+import api from '../api/api';
 
 interface Alert {
   id: number;
@@ -66,26 +67,16 @@ export default function Dashboard() {
     const fetchSystemData = async () => {
       try {
         // Obtener estadísticas generales
-        const statsRes = await fetch('http://localhost:4000/api/dashboard/stats');
-        if (statsRes.ok) {
-          const stats = await statsRes.json();
-          setSystemStats(stats);
-        }
+        const statsRes = await api.get('/dashboard/stats');
+        setSystemStats(statsRes.data);
 
         // Obtener alertas
-        const alertsRes = await fetch('http://localhost:4000/api/dashboard/alerts');
-        if (alertsRes.ok) {
-          const alertsData = await alertsRes.json();
-          // Se formatea la hora en base al formato requerido o se deja tal cual la retorna la BD
-          setAlerts(alertsData);
-        }
+        const alertsRes = await api.get('/dashboard/alerts');
+        setAlerts(alertsRes.data);
 
         // Obtener actividad reciente
-        const activitiesRes = await fetch('http://localhost:4000/api/dashboard/activities');
-        if (activitiesRes.ok) {
-          const activities = await activitiesRes.json();
-          setRecentActivities(activities);
-        }
+        const activitiesRes = await api.get('/dashboard/activities');
+        setRecentActivities(activitiesRes.data);
 
       } catch (error) {
         console.error('Error al cargar datos del sistema:', error);

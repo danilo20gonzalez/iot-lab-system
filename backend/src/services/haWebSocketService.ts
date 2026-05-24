@@ -106,11 +106,11 @@ function connectToHA() {
   });
 }
 
-export function startHAWebsocketServer() {
-  const wss = new WebSocketServer({ port: 8081 });
+export function startHAWebsocketServer(server: any) {
+  const wss = new WebSocketServer({ server });
 
   wss.on('connection', (ws: WebSocket) => {
-    console.log('Cliente Unity conectado (WebSocket puerto 8081)');
+    console.log('Cliente Unity/Frontend conectado al WebSocket');
     unityClients.add(ws);
 
     ws.on('message', async (data: string) => {
@@ -131,17 +131,17 @@ export function startHAWebsocketServer() {
           }
         }
       } catch (e) {
-        console.error("Error al procesar mensaje de Unity:", e);
+        console.error("Error al procesar mensaje de Unity/Frontend:", e);
       }
     });
 
     ws.on('close', () => {
       unityClients.delete(ws);
-      console.log('Cliente Unity desconectado');
+      console.log('Cliente Unity/Frontend desconectado');
     });
   });
 
   // Iniciar la conexión a Home Assistant
   connectToHA();
-  console.log('Servidor WebSocket para Unity escuchando en puerto 8081');
+  console.log('Servidor WebSocket para Unity/Frontend adjunto al servidor HTTP principal');
 }

@@ -13,6 +13,8 @@ import { ReactSortable } from 'react-sortablejs';
 import LabRoomCard from '../components/LabRoomCard';
 import CreateSalaModal from '../modals/CreateModuloModal';
 import api from '../api/api';
+import { wsUrl } from '../../config';
+
 
 const Laboratory = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,8 +28,8 @@ const Laboratory = () => {
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    // Conectar al WebSocket local (puerto 8080)
-    const ws = new WebSocket('ws://localhost:8080');
+    // Conectar al WebSocket usando la URL de configuración
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen = () => console.log('Conectado al servidor WebSocket local (HA Bridge)');
@@ -346,6 +348,17 @@ const Laboratory = () => {
               </button>
             </div>
           )}
+        </div>
+
+        {/* Sección de la Cámara de Seguridad */}
+        <div className="p-4 mt-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+            <div className="w-1 h-6 bg-gradient-to-b from-red-600 to-red-800 rounded-full"></div>
+            Cámara de Seguridad
+          </h2>
+          <div className="w-full max-w-4xl mx-auto">
+            <RealTimeCamera />
+          </div>
         </div>
 
       </div >
