@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { prenderSwitch, apagarSwitch, obtenerSensores, obtenerSwitches } from "../services/homeAssistantService";
+import { prenderSwitch, apagarSwitch, obtenerSensores, obtenerSwitches,obtenerBombas } from "../services/homeAssistantService";
 import axios from "axios";
 
 export const encenderLuz = async (req: Request, res: Response) => {
@@ -41,6 +41,16 @@ export const getSwitches = async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getBombas = async (req: Request, res: Response) => {
+  try {
+    const bombas = await obtenerBombas();
+    res.json(bombas);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 export const getCameraStream = async (req: Request, res: Response) => {
   const { entityId } = req.params;
