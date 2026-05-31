@@ -34,11 +34,12 @@ export const deleteUser = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { nombre_completo, username, email, estado, fk_id_rol } = req.body;
+  const estadoNumerico = estado === 'activo' ? 1 : 0;
 
   try {
     await pool.query(
       'CALL ACTUALIZAR_USUARIO(?, ?, ?, ?, ?, ?)',
-      [id, nombre_completo, username, email, estado, fk_id_rol]
+      [id, nombre_completo, username, email, estadoNumerico, fk_id_rol]
     );
 
     res.json({ message: 'Usuario actualizado correctamente' });
