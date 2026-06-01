@@ -30,7 +30,7 @@ const ShelfCard = ({
   onEdit,
 }: ShelfCardProps) => {
   // Guardamos los sensores en un estado local para poder actualizar su 'haState' en tiempo real al hacer clic
-  const [localSensors, setLocalSensors] = useState<SensorItem[]>(sensors);
+  const [, setLocalSensors] = useState<SensorItem[]>(sensors);
 
   const getStatusConfig = (status: string) => {
     switch (status) {
@@ -127,10 +127,10 @@ const ShelfCard = ({
         </div>
       </div>
 
-      {/* --- Sensores Asignados (Usando el estado local controlado) --- */}
-      {localSensors && localSensors.length > 0 && (
+      {/* --- Sensores Asignados --- */}
+      {sensors && sensors.length > 0 && (
         <div className="grid grid-cols-2 gap-2">
-          {localSensors.map((sensor) => (
+          {sensors.map((sensor) => (
             <div key={sensor.id} className="h-[140px] overflow-hidden rounded-lg border border-gray-100 bg-gray-50/50">
               <div className="w-[100%] transform scale-[1] origin-top-left">
                 {sensor.type === 'light' ? (
@@ -146,8 +146,11 @@ const ShelfCard = ({
           ))}
         </div>
       )}
+
+
     </motion.div>
   );
 };
 
 export default ShelfCard;
+
