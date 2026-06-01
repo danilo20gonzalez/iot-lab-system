@@ -65,6 +65,8 @@ const Laboratory = () => {
     id: number;
     nombre: string;
     descripcion: string;
+    estado?: string;
+    estadoId?: string;
     sensors?: { id: string; type: string; name: string }[];
   }>>([]);
   const [editingRoom, setEditingRoom] = useState<any>(null);
@@ -144,20 +146,31 @@ const Laboratory = () => {
 
       if (editingRoom) {
         // --- MODO EDICIÓN ---
-        if (editingRoom.id !== 9999) {
-          await api.put(`/updateModulo/${editingRoom.id}`, payload);
-        }
-
-        // Actualizamos el estado local
+        // Actualizamos el estado local primero para que los sensores se reflejen
+        // visualmente sin depender del backend, que no persiste sensores todavia.
         setModulos(prev => prev.map(m =>
           m.id === editingRoom.id
             ? {
               ...m,
               nombre: moduloData.nombre,
-              descripcion: moduloData.descripcion
+              descripcion: moduloData.descripcion,
+              estadoId: moduloData.estadoId,
+              sensors: moduloData.sensors || []
             }
             : m
         ));
+
+        setIsSalaModalOpen(false);
+        setEditingRoom(null);
+
+        if (editingRoom.id !== 9999) {
+          api.put(`/updateModulo/${editingRoom.id}`, payload).catch((error) => {
+            console.error('Error al actualizar modulo:', error);
+            alert('Los sensores quedaron visibles, pero no se pudo actualizar el nombre o la descripcion en el servidor.');
+          });
+        }
+
+        return;
 
       } else {
         // --- MODO CREACIÓN ---
@@ -168,7 +181,9 @@ const Laboratory = () => {
         const nuevoModulo = {
           id: response.data.id || Date.now(), // ID devuelto por la DB
           nombre: moduloData.nombre,
-          descripcion: moduloData.descripcion
+          descripcion: moduloData.descripcion,
+          estadoId: moduloData.estadoId,
+          sensors: moduloData.sensors || []
         };
 
         setModulos(prev => [...prev, nuevoModulo]);
@@ -183,6 +198,14 @@ const Laboratory = () => {
       console.error('Error al guardar módulo:', error);
       alert('Hubo un error al intentar guardar el módulo. Por favor, verifica la conexión.');
     }
+  };
+
+  const getModuloStatus = (estadoId?: string, estado?: string): "activo" | "mantenimiento" | "inactivo" => {
+    if (estadoId === '2') return 'mantenimiento';
+    if (estadoId === '3') return 'inactivo';
+    if (estado?.toLowerCase() === 'mantenimiento') return 'mantenimiento';
+    if (estado?.toLowerCase() === 'inactivo') return 'inactivo';
+    return 'activo';
   };
 
   // Manejar drop de componentes
@@ -237,16 +260,16 @@ const Laboratory = () => {
       <div className="max-w-7xl mx-auto p-6" style={{ zoom: 0.8 }}>
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-3xl font-bold text-gray-900">Control del Laboratorio {selectedLabName}</h1>
-          <button
+          {/* <button
             onClick={() => setIsPanelOpen(true)}
             className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 cursor-pointer"
           >
             <span>+</span>
             Agregar Componente
-          </button>
+          </button> */}
         </div>
 
-        {/* Área de trabajo con drag and drop */}
+        {/* Área de trabajo con drag and drop 
         <div
           className="p-4 mb-4"
           onDrop={handleDrop}
@@ -294,6 +317,7 @@ const Laboratory = () => {
             </div>
           )}
         </div>
+        */}
 
         {/* Sección de tarjetas de laboratorios */}
         <div className="p-4 flex justify-between items-center mb-8">
@@ -325,6 +349,7 @@ const Laboratory = () => {
                 id={modulos.id}
                 nombre={modulos.nombre}
                 descripcion={modulos.descripcion}
+                status={getModuloStatus(modulos.estadoId, modulos.estado)}
                 sensors={modulos.sensors}
                 onEdit={() => handleEditModulo(modulos)}
                 onDelete={() => handleDeleteModulo(modulos.id)}
@@ -348,17 +373,6 @@ const Laboratory = () => {
               </button>
             </div>
           )}
-        </div>
-
-        {/* Sección de la Cámara de Seguridad */}
-        <div className="p-4 mt-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-            <div className="w-1 h-6 bg-gradient-to-b from-red-600 to-red-800 rounded-full"></div>
-            Cámara de Seguridad
-          </h2>
-          <div className="w-full max-w-4xl mx-auto">
-            <RealTimeCamera />
-          </div>
         </div>
 
       </div >

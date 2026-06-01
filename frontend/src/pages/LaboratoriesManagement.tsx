@@ -158,7 +158,7 @@ export default function LaboratoriesManagement() {
             await handleCreateLab(labData);
         }
     };
-    
+
 
     const stats = {
         total: laboratories.length,
@@ -171,7 +171,6 @@ export default function LaboratoriesManagement() {
     const statCards = [
         { label: 'Total Laboratorios', value: stats.total, icon: Building2, bgClass: 'bg-blue-100', textClass: 'text-blue-600' },
         { label: 'Activos', value: stats.active, icon: Building2, bgClass: 'bg-green-100', textClass: 'text-green-600' },
-        { label: 'Sensores Activos', value: stats.totalSensors, icon: Thermometer, bgClass: 'bg-purple-100', textClass: 'text-purple-600' },
         { label: 'Usuarios', value: stats.totalUsers, icon: Users, bgClass: 'bg-indigo-100', textClass: 'text-indigo-600' },
         { label: 'Automatizados', value: stats.automated, icon: Building2, bgClass: 'bg-emerald-100', textClass: 'text-emerald-600' },
     ];
@@ -200,7 +199,7 @@ export default function LaboratoriesManagement() {
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
                         {statCards.map((stat, idx) => (
                             <div key={idx} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 flex items-center gap-3 hover:shadow-md transition-shadow">
                                 <div className={`w-10 h-10 ${stat.bgClass} rounded-lg flex items-center justify-center shrink-0`}>
@@ -370,9 +369,9 @@ function LabTableRow({ lab, onEdit, onDelete, isAdmin }: {
             <td
                 className="px-6 py-4 cursor-pointer"
                 onClick={() => navigate(`/laboratory/${lab.id}`)}
-                
+
             >
-            
+
                 <div>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">

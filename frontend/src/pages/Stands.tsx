@@ -35,8 +35,8 @@ const Shelves = () => {
       const res = await api.get(`/getEspaciosTrabajo/${id}`);
       const data = res.data.map((e: any) => ({
         id: e.ID_ESPACIO_TRABAJO || e.id,
-        nombre: e.NOMBRE_ESPACIO_TRABAJO  || e.nombre,
-        descripcion: e.DESCRIPCION_ESPACIO_TRABAJO  || e.descripcion,
+        nombre: e.NOMBRE_ESPACIO_TRABAJO || e.nombre,
+        descripcion: e.DESCRIPCION_ESPACIO_TRABAJO || e.descripcion,
         status: "active" as const,
         sensors: e.sensors || []
       }));
@@ -182,7 +182,8 @@ const Shelves = () => {
 
       <div className="max-w-7xl mx-auto p-6" style={{ zoom: 0.8 }}>
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold text-gray-900">Espacios de Trabajo {projectName}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Control del Proyecto {projectName}</h1>
+          {/* Botón de agregar componente - comentado para uso futuro
           <button
             onClick={() => setIsPanelOpen(true)}
             className="bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 cursor-pointer"
@@ -190,9 +191,15 @@ const Shelves = () => {
             <span>+</span>
             Agregar Componente
           </button>
+          */}
         </div>
 
-        {/* Área de trabajo con drag and drop */}
+        {/* Actuadores estáticos */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 mb-4">
+          <WaterValveControl />
+        </div>
+
+        {/* Área de trabajo con drag and drop - comentado para uso futuro
         <div
           className="p-4 mb-4"
           onDrop={handleDrop}
@@ -209,7 +216,7 @@ const Shelves = () => {
                   No hay componentes
                 </h3>
                 <p className="text-gray-500 mb-4">
-                  Arrastra componentes desde el panel o haz clic en "Agregar Componente"
+                  Haz clic en "Agregar Componente"
                 </p>
                 <button
                   onClick={() => setIsPanelOpen(true)}
@@ -240,12 +247,13 @@ const Shelves = () => {
             </div>
           )}
         </div>
+        */}
 
         {/* Sección de tarjetas de estanterías */}
         <div className="p-4 flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
             <div className="w-1 h-8 bg-gradient-to-b from-gray-700 to-gray-800 rounded-full"></div>
-            Estanterías Disponibles
+            Espacios de Trabajo Disponibles
           </h1>
 
           <div className="flex gap-4">
