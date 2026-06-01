@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import {
-    Camera, Maximize2,
-    RefreshCw, Circle, ShieldAlert, ZoomIn, Play, Square
+    Camera, Maximize2, Circle, ShieldAlert, ZoomIn, Play, Square
 } from 'lucide-react';
 import ReactPlayer from 'react-player';
 
@@ -10,7 +9,7 @@ const RealTimeCamera = () => {
     const [hasError, setHasError] = useState(false);
     const [isZoomed, setIsZoomed] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
-    
+
     // Configura aquí la ruta de tu stream HLS en mediamtx
     // Ej: si tu stream en mediamtx se llama 'camara1', la ruta sería /camara1/index.m3u8
     const streamUrl = 'https://camara.laboratorioiot.online/camarasonoff/index.m3u8';
@@ -27,19 +26,14 @@ const RealTimeCamera = () => {
         }
     };
 
-    const handleReconnect = () => {
-        setHasError(false);
-        if (!isPlaying) setIsPlaying(true);
-    };
-
     // ReactPlayer maneja el stream HLS automáticamente si le pasas la URL correcta.
     // Ya no necesitamos el useEffect para descargar imágenes.
 
-    const handleTakePhoto = () => {
-        // La captura de fotos desde un iframe de video HLS es compleja por políticas de CORS y Canvas.
-        // Se deja el botón como un placeholder o se puede intentar capturar el frame si el reproductor lo permite.
-        alert("La captura de fotos nativa está deshabilitada en el modo HLS (Video en vivo).");
-    };
+    // const handleTakePhoto = () => {
+    //     La captura de fotos desde un iframe de video HLS es compleja por políticas de CORS y Canvas.
+    //     Se deja el botón como un placeholder o se puede intentar capturar el frame si el reproductor lo permite.
+    //     alert("La captura de fotos nativa está deshabilitada en el modo HLS (Video en vivo).");
+    // };
 
     return (
         <div className="bg-slate-900 rounded-xl shadow-2xl p-3 border border-slate-800 h-[190px] w-full flex gap-3 overflow-hidden">
@@ -110,30 +104,18 @@ const RealTimeCamera = () => {
             </div>
 
             {/* PANEL DE CONTROL LATERAL (Sobrio) */}
-            <div className="w-24 flex flex-col justify-between py-0.5">
+            <div className="w-24 flex flex-col justify-center py-0.5">
                 <div className="space-y-1.5">
                     <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Acción</p>
-                    <button
-                        onClick={handleTakePhoto}
-                        className="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md flex items-center justify-center gap-1.5 transition-colors shadow-lg shadow-emerald-900/20">
-                        <Camera size={12} />
-                        <span className="text-[10px] font-bold uppercase">Foto</span>
-                    </button>
                     <button
                         onClick={() => setIsPlaying(!isPlaying)}
                         className={`w-full py-1.5 rounded-md flex items-center justify-center gap-1.5 transition-colors border ${isPlaying ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30 border-red-500/30' : 'bg-slate-100 hover:bg-white text-slate-900 border-slate-200'}`}>
                         {isPlaying ? <Square fill="currentColor" size={10} /> : <Play fill="currentColor" size={10} />}
                         <span className="text-[10px] font-bold uppercase">{isPlaying ? 'Detener' : 'Ver'}</span>
                     </button>
-                    <button
-                        onClick={handleReconnect}
-                        className="w-full py-1.5 bg-slate-100 hover:bg-white text-slate-900 rounded-md flex items-center justify-center gap-1.5 transition-colors border border-slate-200">
-                        <RefreshCw size={12} />
-                        <span className="text-[10px] font-bold uppercase">Recon.</span>
-                    </button>
                 </div>
 
-                <button className="w-full py-1 bg-red-900/20 text-red-500 hover:bg-red-900/40 rounded-md flex items-center justify-center gap-1 border border-red-900/30 transition-colors">
+                <button className="w-full mt-3 py-1 bg-red-900/20 text-red-500 hover:bg-red-900/40 rounded-md flex items-center justify-center gap-1 border border-red-900/30 transition-colors">
                     <ShieldAlert size={12} />
                     <span className="text-[9px] font-bold uppercase italic tracking-tighter">Pánico</span>
                 </button>

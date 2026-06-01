@@ -1,15 +1,15 @@
 // src/pages/Laboratory.tsx
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import Navbar from "../components/Navbar";
 import ComponentPanel from "../components/ComponentPanel";
-import AirConditionerControl from "../components/deviceControl/AirConditionerControl";
-import LightControl from "../components/deviceControl/LightControl";
-import RealTimeCamera from "../components/deviceControl/RealTimeCamera";
-import WaterValveControl from "../components/deviceControl/WaterValveControl";
-import { useAppContext } from "../context/AppContext";
-import type { ComponentData } from "../context/AppContext";
-import { ReactSortable } from 'react-sortablejs';
+// import AirConditionerControl from "../components/deviceControl/AirConditionerControl";
+// import LightControl from "../components/deviceControl/LightControl";
+// import RealTimeCamera from "../components/deviceControl/RealTimeCamera";
+// import WaterValveControl from "../components/deviceControl/WaterValveControl";
+// import { useAppContext } from "../context/AppContext";
+// import type { ComponentData } from "../context/AppContext";
+// import { ReactSortable } from 'react-sortablejs';
 import LabRoomCard from '../components/LabRoomCard';
 import CreateSalaModal from '../modals/CreateModuloModal';
 import api from '../api/api';
@@ -21,10 +21,10 @@ const Laboratory = () => {
   const [selectedLabName, setSelectedLabName] = useState<string>('Cargando...');
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isSalaModalOpen, setIsSalaModalOpen] = useState(false);
-  const { laboratoryComponents, addComponent, updateComponentOrder, removeComponent } = useAppContext();
+  // const { laboratoryComponents, addComponent, updateComponentOrder, removeComponent } = useAppContext();
 
   // Estado WebSocket
-  const [haStates, setHaStates] = useState<Record<string, string>>({});
+  const [, setHaStates] = useState<Record<string, string>>({});
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -51,20 +51,22 @@ const Laboratory = () => {
     };
   }, []);
 
-  const sendHACommand = (entity: string, turnOn: boolean) => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        action: turnOn ? 'turn_on' : 'turn_off',
-        entity
-      }));
-    }
-  };
+  // const sendHACommand = (entity: string, turnOn: boolean) => {
+  //   if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+  //     wsRef.current.send(JSON.stringify({
+  //       action: turnOn ? 'turn_on' : 'turn_off',
+  //       entity
+  //     }));
+  //   }
+  // };
 
 
   const [modulos, setModulos] = useState<Array<{
     id: number;
     nombre: string;
     descripcion: string;
+    estado?: string;
+    estadoId?: string;
     sensors?: { id: string; type: string; name: string }[];
   }>>([]);
   const [editingRoom, setEditingRoom] = useState<any>(null);
@@ -144,20 +146,31 @@ const Laboratory = () => {
 
       if (editingRoom) {
         // --- MODO EDICIÓN ---
-        if (editingRoom.id !== 9999) {
-          await api.put(`/updateModulo/${editingRoom.id}`, payload);
-        }
-
-        // Actualizamos el estado local
+        // Actualizamos el estado local primero para que los sensores se reflejen
+        // visualmente sin depender del backend, que no persiste sensores todavia.
         setModulos(prev => prev.map(m =>
           m.id === editingRoom.id
             ? {
               ...m,
               nombre: moduloData.nombre,
-              descripcion: moduloData.descripcion
+              descripcion: moduloData.descripcion,
+              estadoId: moduloData.estadoId,
+              sensors: moduloData.sensors || []
             }
             : m
         ));
+
+        setIsSalaModalOpen(false);
+        setEditingRoom(null);
+
+        if (editingRoom.id !== 9999) {
+          api.put(`/updateModulo/${editingRoom.id}`, payload).catch((error) => {
+            console.error('Error al actualizar modulo:', error);
+            alert('Los sensores quedaron visibles, pero no se pudo actualizar el nombre o la descripcion en el servidor.');
+          });
+        }
+
+        return;
 
       } else {
         // --- MODO CREACIÓN ---
@@ -168,7 +181,9 @@ const Laboratory = () => {
         const nuevoModulo = {
           id: response.data.id || Date.now(), // ID devuelto por la DB
           nombre: moduloData.nombre,
-          descripcion: moduloData.descripcion
+          descripcion: moduloData.descripcion,
+          estadoId: moduloData.estadoId,
+          sensors: moduloData.sensors || []
         };
 
         setModulos(prev => [...prev, nuevoModulo]);
@@ -185,50 +200,58 @@ const Laboratory = () => {
     }
   };
 
+  const getModuloStatus = (estadoId?: string, estado?: string): "activo" | "mantenimiento" | "inactivo" => {
+    if (estadoId === '2') return 'mantenimiento';
+    if (estadoId === '3') return 'inactivo';
+    if (estado?.toLowerCase() === 'mantenimiento') return 'mantenimiento';
+    if (estado?.toLowerCase() === 'inactivo') return 'inactivo';
+    return 'activo';
+  };
+
   // Manejar drop de componentes
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
+  // const handleDrop = (e: React.DragEvent) => {
+  //   e.preventDefault();
 
-    try {
-      const componentData = JSON.parse(e.dataTransfer.getData('application/json'));
-      addComponent(componentData);
-    } catch (error) {
-      console.error('Error al procesar el componente:', error);
-    }
-  };
+  //   try {
+  //     const componentData = JSON.parse(e.dataTransfer.getData('application/json'));
+  //     addComponent(componentData);
+  //   } catch (error) {
+  //     console.error('Error al procesar el componente:', error);
+  //   }
+  // };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
-  };
+  // const handleDragOver = (e: React.DragEvent) => {
+  //   e.preventDefault();
+  //   e.dataTransfer.dropEffect = 'copy';
+  // };
 
   // Renderizar componente basado en el tipo
-  const renderComponent = (component: ComponentData) => {
-    return (
-      <div className="relative group h-full">
-        {/* Botón de eliminar (Aparece al hacer hover) */}
-        <button
-          onClick={() => removeComponent(component.id)} // <--- Aquí usamos tu función del context
-          className="absolute -top-2 -right-2 z-50 bg-red-500 hover:bg-red-700 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200"
-          title="Eliminar dispositivo"
-        >
-          <span className="text-xs font-bold">✕</span>
-        </button>
+  // const renderComponent = (component: ComponentData) => {
+  //   return (
+  //     <div className="relative group h-full">
+  //       {/* Botón de eliminar (Aparece al hacer hover) */}
+  //       <button
+  //         onClick={() => removeComponent(component.id)} // <--- Aquí usamos tu función del context
+  //         className="absolute -top-2 -right-2 z-50 bg-red-500 hover:bg-red-700 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200"
+  //         title="Eliminar dispositivo"
+  //       >
+  //         <span className="text-xs font-bold">✕</span>
+  //       </button>
 
-        {/* Renderizado dinámico del componente */}
-        <div className="h-48">
-          {component.type === 'air-conditioner' && <AirConditionerControl />}
-          {component.type === 'light' && <LightControl
-            entityId="switch.sonoff_luz" // Se puede hacer dinámico en el futuro
-            haState={haStates['switch.sonoff_luz']}
-            onToggle={sendHACommand}
-          />}
-          {component.type === 'camera' && <RealTimeCamera />}
-          {component.type === 'valve' && <WaterValveControl />}
-        </div>
-      </div>
-    );
-  };
+  //       {/* Renderizado dinámico del componente */}
+  //       <div className="h-48">
+  //         {component.type === 'air-conditioner' && <AirConditionerControl />}
+  //         {component.type === 'light' && <LightControl
+  //           entityId="switch.sonoff_luz" // Se puede hacer dinámico en el futuro
+  //           haState={haStates['switch.sonoff_luz']}
+  //           onToggle={sendHACommand}
+  //         />}
+  //         {component.type === 'camera' && <RealTimeCamera />}
+  //         {component.type === 'valve' && <WaterValveControl />}
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -237,16 +260,16 @@ const Laboratory = () => {
       <div className="max-w-7xl mx-auto p-6" style={{ zoom: 0.8 }}>
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-3xl font-bold text-gray-900">Control del Laboratorio {selectedLabName}</h1>
-          <button
+          {/* <button
             onClick={() => setIsPanelOpen(true)}
             className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 cursor-pointer"
           >
             <span>+</span>
             Agregar Componente
-          </button>
+          </button> */}
         </div>
 
-        {/* Área de trabajo con drag and drop */}
+        {/* Área de trabajo con drag and drop 
         <div
           className="p-4 mb-4"
           onDrop={handleDrop}
@@ -294,6 +317,7 @@ const Laboratory = () => {
             </div>
           )}
         </div>
+        */}
 
         {/* Sección de tarjetas de laboratorios */}
         <div className="p-4 flex justify-between items-center mb-8">
@@ -325,6 +349,7 @@ const Laboratory = () => {
                 id={modulos.id}
                 nombre={modulos.nombre}
                 descripcion={modulos.descripcion}
+                status={getModuloStatus(modulos.estadoId, modulos.estado)}
                 sensors={modulos.sensors}
                 onEdit={() => handleEditModulo(modulos)}
                 onDelete={() => handleDeleteModulo(modulos.id)}
@@ -348,17 +373,6 @@ const Laboratory = () => {
               </button>
             </div>
           )}
-        </div>
-
-        {/* Sección de la Cámara de Seguridad */}
-        <div className="p-4 mt-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-            <div className="w-1 h-6 bg-gradient-to-b from-red-600 to-red-800 rounded-full"></div>
-            Cámara de Seguridad
-          </h2>
-          <div className="w-full max-w-4xl mx-auto">
-            <RealTimeCamera />
-          </div>
         </div>
 
       </div >
