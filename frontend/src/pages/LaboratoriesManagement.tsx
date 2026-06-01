@@ -172,7 +172,6 @@ export default function LaboratoriesManagement() {
         { label: 'Total Laboratorios', value: stats.total, icon: Building2, bgClass: 'bg-blue-100', textClass: 'text-blue-600' },
         { label: 'Activos', value: stats.active, icon: Building2, bgClass: 'bg-green-100', textClass: 'text-green-600' },
         { label: 'Usuarios', value: stats.totalUsers, icon: Users, bgClass: 'bg-indigo-100', textClass: 'text-indigo-600' },
-        { label: 'Automatizados', value: stats.automated, icon: Building2, bgClass: 'bg-emerald-100', textClass: 'text-emerald-600' },
     ];
 
     return (
@@ -199,7 +198,7 @@ export default function LaboratoriesManagement() {
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                         {statCards.map((stat, idx) => (
                             <div key={idx} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 flex items-center gap-3 hover:shadow-md transition-shadow">
                                 <div className={`w-10 h-10 ${stat.bgClass} rounded-lg flex items-center justify-center shrink-0`}>

@@ -5,7 +5,7 @@ import LightControl from './deviceControl/LightControl';
 interface ShelfCardProps {
   nombre: string;
   status: "active" | "maintenance" | "inactive";
-  sensors?: { id: string; type: string; name: string }[];
+  sensors?: { id: string; type: string; name: string; entityId?: string; haState?: string }[];
   onDelete?: () => void;
   onEdit?: () => void;
 }
@@ -107,27 +107,15 @@ const ShelfCard = ({
         <div className="grid grid-cols-2 gap-2">
           {sensors.map((sensor) => (
             <div key={sensor.id} className="h-[140px] overflow-hidden rounded-lg border border-gray-100 bg-gray-50/50">
-              <div className="w-[133%] transform scale-[0.75] origin-top-left">
-                {sensor.type === 'light' ? <LightControl /> : null}
+              <div className="w-[100%] transform scale-[1] origin-top-left">
+                {sensor.type === 'light' ? <LightControl entityId={sensor.entityId} nombre={sensor.name} haState={sensor.haState} /> : null}
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Interactive button */}
-      <button
-        className="mt-1 w-full flex items-center justify-center p-3 text-sm font-semibold text-white bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-black border border-gray-300 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-100 cursor-pointer"
-        onClick={(e) => {
-          e.stopPropagation();
-          // Navegación o acción adicional si se requiere
-        }}
-      >
-        <span className="flex justify-center gap-2">
-          <Eye size={16} />
-          <span>Gestionar Filas</span>
-        </span>
-      </button>
+
     </motion.div>
   );
 };

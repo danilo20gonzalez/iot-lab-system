@@ -133,6 +133,7 @@ const Shelves = () => {
           ...e,
           nombre: data.nombre,
           descripcion: data.descripcion,
+          sensors: data.sensors,
         } : e));
       } else {
         // Modo creación
@@ -142,7 +143,7 @@ const Shelves = () => {
           nombre: data.nombre,
           descripcion: data.descripcion,
           status: "active",
-          sensors: []
+          sensors: data.sensors || []
         };
         setEstanterias(prev => [...prev, newEst]);
       }
@@ -196,7 +197,9 @@ const Shelves = () => {
 
         {/* Actuadores estáticos */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 mb-4">
-          <WaterValveControl />
+          <div className="md:col-start-2 grid place-items-center">
+            <WaterValveControl />
+          </div>
         </div>
 
         {/* Área de trabajo con drag and drop - comentado para uso futuro

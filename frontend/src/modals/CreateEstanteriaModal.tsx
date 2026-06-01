@@ -3,11 +3,14 @@ import { X, Layers, Tag, FileText, Activity, Lightbulb, Trash2, Beaker } from 'l
 import { motion, AnimatePresence } from 'framer-motion';
 import ComponentPanel from '../components/ComponentPanel';
 import LightControl from '../components/deviceControl/LightControl';
+import { obtenerSwitchesHA } from '../api/api';
 
 interface PlacedSensor {
     id: string;
     type: string;
     name: string;
+    entityId?: string;
+    haState?: string;
 }
 
 interface CreateEstanteriaModalProps {
@@ -28,6 +31,7 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [placedSensors, setPlacedSensors] = useState<PlacedSensor[]>([]);
+    const [haLights, setHaLights] = useState<any[]>([]);
 
     useEffect(() => {
         if (isOpen) {
@@ -44,6 +48,26 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
             }
             setErrors({});
             setIsPanelOpen(false);
+            
+            // Cargar switches como luces
+            const loadLights = async () => {
+                try {
+                    const switches = await obtenerSwitchesHA();
+                    const formattedLights = switches.map((device: any) => ({
+                        type: 'light',
+                        name: device.nombre || device.entityId,
+                        description: `Switch HA: ${device.entityId}`,
+                        icon: Lightbulb,
+                        color: 'bg-yellow-500',
+                        entityId: device.entityId,
+                        haState: device.estado,
+                    }));
+                    setHaLights(formattedLights);
+                } catch (err) {
+                    console.error("Error al cargar las luces:", err);
+                }
+            };
+            loadLights();
         }
     }, [isOpen, editingEstanteria]);
 
@@ -73,6 +97,8 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
             id: `${component.type}-${Date.now()}`,
             type: component.type,
             name: component.name,
+            entityId: component.entityId,
+            haState: component.haState,
         };
         setPlacedSensors(prev => [...prev, newSensor]);
     };
@@ -103,7 +129,7 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
     const renderSensorWidget = (sensor: PlacedSensor) => {
         switch (sensor.type) {
             case 'light':
-                return <LightControl />;
+                return <LightControl entityId={sensor.entityId} nombre={sensor.name} haState={sensor.haState} />;
             default:
                 return null;
         }
@@ -384,6 +410,7 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
                     setIsPanelOpen(false);
                 }}
                 allowedTypes={['light']}
+                customComponents={haLights.length > 0 ? haLights : undefined}
             />
         </>
     );
