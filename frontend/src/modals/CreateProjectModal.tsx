@@ -24,7 +24,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSave, editingPro
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
-    const [isPanelOpen, setIsPanelOpen] = useState(false);
+    const [, setIsPanelOpen] = useState(false);
     const [placedSensors, setPlacedSensors] = useState<PlacedSensor[]>([]);
 
     useEffect(() => {

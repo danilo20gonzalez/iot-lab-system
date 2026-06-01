@@ -1,6 +1,6 @@
 // components/LaboratoriesManagement.tsx
 import { useState, useEffect } from 'react';
-import { Plus, Search, Building2, Users, Thermometer, Edit3, Trash2 } from 'lucide-react';
+import { Plus, Search, Building2, Users, Edit3, Trash2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import LabCard from '../components/LabCard';
 import CreateLabModal from '../modals/CreateLabModal';

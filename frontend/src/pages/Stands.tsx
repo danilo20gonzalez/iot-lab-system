@@ -3,7 +3,7 @@ import Navbar from "../components/Navbar";
 import ShelfCard from "../components/ShelfCard";
 import ComponentPanel from "../components/ComponentPanel";
 import WaterValveControl from "../components/deviceControl/WaterValveControl";
-import { ReactSortable } from 'react-sortablejs';
+// import { ReactSortable } from 'react-sortablejs';
 import type { ComponentData } from "../context/AppContext";
 import CreateEstanteriaModal from '../modals/CreateEstanteriaModal';
 import { useParams, useLocation } from "react-router-dom";
@@ -23,7 +23,7 @@ const Shelves = () => {
   const [estanterias, setEstanterias] = useState<Estanteria[]>([]);
   const projectState = location.state as { nombre?: string; descripcion?: string; id?: number } | undefined;
   const projectName = projectState?.nombre || "Proyecto";
-  const [placedComponents, setPlacedComponents] = useState<ComponentData[]>([]);
+  const [, setPlacedComponents] = useState<ComponentData[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [editingEstanteria, setEditingEstanteria] = useState<Estanteria | null>(null);
@@ -53,30 +53,30 @@ const Shelves = () => {
   }, [fetchEspaciosTrabajo]);
 
   // Manejar cuando se arrastra sobre el área
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
-  };
+  // const handleDragOver = (e: React.DragEvent) => {
+  //   e.preventDefault();
+  //   e.dataTransfer.dropEffect = 'copy';
+  // };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
+  // const handleDrop = (e: React.DragEvent) => {
+  //   e.preventDefault();
 
-    const data = e.dataTransfer.getData('application/json');
-    if (!data) return;
+  //   const data = e.dataTransfer.getData('application/json');
+  //   if (!data) return;
 
-    try {
-      const componentData = JSON.parse(data);
+  //   try {
+  //     const componentData = JSON.parse(data);
 
-      const newPlacedComponent: ComponentData = {
-        ...componentData,
-        id: `${componentData.type}-${Date.now()}`,
-      };
+  //     const newPlacedComponent: ComponentData = {
+  //       ...componentData,
+  //       id: `${componentData.type}-${Date.now()}`,
+  //     };
 
-      setPlacedComponents(prev => [...prev, newPlacedComponent]);
-    } catch (error) {
-      console.error('Error al procesar componente:', error);
-    }
-  };
+  //     setPlacedComponents(prev => [...prev, newPlacedComponent]);
+  //   } catch (error) {
+  //     console.error('Error al procesar componente:', error);
+  //   }
+  // };
 
   const handleAddComponent = (component: any) => {
     const newPlacedComponent: ComponentData = {
@@ -88,30 +88,30 @@ const Shelves = () => {
   };
 
   // Eliminar un componente colocado
-  const removeComponent = (componentId: string) => {
-    setPlacedComponents(prev => prev.filter(comp => comp.id !== componentId));
-  };
+  // const removeComponent = (componentId: string) => {
+  //   setPlacedComponents(prev => prev.filter(comp => comp.id !== componentId));
+  // };
 
-  const updateComponentOrder = (list: ComponentData[]) => setPlacedComponents(list);
+  // const updateComponentOrder = (list: ComponentData[]) => setPlacedComponents(list);
 
-  // Renderizar componente basado en el tipo
-  const renderComponent = (component: ComponentData) => {
-    return (
-      <div className="relative group h-full">
-        <button
-          onClick={() => removeComponent(component.id as string)}
-          className="absolute -top-2 -right-2 z-50 bg-red-500 hover:bg-red-700 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200"
-          title="Eliminar dispositivo"
-        >
-          <span className="text-xs font-bold">✕</span>
-        </button>
+  // // Renderizar componente basado en el tipo
+  // const renderComponent = (component: ComponentData) => {
+  //   return (
+  //     <div className="relative group h-full">
+  //       <button
+  //         onClick={() => removeComponent(component.id as string)}
+  //         className="absolute -top-2 -right-2 z-50 bg-red-500 hover:bg-red-700 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200"
+  //         title="Eliminar dispositivo"
+  //       >
+  //         <span className="text-xs font-bold">✕</span>
+  //       </button>
 
-        <div className="h-48">
-          {component.type === 'valve' && <WaterValveControl />}
-        </div>
-      </div>
-    );
-  };
+  //       <div className="h-48">
+  //         {component.type === 'valve' && <WaterValveControl />}
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
   const handleSaveEstanteria = async (data: any) => {
     if (!id) {

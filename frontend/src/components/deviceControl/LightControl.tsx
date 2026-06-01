@@ -1,26 +1,35 @@
-import { Power, Settings, BarChart3, RotateCcw, Zap } from 'lucide-react';
+import { Power, Settings, BarChart3, RotateCcw, Zap, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
 interface LightControlProps {
     entityId?: string;
     haState?: string;
     nombre?: string;
-    onToggle?: (entityId: string, turnOn: boolean) => void;
+    onToggle?: (entityId: string, turnOn: boolean) => Promise<void> | void; // Ahora puede ser async
 }
 
 const LightControlSimple = ({ entityId = 'light.minir4m', haState, nombre, onToggle }: LightControlProps) => {
-    // Si Home Assistant provee el estado, lo usamos; si no, usamos el local
-    const [localIsOn, setLocalIsOn] = useState(haState === 'on' ? true : false);
+    const [localIsOn, setLocalIsOn] = useState(haState === 'on');
     const [isFlipped, setIsFlipped] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // Estado para controlar el bloqueo por red
 
     const isOn = haState ? haState === 'on' : localIsOn;
 
-    const handleToggle = () => {
+    const handleToggle = async () => {
         const newState = !isOn;
-        if (onToggle) {
-            onToggle(entityId, newState);
-        } else {
-            setLocalIsOn(newState);
+        setIsLoading(true); // Bloqueamos el botón temporalmente
+
+        try {
+            if (onToggle) {
+                // Esperamos a que la función padre (la API) resuelva con éxito
+                await onToggle(entityId, newState);
+            } else {
+                setLocalIsOn(newState);
+            }
+        } catch (error) {
+            console.error("Error al cambiar el estado en el switch:", error);
+        } finally {
+            setIsLoading(false); // Liberamos el botón
         }
     };
 
@@ -48,24 +57,29 @@ const LightControlSimple = ({ entityId = 'light.minir4m', haState, nombre, onTog
                         <div className="flex flex-col items-center justify-center -mt-1">
                             <div
                                 className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500 shadow-md
-                ${isOn
+                                ${isOn
                                         ? 'bg-yellow-400 shadow-yellow-100'
                                         : 'bg-gray-100 shadow-none'}`}
                             >
-                                <Power className={isOn ? 'text-white' : 'text-gray-400'} size={18} />
+                                {/* Muestra un spinner si está cargando la petición HTTP */}
+                                {isLoading ? (
+                                    <Loader2 className="animate-spin text-gray-400" size={18} />
+                                ) : (
+                                    <Power className={isOn ? 'text-white' : 'text-gray-400'} size={18} />
+                                )}
                             </div>
                             <span className={`text-[10px] mt-1 font-bold uppercase tracking-widest ${isOn ? 'text-yellow-600' : 'text-gray-400'}`}>
-                                {isOn ? 'On' : 'Off'}
+                                {isLoading ? '...' : (isOn ? 'On' : 'Off')}
                             </span>
                         </div>
 
                         <div className="flex gap-2 mt-1">
                             <button
                                 onClick={handleToggle}
-                                className={`flex-[3] py-1.5 text-xs font-semibold rounded-lg transition-all
-                ${isOn
-                                        ? 'bg-gray-900 text-white hover:bg-black'
-                                        : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                                disabled={isLoading} // Evita doble clicks molestos
+                                className={`flex-[3] py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center
+                                ${isLoading ? 'bg-gray-300 cursor-not-allowed text-gray-500' :
+                                        isOn ? 'bg-gray-900 text-white hover:bg-black' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
                             >
                                 {isOn ? 'Apagar' : 'Encender'}
                             </button>
@@ -97,7 +111,6 @@ const LightControlSimple = ({ entityId = 'light.minir4m', haState, nombre, onTog
                         </div>
 
                         <div className="space-y-2 flex-1 flex flex-col justify-center">
-                            {/* Stat 1 */}
                             <div>
                                 <div className="flex justify-between text-[9px] mb-0.5 opacity-80 font-medium">
                                     <span>Hoy</span>
@@ -107,7 +120,6 @@ const LightControlSimple = ({ entityId = 'light.minir4m', haState, nombre, onTog
                                     <div className="bg-yellow-300 h-full w-3/4 rounded-full" />
                                 </div>
                             </div>
-                            {/* Stat 2 */}
                             <div>
                                 <div className="flex justify-between text-[9px] mb-0.5 opacity-80 font-medium">
                                     <span>Mes</span>
@@ -117,7 +129,6 @@ const LightControlSimple = ({ entityId = 'light.minir4m', haState, nombre, onTog
                                     <div className="bg-white h-full w-1/2 rounded-full" />
                                 </div>
                             </div>
-
                             <p className="text-[8px] text-center text-indigo-200 mt-1 italic">
                                 -12% vs mes anterior
                             </p>
@@ -127,10 +138,10 @@ const LightControlSimple = ({ entityId = 'light.minir4m', haState, nombre, onTog
             </div>
 
             <style>{`
-        .preserve-3d { transform-style: preserve-3d; }
-        .backface-hidden { backface-visibility: hidden; }
-        .perspective-1000 { perspective: 1000px; }
-      `}</style>
+                .preserve-3d { transform-style: preserve-3d; }
+                .backface-hidden { backface-visibility: hidden; }
+                .perspective-1000 { perspective: 1000px; }
+            `}</style>
         </div>
     );
 };

@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import {
-    Camera, Maximize2,
-    RefreshCw, Circle, ShieldAlert, ZoomIn, Play, Square
+    Camera, Maximize2, Circle, ShieldAlert, ZoomIn, Play, Square
 } from 'lucide-react';
 import ReactPlayer from 'react-player';
 
@@ -27,19 +26,14 @@ const RealTimeCamera = () => {
         }
     };
 
-    const handleReconnect = () => {
-        setHasError(false);
-        if (!isPlaying) setIsPlaying(true);
-    };
-
     // ReactPlayer maneja el stream HLS automáticamente si le pasas la URL correcta.
     // Ya no necesitamos el useEffect para descargar imágenes.
 
-    const handleTakePhoto = () => {
-        // La captura de fotos desde un iframe de video HLS es compleja por políticas de CORS y Canvas.
-        // Se deja el botón como un placeholder o se puede intentar capturar el frame si el reproductor lo permite.
-        alert("La captura de fotos nativa está deshabilitada en el modo HLS (Video en vivo).");
-    };
+    // const handleTakePhoto = () => {
+    //     La captura de fotos desde un iframe de video HLS es compleja por políticas de CORS y Canvas.
+    //     Se deja el botón como un placeholder o se puede intentar capturar el frame si el reproductor lo permite.
+    //     alert("La captura de fotos nativa está deshabilitada en el modo HLS (Video en vivo).");
+    // };
 
     return (
         <div className="bg-slate-900 rounded-xl shadow-2xl p-3 border border-slate-800 h-[190px] w-full flex gap-3 overflow-hidden">

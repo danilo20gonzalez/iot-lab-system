@@ -13,7 +13,7 @@ import type { SensorFormData } from '../modals/CreateSensorModal';
 import { obtenerSensoresHA, obtenerSwitchesHA } from '../api/api';
 import {
   Wind, Lightbulb, Camera, Droplets, Plus, Search,
-  Filter, Cpu, Trash2, MapPin, ChevronDown, Thermometer, Beaker
+  Filter, Cpu, Trash2, MapPin, ChevronDown, Thermometer,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

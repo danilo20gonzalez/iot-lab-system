@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Layers, Tag, FileText, Activity, Lightbulb, Trash2, Beaker } from 'lucide-react';
+import { X, Layers, Tag, Lightbulb, Trash2, Beaker } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ComponentPanel from '../components/ComponentPanel';
 import LightControl from '../components/deviceControl/LightControl';
@@ -48,7 +48,7 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
             }
             setErrors({});
             setIsPanelOpen(false);
-            
+
             // Cargar switches como luces
             const loadLights = async () => {
                 try {

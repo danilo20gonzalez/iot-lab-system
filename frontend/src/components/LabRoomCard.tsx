@@ -1,10 +1,7 @@
 import {
-  ChevronRight,
-  Activity,
   Eye,
   Trash2,
   DoorOpen,
-  Wifi,
   Edit3,
 } from "lucide-react";
 import TemperatureControl from './deviceControl/TemperatureControl';
