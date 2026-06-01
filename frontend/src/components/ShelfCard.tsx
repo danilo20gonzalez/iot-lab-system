@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Edit3, Trash2, Layers } from "lucide-react";
 import { useState } from 'react';
-import axios from 'axios';
+import api from '../api/api';
 import LightControl from './deviceControl/LightControl';
 
 interface SensorItem {
@@ -19,8 +19,6 @@ interface ShelfCardProps {
   onDelete?: () => void;
   onEdit?: () => void;
 }
-
-const API_URL = 'http://localhost:3000/api/lights'; // Ajusta la IP/Puerto de tu backend de Node
 
 const ShelfCard = ({
   nombre,
@@ -48,11 +46,11 @@ const ShelfCard = ({
 
   // --- Función que maneja el encendido/apagado real mediante tu API ---
   const handleToggleLight = async (entityId: string, turnOn: boolean) => {
-    const endpoint = turnOn ? 'turn-on' : 'turn-off';
+    const endpoint = turnOn ? 'on' : 'off';
 
     try {
-      // Petición HTTP optimizada hacia tu backend: POST /api/lights/:entityId/turn-on
-      const response = await axios.post(`${API_URL}/${entityId}/${endpoint}`);
+      // Petición HTTP hacia tu backend en la nube: POST /api/luz/on o /api/luz/off
+      const response = await api.post(`/luz/${endpoint}`, { entityId });
 
       if (response.data.success) {
         // Si sale bien, modificamos el estado del sensor específico en la UI

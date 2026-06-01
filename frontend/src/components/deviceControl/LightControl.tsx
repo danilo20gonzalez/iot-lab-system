@@ -23,6 +23,7 @@ const LightControlSimple = ({ entityId = 'light.minir4m', haState, nombre, onTog
             if (onToggle) {
                 // Esperamos a que la función padre (la API) resuelva con éxito
                 await onToggle(entityId, newState);
+                setLocalIsOn(newState); // Actualizamos el estado local para reflejar el cambio en la UI
             } else {
                 setLocalIsOn(newState);
             }
