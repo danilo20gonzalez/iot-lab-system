@@ -71,7 +71,7 @@ const Shelves = () => {
     fetchEstanterias();
   }, [fetchEstanterias]);
 
-  const handleAddDeviceToShelf = async (type: string, shelfId: number) => {
+const handleAddDeviceToShelf = async (type: string, shelfId: number) => {
     setPendingDevice({ type, shelfId });
     setShowDeviceModal(true);
   };
@@ -115,7 +115,7 @@ const Shelves = () => {
     }
   };
 
-  const handleAssignShelf = async (shelfId: number, entityName: string) => {
+const handleAssignShelf = async (shelfId: number, entityName: string) => {
     if (!pendingDevice) return;
     try {
       await api.post('/devices/actuador', {
@@ -178,7 +178,7 @@ const Shelves = () => {
 
       <div className="max-w-7xl mx-auto p-6" style={{ zoom: 0.8 }}>
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold text-gray-900">Espacios de Trabajo {projectName}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Control del Proyecto {projectName}</h1>
           <button
             onClick={() => setIsPanelOpen(true)}
             className="bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 cursor-pointer"
@@ -199,7 +199,7 @@ const Shelves = () => {
         <div className="p-4 flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
             <div className="w-1 h-8 bg-gradient-to-b from-gray-700 to-gray-800 rounded-full"></div>
-            Estanterías Disponibles
+            Espacios de Trabajo Disponibles
           </h1>
 
           <div className="flex gap-4">

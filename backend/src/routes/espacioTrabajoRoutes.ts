@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import * as espacioTrabajoController from '../controllers/EspacioTrabajoController';
+import * as espacioTrabajoController from '../controllers/espacioTrabajoController';
 
 import authenticate from '../middlewares/authenticate';
 import { authorizeRole } from '../middlewares/authorizeRole';

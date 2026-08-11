@@ -14,6 +14,11 @@ interface AlertsPanelProps {
 }
 
 export default function AlertsPanel({ alerts }: AlertsPanelProps) {
+  const normalizedAlerts = alerts.map(alert => ({
+    ...alert,
+    type: alert.type.toLowerCase() as "warning" | "success" | "info"
+  }));
+
   const getPriorityColor = (priority?: string) => {
     switch (priority) {
       case 'high': return 'bg-red-100 text-red-800 border-red-200';
@@ -43,13 +48,13 @@ export default function AlertsPanel({ alerts }: AlertsPanelProps) {
           Alertas del Sistema
         </h2>
         <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
-          {alerts.filter(a => a.priority === 'high').length} críticas
+          {normalizedAlerts.filter(a => a.priority === 'high').length} críticas
         </span>
       </div>
 
       {/* Lista de alertas */}
       <div className="space-y-3 max-h-80 overflow-y-auto">
-        {alerts.map((alert) => (
+        {normalizedAlerts.map((alert) => (
           <div
             key={alert.id}
             className={`p-3 rounded-lg border transition-all duration-200 hover:shadow-sm ${
@@ -107,15 +112,15 @@ export default function AlertsPanel({ alerts }: AlertsPanelProps) {
       {/* Footer con estadísticas */}
       <div className="mt-4 pt-4 border-t border-gray-200">
         <div className="flex justify-between items-center text-xs text-gray-500">
-          <span>Total: {alerts.length} alertas</span>
+          <span>Total: {normalizedAlerts.length} alertas</span>
           <div className="flex gap-2">
             <span className="flex items-center gap-1">
               <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              Críticas: {alerts.filter(a => a.priority === 'high').length}
+              Críticas: {normalizedAlerts.filter(a => a.priority === 'high').length}
             </span>
             <span className="flex items-center gap-1">
               <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-              Advertencias: {alerts.filter(a => a.type === 'warning').length}
+              Advertencias: {normalizedAlerts.filter(a => a.type === 'warning').length}
             </span>
           </div>
         </div>

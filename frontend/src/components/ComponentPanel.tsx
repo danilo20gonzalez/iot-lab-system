@@ -3,8 +3,9 @@ import { X, Wind, Lightbulb, Camera, Droplets, Thermometer, Beaker } from 'lucid
 interface ComponentPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddComponent?: (component: typeof availableComponents[0]) => void;
+  onAddComponent?: (component: any) => void;
   allowedTypes?: string[];
+  customComponents?: any[];
 }
 
 const availableComponents = [
@@ -59,20 +60,22 @@ const availableComponents = [
   },
 ];
 
-export default function ComponentPanel({ isOpen, onClose, onAddComponent, allowedTypes }: ComponentPanelProps) {
-  const filteredComponents = allowedTypes
+export default function ComponentPanel({ isOpen, onClose, onAddComponent, allowedTypes, customComponents }: ComponentPanelProps) {
+  const filteredComponents = customComponents || (allowedTypes
     ? availableComponents.filter(c => allowedTypes.includes(c.type))
-    : availableComponents;
+    : availableComponents);
 
-  const handleDragStart = (e: React.DragEvent, component: typeof availableComponents[0]) => {
+  const handleDragStart = (e: React.DragEvent, component: any) => {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: component.type,
       name: component.name,
+      entityId: component.entityId,
+      haState: component.haState,
     }));
     e.dataTransfer.effectAllowed = 'copy';
   };
 
-  const handleAddComponent = (component: typeof availableComponents[0]) => {
+  const handleAddComponent = (component: any) => {
     if (onAddComponent) {
       onAddComponent(component);
     }
@@ -109,9 +112,9 @@ export default function ComponentPanel({ isOpen, onClose, onAddComponent, allowe
 
         {/* Lista de componentes */}
         <div className="p-4 space-y-3 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 80px)' }}>
-          {filteredComponents.map((component) => (
+          {filteredComponents.map((component, index) => (
             <div
-              key={component.type}
+              key={component.entityId || component.type || index}
               draggable
               onDragStart={(e) => handleDragStart(e, component)}
               onClick={() => handleAddComponent(component)}

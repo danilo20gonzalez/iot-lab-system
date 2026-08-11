@@ -62,19 +62,13 @@ export default function Dashboard() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
 
-  // Carga de datos del sistema
+  // Carga inicial de datos del sistema (stats, actividades)
   useEffect(() => {
     const fetchSystemData = async () => {
       try {
-        // Obtener estadísticas generales
         const statsRes = await api.get('/dashboard/stats');
         setSystemStats(statsRes.data);
 
-        // Obtener alertas
-        const alertsRes = await api.get('/dashboard/alerts');
-        setAlerts(alertsRes.data);
-
-        // Obtener actividad reciente
         const activitiesRes = await api.get('/dashboard/activities');
         setRecentActivities(activitiesRes.data);
 
@@ -84,6 +78,22 @@ export default function Dashboard() {
     };
 
     fetchSystemData();
+  }, []);
+
+  // Polling de alertas cada 30 segundos
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        const alertsRes = await api.get('/dashboard/alerts');
+        setAlerts(alertsRes.data);
+      } catch (error) {
+        console.error('Error al cargar alertas:', error);
+      }
+    };
+
+    fetchAlerts();
+    const interval = setInterval(fetchAlerts, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const isAdmin = user?.fk_id_rol === 1;

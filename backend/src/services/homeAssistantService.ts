@@ -7,7 +7,7 @@ export async function prenderSwitch(entityId: string) {
     try {
         const domain = entityId.split('.')[0] || 'switch';
         await axios.post(
-            `http://${HA_HOST}/api/services/${domain}/turn_on`,
+`http://${HA_HOST}/api/services/${domain}/turn_on`,
             { entity_id: entityId },
             {
                 headers: {
@@ -28,7 +28,7 @@ export async function apagarSwitch(entityId: string) {
     try {
         const domain = entityId.split('.')[0] || 'switch';
         await axios.post(
-            `http://${HA_HOST}/api/services/${domain}/turn_off`,
+`http://${HA_HOST}/api/services/${domain}/turn_off`,
             { entity_id: entityId },
             {
                 headers: {
@@ -122,4 +122,42 @@ export async function obtenerSwitches() {
     } catch (error: any) {
         throw new Error(error.message);
     }
+    
+}
+
+export async function obtenerBombas() {
+    try {
+        const response = await axios.get(
+            `http://${HA_HOST}/api/states`,
+            {
+                headers: {
+                    Authorization: `Bearer ${TOKEN}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        const switches = response.data.filter((entity: any) => {
+            const entityId = entity.entity_id.toLowerCase();
+            return entityId.startsWith("switch.bomba");
+        }).map((entity: any) => {
+            const eId = entity.entity_id.toLowerCase();
+            return {
+                entityId: entity.entity_id,
+                nombre: entity.attributes?.friendly_name || entity.entity_id,
+                estado: entity.state, // "on" o "off"
+                tipo: "switch", // Tipo de dispositivo
+                ubicacion: entity.attributes?.area_id || "Desconocida",
+                deviceName: entity.attributes?.device_name || "",
+                icon: entity.attributes?.icon || "mdi:lightbulb"
+            };
+        });
+
+        return switches;
+
+    } catch (error: any) {
+        throw new Error(error.message);
+    }
+
+    
 }

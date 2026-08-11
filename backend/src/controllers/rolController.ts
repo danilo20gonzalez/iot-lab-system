@@ -7,7 +7,10 @@ export const getRoles = async (req: Request, res: Response) => {
   try {
     const [rows] = await pool.query<RowDataPacket[]>('CALL OBTENER_ROLES()');
 
-    const roles = rows[0];
+    const roles = (rows[0] as any[]).map((rol: any) => ({
+      id_rol: rol.ID_ROL ?? rol.id_rol,
+      nombre_rol: rol.NOMBRE_ROL ?? rol.nombre_rol,
+    }));
 
     res.json(roles);
   } catch (error) {

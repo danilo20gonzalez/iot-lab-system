@@ -4,6 +4,9 @@ import Navbar from "../components/Navbar";
 import ProjectCard from "../components/ProjectCard";
 import ComponentPanel from "../components/ComponentPanel";
 import WaterValveControl from "../components/deviceControl/WaterValveControl";
+import RealTimeCamera from "../components/deviceControl/RealTimeCamera";
+import TemperatureControl from "../components/deviceControl/TemperatureControl";
+import HumidityControl from "../components/deviceControl/HumidityControl";
 import CreateProjectModal from '../modals/CreateProjectModal';
 import { useHomeAssistant } from '../hooks/useHomeAssistant';
 import type { ComponentData } from "../context/AppContext";
@@ -247,6 +250,13 @@ const Projects = () => {
             <span>+</span>
             Agregar Componente
           </button>
+        </div>
+
+        {/* Sensores estáticos del módulo */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 mb-4">
+          <TemperatureControl />
+          <HumidityControl />
+          <RealTimeCamera />
         </div>
 
         {/* Área de Drop para Componentes */}

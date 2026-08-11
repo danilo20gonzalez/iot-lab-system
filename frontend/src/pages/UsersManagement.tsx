@@ -134,7 +134,7 @@ export default function UsersManagement() {
                   onChange={(e) => setRoleFilter(e.target.value as any)}
                   className="px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="all">Todos los roles</option>
+                  <option value="all">Todos los |</option>
                   <option value="1">Administrador</option>
                   <option value="2">Operador</option>
                   <option value="3">Supervisor</option>

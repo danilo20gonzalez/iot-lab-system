@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
-import { X, Layers, Tag, FileText, Activity, Lightbulb, Trash2, Beaker } from 'lucide-react';
+import { X, Layers, Tag, Lightbulb, Trash2, Beaker } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ComponentPanel from '../components/ComponentPanel';
 import LightControl from '../components/deviceControl/LightControl';
+import { obtenerSwitchesHA } from '../api/api';
 
 interface PlacedSensor {
     id: string;
     type: string;
     name: string;
+    entityId?: string;
+    haState?: string;
 }
 
 interface CreateEstanteriaModalProps {
@@ -28,6 +31,7 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [placedSensors, setPlacedSensors] = useState<PlacedSensor[]>([]);
+    const [haLights, setHaLights] = useState<any[]>([]);
 
     useEffect(() => {
         if (isOpen) {
@@ -44,6 +48,26 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
             }
             setErrors({});
             setIsPanelOpen(false);
+
+            // Cargar switches como luces
+            const loadLights = async () => {
+                try {
+                    const switches = await obtenerSwitchesHA();
+                    const formattedLights = switches.map((device: any) => ({
+                        type: 'light',
+                        name: device.nombre || device.entityId,
+                        description: `Switch HA: ${device.entityId}`,
+                        icon: Lightbulb,
+                        color: 'bg-yellow-500',
+                        entityId: device.entityId,
+                        haState: device.estado,
+                    }));
+                    setHaLights(formattedLights);
+                } catch (err) {
+                    console.error("Error al cargar las luces:", err);
+                }
+            };
+            loadLights();
         }
     }, [isOpen, editingEstanteria]);
 
@@ -73,6 +97,8 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
             id: `${component.type}-${Date.now()}`,
             type: component.type,
             name: component.name,
+            entityId: component.entityId,
+            haState: component.haState,
         };
         setPlacedSensors(prev => [...prev, newSensor]);
     };
@@ -103,7 +129,7 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
     const renderSensorWidget = (sensor: PlacedSensor) => {
         switch (sensor.type) {
             case 'light':
-                return <LightControl />;
+                return <LightControl entityId={sensor.entityId} nombre={sensor.name} haState={sensor.haState} />;
             default:
                 return null;
         }
@@ -140,7 +166,7 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
                         onClick={handleOverlayClick}
                     >
                         <motion.div
-                            className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
+                            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
@@ -148,43 +174,45 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
                         />
 
                         <motion.div
-                            className={`relative bg-white rounded-2xl shadow-2xl w-full ${editingEstanteria ? 'max-w-2xl' : 'max-w-md'} mx-4 max-h-[90vh] overflow-hidden flex flex-col`}
-                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            className={`relative bg-white rounded-2xl shadow-2xl w-full ${editingEstanteria ? 'max-w-md' : 'max-w-md'} mx-4 max-h-[90vh] overflow-hidden flex flex-col`}
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                            transition={{ duration: 0.2, ease: 'easeOut' }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            transition={{ duration: 0.25, ease: 'easeOut' }}
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <div className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 flex-shrink-0">
+                            <>
                                 <div className="h-1 bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900" />
-                                
+
                                 <div className="flex justify-between items-center px-5 py-3">
                                     <div className="flex items-center gap-2.5">
-                                        <div className="w-9 h-9 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl flex items-center justify-center shadow-md shadow-gray-900/25">
+                                        <div className="w-9 h-9 bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg flex items-center justify-center shadow-md shadow-gray-900/25">
                                             <Layers size={18} className="text-white" />
                                         </div>
                                         <div>
                                             <h2 className="text-base font-bold text-gray-900">
                                                 {editingEstanteria ? 'Editar Estantería' : 'Nueva Estantería'}
                                             </h2>
-                                            <p className="text-[11px] text-gray-500 font-medium">
+                                            <p className="text-[11px] text-gray-500">
                                                 {editingEstanteria ? 'Modifica los datos de la estantería' : 'Registra una nueva estantería'}
                                             </p>
                                         </div>
                                     </div>
                                     <button
                                         onClick={onClose}
-                                        className="p-1.5 text-gray-400 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-colors"
+                                        className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-all duration-200"
                                     >
-                                        <X size={18} />
+                                        <X size={16} />
                                     </button>
                                 </div>
-                            </div>
+                            </>
 
-                            <form id="shelfForm" onSubmit={handleSubmit} className="px-5 py-4 space-y-4 overflow-y-auto flex-1">
+                            <div className="mx-5 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+
+                            <form id="shelfForm" onSubmit={handleSubmit} className="px-5 py-4 space-y-3 overflow-y-auto">
                                 <div>
-                                    <label className="flex items-center gap-1.5 text-xs font-bold text-gray-700 mb-1.5">
-                                        <Tag size={14} className="text-gray-600" />
+                                    <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-1">
+                                        <Tag size={12} className="text-gray-600" />
                                         Nombre de la Estantería
                                     </label>
                                     <input
@@ -192,34 +220,50 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
                                         value={formData.nombre}
                                         onChange={(e) => handleChange('nombre', e.target.value)}
                                         placeholder="Ej: Estantería A-1"
-                                        className={`w-full px-3.5 py-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-gray-900/20 focus:border-gray-900 outline-none transition-all duration-200 bg-gray-50/50 hover:bg-white focus:bg-white ${errors.nombre ? 'border-red-400 ring-1 ring-red-400 focus:ring-red-400/20' : 'border-gray-200'}`}
+                                        className={`w-full px-3 py-2 text-sm border rounded-xl focus:ring-2 focus:ring-gray-900/20 focus:border-gray-900 outline-none transition-all duration-200 bg-gray-50 hover:bg-white focus:bg-white ${errors.nombre ? 'border-red-400 ring-1 ring-red-400 focus:ring-red-400/20' : 'border-gray-300'}`}
                                     />
-                                    {errors.nombre && <p className="text-red-500 text-[11px] mt-1 font-medium pl-1">{errors.nombre}</p>}
+                                    {errors.nombre && (
+                                        <motion.p
+                                            initial={{ opacity: 0, y: -5 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="text-red-500 text-xs mt-1.5 flex items-center gap-1"
+                                        >
+                                            <span>âš </span> {errors.nombre}
+                                        </motion.p>
+                                    )}
                                 </div>
 
-                                <div>
-                                    <label className="flex items-center gap-1.5 text-xs font-bold text-gray-700 mb-1.5">
-                                        <FileText size={14} className="text-gray-600" />
+                                {/* <div>
+                                    <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-1">
+                                        <FileText size={12} className="text-gray-600" />
                                         Descripción
                                     </label>
                                     <textarea
                                         value={formData.descripcion}
                                         onChange={(e) => handleChange('descripcion', e.target.value)}
                                         placeholder="Describe el propósito de la estantería..."
-                                        rows={3}
-                                        className={`w-full px-3.5 py-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-gray-900/20 focus:border-gray-900 outline-none transition-all duration-200 resize-none bg-gray-50/50 hover:bg-white focus:bg-white ${errors.descripcion ? 'border-red-400 ring-1 ring-red-400 focus:ring-red-400/20' : 'border-gray-200'}`}
+                                        rows={2}
+                                        className={`w-full px-3 py-2 text-sm border rounded-xl focus:ring-2 focus:ring-gray-900/20 focus:border-gray-900 outline-none transition-all duration-200 resize-none bg-gray-50 hover:bg-white focus:bg-white ${errors.descripcion ? 'border-red-400 ring-1 ring-red-400 focus:ring-red-400/20' : 'border-gray-300'}`}
                                     />
-                                    <div className="flex justify-between items-center mt-1 px-1">
-                                        <p className="text-red-500 text-[11px] font-medium">{errors.descripcion}</p>
-                                        <span className="text-[10px] text-gray-400 font-medium">
+                                    <div className="flex justify-between items-center mt-1">
+                                        {errors.descripcion ? (
+                                            <motion.p
+                                                initial={{ opacity: 0, y: -5 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                className="text-red-500 text-xs flex items-center gap-1"
+                                            >
+                                                <span>âš </span> {errors.descripcion}
+                                            </motion.p>
+                                        ) : <span />}
+                                        <span className={`text-xs ${formData.descripcion.length > 450 ? 'text-amber-500' : 'text-gray-400'}`}>
                                             {formData.descripcion.length}/500
                                         </span>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="flex items-center gap-1.5 text-xs font-bold text-gray-700 mb-2">
-                                        <Activity size={14} className="text-gray-600" />
+                                    <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-1">
+                                        <Activity size={12} className="text-gray-600" />
                                         Estado Inicial
                                     </label>
                                     <div className="grid grid-cols-3 gap-2">
@@ -259,10 +303,10 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
                                             </button>
                                         ))}
                                     </div>
-                                </div>
+                                </div> */}
 
                                 {editingEstanteria && (
-                                    <div className="mt-6 border-t border-gray-100 pt-5">
+                                    <div className="mt-4 border-t border-gray-100 pt-4">
                                         <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2 mb-3">
                                             <Lightbulb size={16} className="text-gray-900" />
                                             Componentes de Luz
@@ -272,7 +316,7 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
                                         </p>
 
                                         <div
-                                            className={`border-2 border-dashed rounded-2xl p-4 transition-all duration-200 ${placedSensors.length === 0 ? 'border-gray-200 bg-gray-50/30 min-h-[160px] flex items-center justify-center' : 'border-gray-200 bg-white shadow-inner'}`}
+                                            className={`border-2 border-dashed rounded-xl p-3 transition-all duration-200 ${placedSensors.length === 0 ? 'border-gray-200 bg-gray-50 min-h-[140px] flex items-center justify-center' : 'border-gray-200 bg-white shadow-inner'}`}
                                             onDragOver={handleDragOver}
                                             onDrop={handleDrop}
                                         >
@@ -323,13 +367,13 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
                                 )}
                             </form>
 
-                            <div className="p-5 border-t border-gray-100 bg-white flex-shrink-0">
+                            <div className="px-5 pb-4 bg-white flex-shrink-0">
                                 {/* Info card (solo en creación) */}
                                 {!editingEstanteria && (
-                                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-start gap-3 mb-4">
+                                    <div className="hidden">
                                         <Beaker size={18} className="text-gray-600 mt-0.5 flex-shrink-0" />
                                         <p className="text-xs text-gray-600 leading-relaxed">
-                                            Una vez creada la estantería, podrás asignarle controladores de iluminación 
+                                            Una vez creada la estantería, podrás asignarle controladores de iluminación
                                             y monitorear el estado de cada nivel desde el panel de gestión.
                                         </p>
                                     </div>
@@ -340,7 +384,7 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
                                         type="button"
                                         onClick={onClose}
                                         disabled={isSubmitting}
-                                        className="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl border border-gray-200 transition-all duration-200 disabled:opacity-50"
+                                        className="flex-1 px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl border border-gray-200 transition-all duration-200 disabled:opacity-50"
                                     >
                                         Cancelar
                                     </button>
@@ -348,7 +392,7 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
                                         type="submit"
                                         form="shelfForm"
                                         disabled={isSubmitting}
-                                        className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-black rounded-xl shadow-md shadow-gray-900/25 hover:shadow-lg transition-all duration-200 disabled:opacity-60 flex items-center justify-center gap-2"
+                                        className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-black rounded-xl shadow-md shadow-gray-900/25 hover:shadow-lg transition-all duration-200 disabled:opacity-60 flex items-center justify-center gap-2"
                                     >
                                         {isSubmitting ? 'Guardando...' : editingEstanteria ? 'Guardar Cambios' : 'Crear Estantería'}
                                     </button>
@@ -366,6 +410,7 @@ export default function CreateEstanteriaModal({ isOpen, onClose, onSave, editing
                     setIsPanelOpen(false);
                 }}
                 allowedTypes={['light']}
+                customComponents={haLights.length > 0 ? haLights : undefined}
             />
         </>
     );

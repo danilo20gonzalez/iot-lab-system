@@ -8,14 +8,13 @@ import RealTimeCamera from '../components/deviceControl/RealTimeCamera';
 import WaterValveControl from '../components/deviceControl/WaterValveControl';
 import TemperatureControl from '../components/deviceControl/TemperatureControl';
 import HumidityControl from '../components/deviceControl/HumidityControl';
-import PhControl from '../components/deviceControl/PhControl';
 import CreateSensorModal from '../modals/CreateSensorModal';
 import type { SensorFormData } from '../modals/CreateSensorModal';
 import { obtenerSensoresHA, obtenerSwitchesHA } from '../api/api';
 import { useHomeAssistant } from '../hooks/useHomeAssistant';
 import {
   Wind, Lightbulb, Camera, Droplets, Plus, Search,
-  Filter, Cpu, Trash2, MapPin, ChevronDown, Thermometer, Beaker
+  Filter, Cpu, Trash2, MapPin, ChevronDown, Thermometer,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -27,13 +26,6 @@ const SENSOR_TYPE_META: Record<string, {
   dot: string;
   badge: string;
 }> = {
-  'air-conditioner': {
-    name: 'Aire Acondicionado',
-    icon: Wind,
-    gradient: 'from-cyan-500 to-blue-600',
-    dot: 'bg-cyan-400',
-    badge: 'bg-cyan-500/10 text-cyan-600 border-cyan-200',
-  },
   light: {
     name: 'Control de Luces',
     icon: Lightbulb,
@@ -49,7 +41,7 @@ const SENSOR_TYPE_META: Record<string, {
     badge: 'bg-emerald-500/10 text-emerald-600 border-emerald-200',
   },
   valve: {
-    name: 'Válvula de Agua',
+    name: 'Actuador Bomba', // Se renombró como actuador
     icon: Droplets,
     gradient: 'from-blue-500 to-indigo-600',
     dot: 'bg-blue-400',
@@ -69,24 +61,15 @@ const SENSOR_TYPE_META: Record<string, {
     dot: 'bg-indigo-400',
     badge: 'bg-indigo-500/10 text-indigo-600 border-indigo-200',
   },
-  ph: {
-    name: 'Sensor pH',
-    icon: Beaker,
-    gradient: 'from-blue-600 to-cyan-600',
-    dot: 'bg-blue-400',
-    badge: 'bg-blue-500/10 text-blue-600 border-blue-200',
-  },
 };
 
 const FILTER_OPTIONS = [
   { value: 'all', label: 'Todos' },
-  { value: 'air-conditioner', label: 'Aire Acondicionado' },
   { value: 'light', label: 'Luces' },
   { value: 'camera', label: 'Cámaras' },
   { value: 'valve', label: 'Válvulas' },
   { value: 'temperature', label: 'Temperatura' },
   { value: 'humidity', label: 'Humedad' },
-  { value: 'ph', label: 'pH' },
 ];
 
 /* ─── Sensores iniciales (Solo cámara) ─── */
@@ -126,8 +109,6 @@ function SensorControlWidget({ tipo, valor, sensor, haStates, onToggle }: { tipo
       return <TemperatureControl valorReal={valor} />;
     case 'humidity':
       return <HumidityControl valorReal={valor} />;
-    case 'ph':
-      return <PhControl valorReal={valor} />;
     default:
       return null;
   }
@@ -238,7 +219,7 @@ const Sensors = () => {
           obtenerSensoresHA(),
           obtenerSwitchesHA(),
         ]);
-        
+
         // Convertir sensores de HA al formato SensorFormData
         const sensoresFormateados = sensoresHA.map((sensor: any) => ({
           id: sensor.entityId,
@@ -322,10 +303,10 @@ const Sensors = () => {
                 Sensores
               </h1>
               <p className="text-gray-500 mt-1 ml-4">
-                Gestiona y monitorea todos los dispositivos IoT del sistema
+                Monitorea todos los dispositivos IoT del sistema
               </p>
             </div>
-            {!isOperador && (
+            {/* {!isOperador && (
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 cursor-pointer self-start sm:self-auto"
@@ -333,7 +314,7 @@ const Sensors = () => {
                 <Plus size={18} />
                 Nuevo Sensor
               </button>
-            )}
+            )} */}
           </div>
         </div>
 
@@ -430,8 +411,8 @@ const Sensors = () => {
 
         {/* ─── Two-Column Category Layout ─── */}
         {(() => {
-          const SENSOR_TYPES = ['temperature', 'humidity', 'ph'];
-          const ACTUATOR_TYPES = ['air-conditioner', 'light', 'camera', 'valve'];
+          const SENSOR_TYPES = ['temperature', 'humidity', 'camera'];
+          const ACTUATOR_TYPES = ['air-conditioner', 'light', 'valve'];
 
           const filteredSensoresCategory = filteredSensors.filter(s => SENSOR_TYPES.includes(s.tipo));
           const filteredActuadoresCategory = filteredSensors.filter(s => ACTUATOR_TYPES.includes(s.tipo));
@@ -480,7 +461,7 @@ const Sensors = () => {
                   </div>
                   <div className="flex-1">
                     <h2 className="text-sm font-bold text-gray-900">Sensores</h2>
-                    <p className="text-[10px] text-gray-500">Temperatura, Humedad y pH</p>
+                    <p className="text-[10px] text-gray-500">Temperatura, Humedad y Cámaras</p>
                   </div>
                   <span className="bg-emerald-100 text-emerald-700 text-[11px] font-bold px-2 py-0.5 rounded-full">
                     {filteredSensoresCategory.length}
