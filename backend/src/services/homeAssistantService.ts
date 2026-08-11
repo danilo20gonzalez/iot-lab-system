@@ -5,8 +5,9 @@ const TOKEN = process.env.HA_TOKEN;
 
 export async function prenderSwitch(entityId: string) {
     try {
+        const domain = entityId.split('.')[0] || 'switch';
         await axios.post(
-            `http://${HA_HOST}/api/services/switch/turn_on`,
+            `http://${HA_HOST}/api/services/${domain}/turn_on`,
             { entity_id: entityId },
             {
                 headers: {
@@ -25,8 +26,9 @@ export async function prenderSwitch(entityId: string) {
 
 export async function apagarSwitch(entityId: string) {
     try {
+        const domain = entityId.split('.')[0] || 'switch';
         await axios.post(
-            `http://${HA_HOST}/api/services/switch/turn_off`,
+            `http://${HA_HOST}/api/services/${domain}/turn_off`,
             { entity_id: entityId },
             {
                 headers: {
@@ -101,14 +103,14 @@ export async function obtenerSwitches() {
         // Filtrar solo switches (luces, Sonoff, etc)
         const switches = response.data.filter((entity: any) => {
             const entityId = entity.entity_id.toLowerCase();
-            return entityId.startsWith("light.");
+            return entityId.startsWith("light.") || entityId.startsWith("switch.");
         }).map((entity: any) => {
             const eId = entity.entity_id.toLowerCase();
             return {
                 entityId: entity.entity_id,
                 nombre: entity.attributes?.friendly_name || entity.entity_id,
                 estado: entity.state, // "on" o "off"
-                tipo: "light", // Tipo de dispositivo
+                tipo: eId.startsWith("light.") ? "light" : "switch", // Tipo de dispositivo
                 ubicacion: entity.attributes?.area_id || "Desconocida",
                 deviceName: entity.attributes?.device_name || "",
                 icon: entity.attributes?.icon || "mdi:lightbulb"

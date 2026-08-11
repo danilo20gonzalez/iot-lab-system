@@ -12,6 +12,7 @@ import PhControl from '../components/deviceControl/PhControl';
 import CreateSensorModal from '../modals/CreateSensorModal';
 import type { SensorFormData } from '../modals/CreateSensorModal';
 import { obtenerSensoresHA, obtenerSwitchesHA } from '../api/api';
+import { useHomeAssistant } from '../hooks/useHomeAssistant';
 import {
   Wind, Lightbulb, Camera, Droplets, Plus, Search,
   Filter, Cpu, Trash2, MapPin, ChevronDown, Thermometer, Beaker
@@ -88,24 +89,8 @@ const FILTER_OPTIONS = [
   { value: 'ph', label: 'pH' },
 ];
 
-/* ─── Sensores iniciales (los 4 que ya existen) ─── */
+/* ─── Sensores iniciales (Solo cámara) ─── */
 const DEFAULT_SENSORS: SensorFormData[] = [
-  {
-    id: 'default-ac-1',
-    nombre: 'AC-Lab-Principal',
-    descripcion: 'Control de temperatura y ventilación del laboratorio principal',
-    tipo: 'air-conditioner',
-    estado: 'activo',
-    ubicacion: 'Laboratorio Principal',
-  },
-  {
-    id: 'default-light-1',
-    nombre: 'LUZ-Sala-Principal',
-    descripcion: 'Iluminación general de la sala principal',
-    tipo: 'light',
-    estado: 'activo',
-    ubicacion: 'Sala Principal',
-  },
   {
     id: 'default-camera-1',
     nombre: 'CAM-Entrada-Lab',
@@ -113,58 +98,31 @@ const DEFAULT_SENSORS: SensorFormData[] = [
     tipo: 'camera',
     estado: 'activo',
     ubicacion: 'Entrada Laboratorio',
-  },
-  {
-    id: 'default-valve-1',
-    nombre: 'VALV-Jardin-01',
-    descripcion: 'Control del sistema hidráulico del jardín',
-    tipo: 'valve',
-    estado: 'activo',
-    ubicacion: 'Jardín Exterior',
-  },
-  {
-    id: 'default-temp-1',
-    nombre: 'TEMP-Lab-Principal',
-    descripcion: 'Sensor de temperatura ambiental del laboratorio principal',
-    tipo: 'temperature',
-    estado: 'activo',
-    ubicacion: 'Laboratorio Principal',
-  },
-  {
-    id: 'default-hum-1',
-    nombre: 'HUM-Lab-Principal',
-    descripcion: 'Sensor de humedad ambiental del laboratorio principal',
-    tipo: 'humidity',
-    estado: 'activo',
-    ubicacion: 'Laboratorio Principal',
-  },
-  {
-    id: 'default-ph-1',
-    nombre: 'PH-Lab-01',
-    descripcion: 'Sensor de pH del tanque de agua principal',
-    tipo: 'ph',
-    estado: 'activo',
-    ubicacion: 'Laboratorio Principal',
-  },
+  }
 ];
 
 /* ─── Componente que renderiza el control real ─── */
-function SensorControlWidget({ tipo, valor, sensor }: { tipo: string; valor?: number | string; sensor?: any }) {
+function SensorControlWidget({ tipo, valor, sensor, haStates, onToggle }: { tipo: string; valor?: number | string; sensor?: any; haStates?: Record<string,string>; onToggle?: any }) {
   switch (tipo) {
     case 'air-conditioner':
       return <AirConditionerControl />;
     case 'light':
       return <LightControl 
         entityId={sensor?.entityId} 
-        haState={valor as string} 
+        haStates={haStates} 
         nombre={sensor?.nombre}
+        onToggle={onToggle}
       />;
     case 'camera':
       return <RealTimeCamera />;
     case 'valve':
-      return <WaterValveControl />;
+      return <WaterValveControl 
+        entityId={sensor?.entityId}
+        haStates={haStates}
+        nombre={sensor?.nombre}
+        onToggle={onToggle}
+      />;
     case 'temperature':
-      
       return <TemperatureControl valorReal={valor} />;
     case 'humidity':
       return <HumidityControl valorReal={valor} />;
@@ -180,12 +138,16 @@ function SensorCard({
   sensor,
   onDelete,
   index,
-  isOperador
+  isOperador,
+  haStates,
+  onToggle
 }: {
   sensor: SensorFormData;
   onDelete: (id: string) => void;
   index: number;
   isOperador?: boolean;
+  haStates?: Record<string, string>;
+  onToggle?: (entity: string, turnOn: boolean) => void;
 }) {
   const meta = SENSOR_TYPE_META[sensor.tipo];
   if (!meta) return null;
@@ -251,7 +213,7 @@ function SensorCard({
 
       {/* Widget del control real */}
       <div className="p-2">
-        <SensorControlWidget tipo={sensor.tipo} valor={sensor.valor} sensor={sensor} />
+        <SensorControlWidget tipo={sensor.tipo} valor={sensor.valor} sensor={sensor} haStates={haStates} onToggle={onToggle} />
       </div>
     </motion.div>
   );
@@ -266,6 +228,7 @@ const Sensors = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const { haStates, sendHACommand } = useHomeAssistant();
 
   /* Cargar sensores y switches desde Home Assistant al montar el componente */
   useEffect(() => {
@@ -293,7 +256,7 @@ const Sensors = () => {
           id: device.entityId,
           nombre: device.nombre,
           descripcion: `Switch ${device.nombre} - Estado: ${device.estado}`,
-          tipo: 'light',
+          tipo: device.tipo === 'switch' ? 'valve' : 'light',
           estado: device.estado === 'on' ? 'activo' : 'inactivo',
           ubicacion: device.ubicacion,
           valor: device.estado,
@@ -542,6 +505,8 @@ const Sensors = () => {
                           onDelete={handleDeleteSensor}
                           index={i}
                           isOperador={isOperador}
+                          haStates={haStates}
+                          onToggle={sendHACommand}
                         />
                       ))}
                     </AnimatePresence>
@@ -582,6 +547,8 @@ const Sensors = () => {
                           onDelete={handleDeleteSensor}
                           index={i}
                           isOperador={isOperador}
+                          haStates={haStates}
+                          onToggle={sendHACommand}
                         />
                       ))}
                     </AnimatePresence>

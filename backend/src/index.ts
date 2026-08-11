@@ -11,6 +11,7 @@ import { pool } from './config/db';
 import homeAssistantRoutes from './routes/homeAssistantRoutes';
 import rolRoutes from './routes/rolRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
+import deviceRoutes from './routes/deviceRoutes';
 import { startHAWebsocketServer } from './services/haWebSocketService';
 
 dotenv.config();
@@ -31,6 +32,7 @@ app.use('/api', espacioTrabajoRoutes);
 app.use('/api', homeAssistantRoutes);
 app.use('/api', rolRoutes);
 app.use('/api', dashboardRoutes);
+app.use('/api', deviceRoutes);
 
 // Ruta raíz
 app.get('/', (req: Request, res: Response) => {

@@ -2,12 +2,12 @@ import { useState, useEffect, useCallback } from "react";
 import Navbar from "../components/Navbar";
 import ShelfCard from "../components/ShelfCard";
 import ComponentPanel from "../components/ComponentPanel";
-import WaterValveControl from "../components/deviceControl/WaterValveControl";
-import { ReactSortable } from 'react-sortablejs';
-import type { ComponentData } from "../context/AppContext";
 import CreateEstanteriaModal from '../modals/CreateEstanteriaModal';
+import AssignDeviceModal from '../modals/AssignDeviceModal';
+import AssignShelfModal from '../modals/AssignShelfModal';
 import { useParams, useLocation } from "react-router-dom";
 import api from "../api/api";
+
 
 interface Estanteria {
   id: number;
@@ -23,136 +23,135 @@ const Shelves = () => {
   const [estanterias, setEstanterias] = useState<Estanteria[]>([]);
   const projectState = location.state as { nombre?: string; descripcion?: string; id?: number } | undefined;
   const projectName = projectState?.nombre || "Proyecto";
-  const [placedComponents, setPlacedComponents] = useState<ComponentData[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [editingEstanteria, setEditingEstanteria] = useState<Estanteria | null>(null);
+  
+  const [showDeviceModal, setShowDeviceModal] = useState(false);
+  const [showShelfSelector, setShowShelfSelector] = useState(false);
+  const [pendingDevice, setPendingDevice] = useState<{type: string, shelfId: number} | null>(null);
 
-  // Cargar espacios de trabajo del backend
-  const fetchEspaciosTrabajo = useCallback(async () => {
+  const fetchEstanterias = useCallback(async () => {
     if (!id) return;
     try {
       const res = await api.get(`/getEspaciosTrabajo/${id}`);
-      const data = res.data.map((e: any) => ({
-        id: e.ID_ESPACIO_TRABAJO || e.id,
-        nombre: e.NOMBRE_ESPACIO_TRABAJO  || e.nombre,
-        descripcion: e.DESCRIPCION_ESPACIO_TRABAJO  || e.descripcion,
-        status: "active" as const,
-        sensors: e.sensors || []
-      }));
-      setEstanterias(data);
-      console.log('Espacios de trabajo cargados:', data);
+      const rawEstanterias = res.data;
+      
+      const estanteriasWithSensors = await Promise.all(
+        rawEstanterias.map(async (est: any) => {
+          const shelfId = est.ID_ESPACIO_TRABAJO || est.id;
+          try {
+            const devRes = await api.get(`/devices/espacio/${shelfId}`);
+            return {
+              id: shelfId,
+              nombre: est.NOMBRE_ESPACIO_TRABAJO || est.nombre,
+              descripcion: est.DESCRIPCION_ESPACIO_TRABAJO || est.descripcion || '',
+              status: "active",
+              sensors: devRes.data
+            };
+          } catch (err) {
+            console.error(`Error fetching devices for shelf ${shelfId}`, err);
+            return {
+              id: shelfId,
+              nombre: est.NOMBRE_ESPACIO_TRABAJO || est.nombre,
+              descripcion: est.DESCRIPCION_ESPACIO_TRABAJO || est.descripcion || '',
+              status: "active",
+              sensors: []
+            };
+          }
+        })
+      );
+      setEstanterias(estanteriasWithSensors);
     } catch (error) {
-      console.error('Error al cargar espacios de trabajo:', error);
-      setEstanterias([]);
+      console.error('Error fetching estanterias:', error);
     }
   }, [id]);
 
   useEffect(() => {
-    fetchEspaciosTrabajo();
-  }, [fetchEspaciosTrabajo]);
+    fetchEstanterias();
+  }, [fetchEstanterias]);
 
-  // Manejar cuando se arrastra sobre el área
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
+  const handleAddDeviceToShelf = async (type: string, shelfId: number) => {
+    setPendingDevice({ type, shelfId });
+    setShowDeviceModal(true);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-
-    const data = e.dataTransfer.getData('application/json');
-    if (!data) return;
-
+  const handleSaveDevice = async (entityName: string) => {
+    if (!pendingDevice) return;
     try {
-      const componentData = JSON.parse(data);
-
-      const newPlacedComponent: ComponentData = {
-        ...componentData,
-        id: `${componentData.type}-${Date.now()}`,
-      };
-
-      setPlacedComponents(prev => [...prev, newPlacedComponent]);
+      await api.post('/devices/actuador', {
+        type: pendingDevice.type,
+        name: entityName,
+        fk_id_espacio_trabajo: pendingDevice.shelfId
+      });
+      fetchEstanterias();
+      setShowDeviceModal(false);
+      setPendingDevice(null);
     } catch (error) {
-      console.error('Error al procesar componente:', error);
+      console.error('Error saving device:', error);
+      alert('Error al guardar el dispositivo');
     }
   };
 
-  const handleAddComponent = (component: any) => {
-    const newPlacedComponent: ComponentData = {
-      type: component.type,
-      name: component.name,
-      id: `${component.type}-${Date.now()}`,
-    };
-    setPlacedComponents(prev => [...prev, newPlacedComponent]);
+  const handleDeleteDeviceFromShelf = async (deviceId: string) => {
+    let deviceType = '';
+    for (const est of estanterias) {
+      const dev = est.sensors?.find(s => String(s.id) === String(deviceId));
+      if (dev) {
+        deviceType = dev.type;
+        break;
+      }
+    }
+    if (!deviceType) return;
+
+    if (window.confirm("¿Estás seguro de eliminar este dispositivo?")) {
+      try {
+        await api.delete(`/devices/espacio/${deviceType}/${deviceId}`);
+        fetchEstanterias();
+      } catch (error) {
+        console.error('Error deleting device:', error);
+        alert('Error al eliminar el dispositivo');
+      }
+    }
   };
 
-  // Eliminar un componente colocado
-  const removeComponent = (componentId: string) => {
-    setPlacedComponents(prev => prev.filter(comp => comp.id !== componentId));
-  };
-
-  const updateComponentOrder = (list: ComponentData[]) => setPlacedComponents(list);
-
-  // Renderizar componente basado en el tipo
-  const renderComponent = (component: ComponentData) => {
-    return (
-      <div className="relative group h-full">
-        <button
-          onClick={() => removeComponent(component.id as string)}
-          className="absolute -top-2 -right-2 z-50 bg-red-500 hover:bg-red-700 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200"
-          title="Eliminar dispositivo"
-        >
-          <span className="text-xs font-bold">✕</span>
-        </button>
-
-        <div className="h-48">
-          {component.type === 'valve' && <WaterValveControl />}
-        </div>
-      </div>
-    );
+  const handleAssignShelf = async (shelfId: number, entityName: string) => {
+    if (!pendingDevice) return;
+    try {
+      await api.post('/devices/actuador', {
+        type: pendingDevice.type,
+        name: entityName,
+        fk_id_espacio_trabajo: shelfId
+      });
+      fetchEstanterias();
+      setShowShelfSelector(false);
+      setPendingDevice(null);
+    } catch (error) {
+      console.error('Error assigning device to shelf:', error);
+      alert('Error al asignar el dispositivo');
+    }
   };
 
   const handleSaveEstanteria = async (data: any) => {
-    if (!id) {
-      alert('Error: ID del proyecto no encontrado');
-      return;
-    }
-
     try {
-      const payload = {
-        idproyecto: id,
-        nombre: data.nombre,
-        descripcion: data.descripcion
-      };
-
       if (editingEstanteria && editingEstanteria.id !== 9999) {
-        // Modo edición
-        await api.put(`/updateEspacioTrabajo/${editingEstanteria.id}`, payload);
-        setEstanterias(prev => prev.map(e => e.id === editingEstanteria.id ? {
-          ...e,
+        await api.put(`/updateEspacioTrabajo/${editingEstanteria.id}`, {
           nombre: data.nombre,
-          descripcion: data.descripcion,
-        } : e));
+          descripcion: data.descripcion
+        });
       } else {
-        // Modo creación
-        const res = await api.post('/createEspacioTrabajo', payload);
-        const newEst: Estanteria = {
-          id: res.data.espacioTrabajo?.id || Date.now(),
+        await api.post('/createEspacioTrabajo', {
+          idproyecto: id,
           nombre: data.nombre,
-          descripcion: data.descripcion,
-          status: "active",
-          sensors: []
-        };
-        setEstanterias(prev => [...prev, newEst]);
+          descripcion: data.descripcion
+        });
       }
-
+      fetchEstanterias();
       setShowCreateForm(false);
       setEditingEstanteria(null);
-      console.log('Espacio de trabajo guardado exitosamente');
     } catch (error) {
-      console.error('Error al guardar espacio de trabajo:', error);
-      alert('Hubo un error al guardar el espacio de trabajo. Por favor, verifica la conexión.');
+      console.error('Error saving estanteria:', error);
+      alert('Error al guardar el espacio de trabajo');
     }
   };
 
@@ -161,18 +160,15 @@ const Shelves = () => {
     setShowCreateForm(true);
   };
 
-  const handleDeleteEstanteria = (estanteriaId: number) => {
+  const handleDeleteEstanteria = async (estanteriaId: number) => {
     if (window.confirm("¿Estás seguro de eliminar este espacio de trabajo?")) {
-      (async () => {
-        try {
-          await api.delete(`/deleteEspacioTrabajo/${estanteriaId}`);
-          setEstanterias(prev => prev.filter(e => e.id !== estanteriaId));
-          console.log('Espacio de trabajo eliminado exitosamente');
-        } catch (error) {
-          console.error('Error al eliminar espacio de trabajo:', error);
-          alert('Error al eliminar el espacio de trabajo');
-        }
-      })();
+      try {
+        await api.delete(`/deleteEspacioTrabajo/${estanteriaId}`);
+        fetchEstanterias();
+      } catch (error) {
+        console.error('Error deleting estanteria:', error);
+        alert('Error al eliminar el espacio de trabajo');
+      }
     }
   };
 
@@ -192,53 +188,11 @@ const Shelves = () => {
           </button>
         </div>
 
-        {/* Área de trabajo con drag and drop */}
-        <div
-          className="p-4 mb-4"
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-        >
-          {placedComponents.length === 0 ? (
-            // Estado vacío
-            <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-700 rounded-xl bg-gray-300">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">📥</span>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  No hay componentes
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  Arrastra componentes desde el panel o haz clic en "Agregar Componente"
-                </p>
-                <button
-                  onClick={() => setIsPanelOpen(true)}
-                  className="bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 items-center gap-2 cursor-pointer"
-                >
-                  Abrir Panel de Componentes
-                </button>
-              </div>
-            </div>
-          ) : (
-            // Grid de componentes con ReactSortable
-            <div>
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">Componentes de Control</h2>
-              <ReactSortable
-                list={placedComponents}
-                setList={updateComponentOrder}
-                animation={200}
-                delayOnTouchOnly={true}
-                delay={100}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6"
-              >
-                {placedComponents.map((component) => (
-                  <div key={component.id} className="cursor-move">
-                    {renderComponent(component)}
-                  </div>
-                ))}
-              </ReactSortable>
-            </div>
-          )}
+        {/* Área de información */}
+        <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-6">
+          <p className="text-blue-800 text-sm">
+            Para agregar una luz o válvula a un estante, haz clic en "Agregar Componente" para abrir el panel, y luego <strong>arrastra</strong> el dispositivo directamente sobre la tarjeta de la estantería correspondiente.
+          </p>
         </div>
 
         {/* Sección de tarjetas de estanterías */}
@@ -277,6 +231,8 @@ const Shelves = () => {
                 sensors={estanteria.sensors}
                 onDelete={() => handleDeleteEstanteria(estanteria.id)}
                 onEdit={() => handleEditEstanteria(estanteria)}
+                onAddDevice={(type) => handleAddDeviceToShelf(type, estanteria.id)}
+                onDeleteDevice={(deviceId) => handleDeleteDeviceFromShelf(deviceId)}
               />
             ))
           )}
@@ -286,9 +242,39 @@ const Shelves = () => {
       <ComponentPanel
         isOpen={isPanelOpen}
         onClose={() => setIsPanelOpen(false)}
-        onAddComponent={handleAddComponent}
-        allowedTypes={['valve']}
+        allowedTypes={['valve', 'light']}
+        onAddComponent={(comp) => {
+          setPendingDevice({ type: comp.type, shelfId: 0 });
+          setShowShelfSelector(true);
+          setIsPanelOpen(false);
+        }}
       />
+
+      {showDeviceModal && pendingDevice && (
+        <AssignDeviceModal
+          isOpen={showDeviceModal}
+          onClose={() => {
+            setShowDeviceModal(false);
+            setPendingDevice(null);
+          }}
+          onSave={handleSaveDevice}
+          deviceType={pendingDevice.type}
+          defaultName=""
+        />
+      )}
+
+      {showShelfSelector && pendingDevice && (
+        <AssignShelfModal
+          isOpen={showShelfSelector}
+          onClose={() => {
+            setShowShelfSelector(false);
+            setPendingDevice(null);
+          }}
+          onSave={handleAssignShelf}
+          estantes={estanterias.map(e => ({ id: e.id, name: e.nombre, projectName: projectName }))}
+          defaultName=""
+        />
+      )}
 
       <CreateEstanteriaModal
         isOpen={showCreateForm}

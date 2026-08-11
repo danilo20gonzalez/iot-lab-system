@@ -1,5 +1,5 @@
 // src/pages/Laboratory.tsx
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import Navbar from "../components/Navbar";
 import ComponentPanel from "../components/ComponentPanel";
@@ -7,58 +7,77 @@ import AirConditionerControl from "../components/deviceControl/AirConditionerCon
 import LightControl from "../components/deviceControl/LightControl";
 import RealTimeCamera from "../components/deviceControl/RealTimeCamera";
 import WaterValveControl from "../components/deviceControl/WaterValveControl";
-import { useAppContext } from "../context/AppContext";
 import type { ComponentData } from "../context/AppContext";
 import { ReactSortable } from 'react-sortablejs';
 import LabRoomCard from '../components/LabRoomCard';
 import CreateSalaModal from '../modals/CreateModuloModal';
 import api from '../api/api';
-import { wsUrl } from '../../config';
+import { useHomeAssistant } from '../hooks/useHomeAssistant';
+import AssignDeviceModal from "../modals/AssignDeviceModal";
 
 
 const Laboratory = () => {
   const { id } = useParams<{ id: string }>();
+
+  
   const [selectedLabName, setSelectedLabName] = useState<string>('Cargando...');
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isSalaModalOpen, setIsSalaModalOpen] = useState(false);
-  const { laboratoryComponents, addComponent, updateComponentOrder, removeComponent } = useAppContext();
+  const [laboratoryComponents, setLaboratoryComponents] = useState<ComponentData[]>([]);
+  const [showDeviceModal, setShowDeviceModal] = useState(false);
+  const [pendingDeviceType, setPendingDeviceType] = useState<string>('');
 
-  // Estado WebSocket
-  const [haStates, setHaStates] = useState<Record<string, string>>({});
-  const wsRef = useRef<WebSocket | null>(null);
+  // Fetch devices from localStorage ya que el backend no tiene endpoints para esto
+  const fetchLayout = useCallback(() => {
+    if (!id) return;
+    const saved = localStorage.getItem(`laboratoryComponents_${id}`);
+    if (saved) {
+      setLaboratoryComponents(JSON.parse(saved));
+    }
+  }, [id]);
 
-  useEffect(() => {
-    // Conectar al WebSocket usando la URL de configuración
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
-
-    ws.onopen = () => console.log('Conectado al servidor WebSocket local (HA Bridge)');
-
-    ws.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data);
-        if (msg.type === 'state_change') {
-          // Actualizamos el estado del dispositivo
-          setHaStates(prev => ({ ...prev, [msg.entity]: msg.state }));
-        }
-      } catch (e) {
-        console.error('Error parseando mensaje WS:', e);
-      }
-    };
-
-    return () => {
-      ws.close();
-    };
-  }, []);
-
-  const sendHACommand = (entity: string, turnOn: boolean) => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        action: turnOn ? 'turn_on' : 'turn_off',
-        entity
-      }));
+  const saveComponentsToStorage = (newComponents: ComponentData[]) => {
+    setLaboratoryComponents(newComponents);
+    if (id) {
+      localStorage.setItem(`laboratoryComponents_${id}`, JSON.stringify(newComponents));
     }
   };
+
+  useEffect(() => {
+    fetchLayout();
+  }, [fetchLayout]);
+
+  const addComponent = async (comp: { type: string; name?: string; [key: string]: unknown }) => {
+    // Open modal to select HA entity
+    setPendingDeviceType(comp.type);
+    setShowDeviceModal(true);
+  };
+
+  const handleSaveDevice = async (entityName: string) => {
+    const newComponent: ComponentData = {
+      id: `${pendingDeviceType}-${Date.now()}`,
+      type: pendingDeviceType,
+      name: entityName
+    };
+    const updated = [...laboratoryComponents, newComponent];
+    saveComponentsToStorage(updated);
+    setShowDeviceModal(false);
+    setPendingDeviceType('');
+  };
+
+  const removeComponent = async (compId: string, _type: string) => {
+    const updated = laboratoryComponents.filter(c => c.id !== compId);
+    saveComponentsToStorage(updated);
+  };
+
+  const updateComponentOrder = (list: ComponentData[]) => {
+    // Database ordering is not supported directly without an order column,
+    // so we just update the local state for visual drag-and-drop.
+    setLaboratoryComponents(list);
+  };
+
+  // Estado WebSocket
+  const { haStates, sendHACommand } = useHomeAssistant();
 
 
   const [modulos, setModulos] = useState<Array<{
@@ -208,7 +227,7 @@ const Laboratory = () => {
       <div className="relative group h-full">
         {/* Botón de eliminar (Aparece al hacer hover) */}
         <button
-          onClick={() => removeComponent(component.id)} // <--- Aquí usamos tu función del context
+          onClick={() => removeComponent(component.id as string, component.type)}
           className="absolute -top-2 -right-2 z-50 bg-red-500 hover:bg-red-700 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200"
           title="Eliminar dispositivo"
         >
@@ -219,12 +238,16 @@ const Laboratory = () => {
         <div className="h-48">
           {component.type === 'air-conditioner' && <AirConditionerControl />}
           {component.type === 'light' && <LightControl
-            entityId="switch.sonoff_luz" // Se puede hacer dinámico en el futuro
-            haState={haStates['switch.sonoff_luz']}
+            entityId="light.lampara_1" // Entidad de luz real
+            haStates={haStates}
             onToggle={sendHACommand}
           />}
           {component.type === 'camera' && <RealTimeCamera />}
-          {component.type === 'valve' && <WaterValveControl />}
+          {component.type === 'valve' && <WaterValveControl
+            entityId="switch.bomba_1" // Entidad switch (bomba)
+            haStates={haStates}
+            onToggle={sendHACommand}
+          />}
         </div>
       </div>
     );
@@ -367,8 +390,22 @@ const Laboratory = () => {
       <ComponentPanel
         isOpen={isPanelOpen}
         onClose={() => setIsPanelOpen(false)}
-        allowedTypes={['air-conditioner', 'camera', 'light']}
+        onAddComponent={(comp) => {
+          addComponent(comp);
+          setIsPanelOpen(false);
+        }}
+        allowedTypes={['camera', 'air-conditioner']}
       />
+
+      {showDeviceModal && (
+        <AssignDeviceModal
+          isOpen={showDeviceModal}
+          onClose={() => setShowDeviceModal(false)}
+          onSave={handleSaveDevice}
+          deviceType={pendingDeviceType}
+          defaultName=""
+        />
+      )}
 
       <CreateSalaModal
         isOpen={isSalaModalOpen}

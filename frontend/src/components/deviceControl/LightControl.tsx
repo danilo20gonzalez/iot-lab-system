@@ -1,26 +1,39 @@
-import { Power, Settings, BarChart3, RotateCcw, Zap } from 'lucide-react';
+import { Settings, BarChart3, RotateCcw, Zap } from 'lucide-react';
 import { useState } from 'react';
 
 interface LightControlProps {
     entityId?: string;
-    haState?: string;
+    haStates?: Record<string, string>;
     nombre?: string;
     onToggle?: (entityId: string, turnOn: boolean) => void;
 }
 
-const LightControlSimple = ({ entityId = 'light.minir4m', haState, nombre, onToggle }: LightControlProps) => {
+
+
+const LightControlSimple = ({ entityId = 'light.lampara_1', nombre, onToggle }: LightControlProps) => {
+    // Extraer el ID sin el prefijo para el input
+    const initialLocalId = entityId.startsWith('light.') ? entityId.replace('light.', '') : entityId;
+    const [localEntityId, setLocalEntityId] = useState(initialLocalId);
+    
+    const effectiveEntityId = `light.${localEntityId}`;
+    
+    // mappedSonoffId y haState ya no se usan localmente para renderizado visual
+
+
     // Si Home Assistant provee el estado, lo usamos; si no, usamos el local
-    const [localIsOn, setLocalIsOn] = useState(haState === 'on' ? true : false);
     const [isFlipped, setIsFlipped] = useState(false);
 
-    const isOn = haState ? haState === 'on' : localIsOn;
 
-    const handleToggle = () => {
-        const newState = !isOn;
+
+    const handleTurnOn = () => {
         if (onToggle) {
-            onToggle(entityId, newState);
-        } else {
-            setLocalIsOn(newState);
+            onToggle(effectiveEntityId, true);
+        }
+    };
+
+    const handleTurnOff = () => {
+        if (onToggle) {
+            onToggle(effectiveEntityId, false);
         }
     };
 
@@ -38,36 +51,36 @@ const LightControlSimple = ({ entityId = 'light.minir4m', haState, nombre, onTog
                         <div className="flex justify-between items-start">
                             <div>
                                 <h2 className="text-gray-800 font-bold text-xs tracking-tight">{nombre || 'Sala Principal'}</h2>
-                                <p className="text-[9px] text-gray-400 uppercase tracking-wider font-medium">Iluminación</p>
+                                <div className="flex items-center gap-1 mt-0.5" onClick={e => e.stopPropagation()}>
+                                    <span className="text-[9px] text-gray-400 font-mono">light.</span>
+                                    <input 
+                                        type="text" 
+                                        value={localEntityId}
+                                        onChange={(e) => setLocalEntityId(e.target.value)}
+                                        className="text-[10px] text-gray-600 bg-gray-50 border border-gray-200 rounded px-1 w-20 outline-none focus:border-yellow-400"
+                                        placeholder="ID"
+                                    />
+                                </div>
                             </div>
                             <button className="text-gray-300 hover:text-indigo-500 transition-colors">
                                 <Settings size={14} />
                             </button>
                         </div>
 
-                        <div className="flex flex-col items-center justify-center -mt-1">
-                            <div
-                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500 shadow-md
-                ${isOn
-                                        ? 'bg-yellow-400 shadow-yellow-100'
-                                        : 'bg-gray-100 shadow-none'}`}
-                            >
-                                <Power className={isOn ? 'text-white' : 'text-gray-400'} size={18} />
-                            </div>
-                            <span className={`text-[10px] mt-1 font-bold uppercase tracking-widest ${isOn ? 'text-yellow-600' : 'text-gray-400'}`}>
-                                {isOn ? 'On' : 'Off'}
-                            </span>
-                        </div>
+
 
                         <div className="flex gap-2 mt-1">
                             <button
-                                onClick={handleToggle}
-                                className={`flex-[3] py-1.5 text-xs font-semibold rounded-lg transition-all
-                ${isOn
-                                        ? 'bg-gray-900 text-white hover:bg-black'
-                                        : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                                onClick={handleTurnOn}
+                                className="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-all"
                             >
-                                {isOn ? 'Apagar' : 'Encender'}
+                                ON
+                            </button>
+                            <button
+                                onClick={handleTurnOff}
+                                className="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-gray-900 text-white hover:bg-black transition-all"
+                            >
+                                OFF
                             </button>
                             <button
                                 onClick={() => setIsFlipped(true)}

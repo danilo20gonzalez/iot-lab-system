@@ -3,13 +3,12 @@ import { useLocation, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import ProjectCard from "../components/ProjectCard";
 import ComponentPanel from "../components/ComponentPanel";
-import AirConditionerControl from "../components/deviceControl/AirConditionerControl";
-import LightControl from "../components/deviceControl/LightControl";
-import RealTimeCamera from "../components/deviceControl/RealTimeCamera";
+import WaterValveControl from "../components/deviceControl/WaterValveControl";
 import CreateProjectModal from '../modals/CreateProjectModal';
-import { ReactSortable } from 'react-sortablejs';
+import { useHomeAssistant } from '../hooks/useHomeAssistant';
 import type { ComponentData } from "../context/AppContext";
 import api from "../api/api";
+import AssignShelfModal from "../modals/AssignShelfModal";
 
 interface Proyecto {
   id: number;
@@ -26,10 +25,56 @@ const Projects = () => {
   const moduloState = location.state as { nombre: string; descripcion: string } | undefined;
 
   const [proyectos, setProyectos] = useState<Proyecto[]>([]);
-  const [placedComponents, setPlacedComponents] = useState<ComponentData[]>([]);
   const [editingProject, setEditingProject] = useState<Proyecto | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const { haStates, sendHACommand } = useHomeAssistant();
+
+  const [bombas, setBombas] = useState<ComponentData[]>([]);
+  const [estantesDisponibles, setEstantesDisponibles] = useState<{id: number, name: string, projectName: string}[]>([]);
+  const [showShelfSelector, setShowShelfSelector] = useState(false);
+  const [pendingDevice, setPendingDevice] = useState<{type: string, name?: string} | null>(null);
+
+  // Cargar bombas desde localStorage ya que el backend no tiene tabla dispositivos
+  const fetchBombas = useCallback(() => {
+    if (!id) return;
+    const saved = localStorage.getItem(`bombas_proyecto_${id}`);
+    if (saved) {
+      setBombas(JSON.parse(saved));
+    }
+  }, [id]);
+
+  // Fetch estantes (simulados, leyendo de los localStorage de los estantes)
+  const fetchEstantes = useCallback(() => {
+    if (!id) return;
+    // En el frontend real original no hay ruta, así que usamos un mock o leemos de localStorage
+    const allEstantes = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('estanterias_modulo_')) {
+        const ests = JSON.parse(localStorage.getItem(key) || '[]');
+        allEstantes.push(...ests.map((e: any) => ({ id: e.id, name: e.nombre, projectName: 'Módulo' })));
+      }
+    }
+    setEstantesDisponibles(allEstantes);
+  }, [id]);
+
+  useEffect(() => {
+    fetchBombas();
+    fetchEstantes();
+  }, [fetchBombas, fetchEstantes]);
+
+  const saveBombasToStorage = (newBombas: ComponentData[]) => {
+    setBombas(newBombas);
+    if (id) {
+      localStorage.setItem(`bombas_proyecto_${id}`, JSON.stringify(newBombas));
+    }
+  };
+
+  const removeComponent = async (compId: string) => {
+    const updatedBombas = bombas.filter(c => c.id !== compId);
+    saveBombasToStorage(updatedBombas);
+  };
 
   // Cargar proyectos desde la API
   const fetchProyectos = useCallback(async () => {
@@ -70,33 +115,42 @@ const Projects = () => {
 
     try {
       const componentData = JSON.parse(data);
-
-      const newPlacedComponent: ComponentData = {
-        ...componentData,
-        id: `${componentData.type}-${Date.now()}`,
-      };
-
-      setPlacedComponents(prev => [...prev, newPlacedComponent]);
+      if (componentData.type === 'valve') {
+        setPendingDevice({ type: componentData.type, name: componentData.name });
+        setShowShelfSelector(true);
+      }
     } catch (error) {
       console.error('Error al procesar componente:', error);
     }
   };
 
   const handleAddComponent = (component: any) => {
-    const newPlacedComponent: ComponentData = {
-      type: component.type,
-      name: component.name,
-      id: `${component.type}-${Date.now()}`,
+    if (component.type === 'valve') {
+      setPendingDevice({ type: component.type, name: component.name });
+      setShowShelfSelector(true);
+    }
+    setIsPanelOpen(false);
+  };
+
+  const handleAssignShelf = async (shelfId: number, entityName: string) => {
+    if (!pendingDevice) return;
+    
+    // Buscar el nombre del estante seleccionado para mostrarlo
+    const estanteSeleccionado = estantesDisponibles.find(e => e.id === shelfId);
+    
+    const newBomba: ComponentData = {
+      id: `${pendingDevice.type}-${Date.now()}`,
+      type: pendingDevice.type,
+      name: entityName,
+      shelfId: shelfId,
+      shelfName: estanteSeleccionado ? estanteSeleccionado.name : 'Estante ' + shelfId
     };
-    setPlacedComponents(prev => [...prev, newPlacedComponent]);
+    
+    const updatedBombas = [...bombas, newBomba];
+    saveBombasToStorage(updatedBombas);
+    setShowShelfSelector(false);
+    setPendingDevice(null);
   };
-
-  // Eliminar un componente colocado
-  const removeComponent = (componentId: string) => {
-    setPlacedComponents(prev => prev.filter(comp => comp.id !== componentId));
-  };
-
-  const updateComponentOrder = (list: ComponentData[]) => setPlacedComponents(list);
 
   // Renderizar componente basado en el tipo
   const renderComponent = (component: ComponentData) => {
@@ -111,9 +165,14 @@ const Projects = () => {
         </button>
 
         <div className="h-48">
-          {component.type === 'air-conditioner' && <AirConditionerControl />}
-          {component.type === 'light' && <LightControl />}
-          {component.type === 'camera' && <RealTimeCamera />}
+          {component.type === 'valve' && (
+            <div>
+              <WaterValveControl entityId={`switch.${component.name}`} haStates={haStates} onToggle={sendHACommand} />
+              <div className="text-center mt-2 text-xs text-blue-600 bg-blue-100 py-1 rounded-md">
+                Estante: {(component as any).shelfName}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -154,9 +213,10 @@ const Projects = () => {
       setShowCreateForm(false);
       setEditingProject(null);
       console.log('Proyecto guardado exitosamente');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al guardar proyecto:', error);
-      alert('Hubo un error al guardar el proyecto. Por favor, verifica la conexión.');
+      const errorMsg = error.response?.data?.message || error.message || 'Error desconocido';
+      alert(`Hubo un error al guardar el proyecto: ${errorMsg}`);
     }
   };
 
@@ -195,7 +255,7 @@ const Projects = () => {
           onDrop={handleDrop}
           onDragOver={handleDragOver}
         >
-          {placedComponents.length === 0 ? (
+          {bombas.length === 0 ? (
             // Estado vacío
             <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-blue-500 rounded-xl bg-gray-300">
               <div className="text-center">
@@ -203,10 +263,10 @@ const Projects = () => {
                   <span className="text-2xl">📥</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  No hay componentes
+                  No hay bombas instaladas
                 </h3>
                 <p className="text-gray-500 mb-4">
-                  Arrastra componentes desde el panel o haz clic en "Agregar Componente"
+                  Arrastra una válvula de agua desde el panel o haz clic en "Agregar Componente"
                 </p>
                 <button
                   onClick={() => setIsPanelOpen(true)}
@@ -217,23 +277,15 @@ const Projects = () => {
               </div>
             </div>
           ) : (
-            // Grid de componentes con ReactSortable
             <div>
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">Componentes de Control</h2>
-              <ReactSortable
-                list={placedComponents}
-                setList={updateComponentOrder}
-                animation={200}
-                delayOnTouchOnly={true}
-                delay={100}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6"
-              >
-                {placedComponents.map((component) => (
-                  <div key={component.id} className="cursor-move">
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">Bombas de Riego (Válvulas)</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+                {bombas.map((component) => (
+                  <div key={component.id}>
                     {renderComponent(component)}
                   </div>
                 ))}
-              </ReactSortable>
+              </div>
             </div>
           )}
         </div>
@@ -293,8 +345,21 @@ const Projects = () => {
         isOpen={isPanelOpen}
         onClose={() => setIsPanelOpen(false)}
         onAddComponent={handleAddComponent}
-        allowedTypes={['light', 'camera', 'air-conditioner']}
+        allowedTypes={['valve']}
       />
+
+      {showShelfSelector && pendingDevice && (
+        <AssignShelfModal
+          isOpen={showShelfSelector}
+          onClose={() => {
+            setShowShelfSelector(false);
+            setPendingDevice(null);
+          }}
+          onSave={(shelfId, entityName) => handleAssignShelf(shelfId, entityName)}
+          estantes={estantesDisponibles}
+          defaultName={pendingDevice.name || ''}
+        />
+      )}
     </div>
   );
 };
