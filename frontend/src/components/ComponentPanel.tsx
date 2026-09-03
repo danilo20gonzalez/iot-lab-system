@@ -1,7 +1,5 @@
 import React from 'react';
 import { X, Wind, Lightbulb, Camera, Droplets, Thermometer, Beaker } from 'lucide-react';
-import { useAppContext } from '../context/AppContext';
-
 interface ComponentPanelProps {
   isOpen: boolean;
   onClose: () => void;
@@ -63,8 +61,6 @@ const availableComponents = [
 ];
 
 export default function ComponentPanel({ isOpen, onClose, onAddComponent, allowedTypes, customComponents }: ComponentPanelProps) {
-  const { addComponent } = useAppContext();
-
   const filteredComponents = customComponents || (allowedTypes
     ? availableComponents.filter(c => allowedTypes.includes(c.type))
     : availableComponents);
@@ -82,13 +78,6 @@ export default function ComponentPanel({ isOpen, onClose, onAddComponent, allowe
   const handleAddComponent = (component: any) => {
     if (onAddComponent) {
       onAddComponent(component);
-    } else {
-      addComponent({
-        type: component.type,
-        name: component.name,
-        entityId: component.entityId,
-        haState: component.haState,
-      });
     }
   };
 

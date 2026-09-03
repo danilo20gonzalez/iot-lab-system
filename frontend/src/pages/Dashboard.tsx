@@ -243,7 +243,6 @@ export default function Dashboard() {
                   ))}
                 </div>
               </div>
-
               {/* Actividad Reciente */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex justify-between items-center mb-6">

@@ -11,7 +11,11 @@ export const getLaboratorios = async (req: Request, res: Response) => {
     if (user.fk_id_rol === 1) {
       // ADMIN ve todo
       const [rows] = await pool.query<RowDataPacket[]>('CALL OBTENER_LABORATORIOS()');
-      laboratorios = rows[0];
+      laboratorios = rows[0].map((lab: any) => ({
+        ...lab,
+        activeSensors: 0, // Removes the hardcoded 36 from SP
+        devices: 0
+      }));
     } else {
       // Supervisor y Operador ven solo lo asignado
       const [rows] = await pool.query<RowDataPacket[]>(

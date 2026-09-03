@@ -3,34 +3,52 @@ import { useState } from 'react';
 
 interface LightControlProps {
     entityId?: string;
+    haStates?: Record<string, string>;
     haState?: string;
     nombre?: string;
-    onToggle?: (entityId: string, turnOn: boolean) => Promise<void> | void; // Ahora puede ser async
+    onToggle?: (entityId: string, turnOn: boolean) => Promise<void> | void;
 }
 
-const LightControlSimple = ({ entityId = 'light.minir4m', haState, nombre, onToggle }: LightControlProps) => {
-    const [localIsOn, setLocalIsOn] = useState(haState === 'on');
+const LightControlSimple = ({ entityId = 'light.lampara_1', haStates = {}, haState, nombre, onToggle }: LightControlProps) => {
+    // Extraer el ID sin el prefijo para el input
+    const initialLocalId = entityId.startsWith('light.') ? entityId.replace('light.', '') : entityId;
+    const [localEntityId, setLocalEntityId] = useState(initialLocalId);
+    const [localIsOn, setLocalIsOn] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);
-    const [isLoading, setIsLoading] = useState(false); // Estado para controlar el bloqueo por red
+    const [isLoading, setIsLoading] = useState(false);
 
-    const isOn = haState ? haState === 'on' : localIsOn;
+    const effectiveEntityId = `light.${localEntityId}`;
 
-    const handleToggle = async () => {
-        const newState = !isOn;
-        setIsLoading(true); // Bloqueamos el botón temporalmente
+    // Estado: haState directo (previsualización) > mapa de Home Assistant > estado local
+    const isOn = haState !== undefined
+        ? haState === 'on'
+        : (haStates[effectiveEntityId] !== undefined ? haStates[effectiveEntityId] === 'on' : localIsOn);
 
+    const handleTurnOn = async () => {
+        setIsLoading(true);
         try {
             if (onToggle) {
-                // Esperamos a que la función padre (la API) resuelva con éxito
-                await onToggle(entityId, newState);
-                setLocalIsOn(newState); // Actualizamos el estado local para reflejar el cambio en la UI
-            } else {
-                setLocalIsOn(newState);
+                await onToggle(effectiveEntityId, true);
             }
+            setLocalIsOn(true);
         } catch (error) {
-            console.error("Error al cambiar el estado en el switch:", error);
+            console.error("Error al encender la luz:", error);
         } finally {
-            setIsLoading(false); // Liberamos el botón
+            setIsLoading(false);
+        }
+    };
+
+    const handleTurnOff = async () => {
+        setIsLoading(true);
+        try {
+            if (onToggle) {
+                await onToggle(effectiveEntityId, false);
+            }
+            setLocalIsOn(false);
+        } catch (error) {
+            console.error("Error al apagar la luz:", error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -48,7 +66,16 @@ const LightControlSimple = ({ entityId = 'light.minir4m', haState, nombre, onTog
                         <div className="flex justify-between items-start">
                             <div>
                                 <h2 className="text-gray-800 font-bold text-xs tracking-tight">{nombre || 'Sala Principal'}</h2>
-                                <p className="text-[9px] text-gray-400 uppercase tracking-wider font-medium">Iluminación</p>
+                                <div className="flex items-center gap-1 mt-0.5" onClick={e => e.stopPropagation()}>
+                                    <span className="text-[9px] text-gray-400 font-mono">light.</span>
+                                    <input
+                                        type="text"
+                                        value={localEntityId}
+                                        onChange={(e) => setLocalEntityId(e.target.value)}
+                                        className="text-[10px] text-gray-600 bg-gray-50 border border-gray-200 rounded px-1 w-20 outline-none focus:border-yellow-400"
+                                        placeholder="ID"
+                                    />
+                                </div>
                             </div>
                             <button className="text-gray-300 hover:text-indigo-500 transition-colors">
                                 <Settings size={14} />
@@ -62,7 +89,6 @@ const LightControlSimple = ({ entityId = 'light.minir4m', haState, nombre, onTog
                                         ? 'bg-yellow-400 shadow-yellow-100'
                                         : 'bg-gray-100 shadow-none'}`}
                             >
-                                {/* Muestra un spinner si está cargando la petición HTTP */}
                                 {isLoading ? (
                                     <Loader2 className="animate-spin text-gray-400" size={18} />
                                 ) : (
@@ -76,13 +102,18 @@ const LightControlSimple = ({ entityId = 'light.minir4m', haState, nombre, onTog
 
                         <div className="flex gap-2 mt-1">
                             <button
-                                onClick={handleToggle}
-                                disabled={isLoading} // Evita doble clicks molestos
-                                className={`flex-[3] py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center
-                                ${isLoading ? 'bg-gray-300 cursor-not-allowed text-gray-500' :
-                                        isOn ? 'bg-gray-900 text-white hover:bg-black' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                                onClick={handleTurnOn}
+                                disabled={isLoading}
+                                className="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-all disabled:opacity-50"
                             >
-                                {isOn ? 'Apagar' : 'Encender'}
+                                ON
+                            </button>
+                            <button
+                                onClick={handleTurnOff}
+                                disabled={isLoading}
+                                className="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-gray-900 text-white hover:bg-black transition-all disabled:opacity-50"
+                            >
+                                OFF
                             </button>
                             <button
                                 onClick={() => setIsFlipped(true)}

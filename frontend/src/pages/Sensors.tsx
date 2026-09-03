@@ -11,6 +11,7 @@ import HumidityControl from '../components/deviceControl/HumidityControl';
 import CreateSensorModal from '../modals/CreateSensorModal';
 import type { SensorFormData } from '../modals/CreateSensorModal';
 import { obtenerSensoresHA, obtenerSwitchesHA } from '../api/api';
+import { useHomeAssistant } from '../hooks/useHomeAssistant';
 import {
   Wind, Lightbulb, Camera, Droplets, Plus, Search,
   Filter, Cpu, Trash2, MapPin, ChevronDown, Thermometer,
@@ -71,7 +72,7 @@ const FILTER_OPTIONS = [
   { value: 'humidity', label: 'Humedad' },
 ];
 
-/* ─── Sensores iniciales (los 4 que ya existen) ─── */
+/* ─── Sensores iniciales (Solo cámara) ─── */
 const DEFAULT_SENSORS: SensorFormData[] = [
   {
     id: 'default-camera-1',
@@ -80,32 +81,30 @@ const DEFAULT_SENSORS: SensorFormData[] = [
     tipo: 'camera',
     estado: 'activo',
     ubicacion: 'Entrada Laboratorio',
-  },
-  {
-    id: 'default-valve-1',
-    nombre: 'VALV-Jardin-01',
-    descripcion: 'Control del sistema hidráulico del jardín',
-    tipo: 'valve',
-    estado: 'activo',
-    ubicacion: 'Jardín Exterior',
-  },
+  }
 ];
 
 /* ─── Componente que renderiza el control real ─── */
-function SensorControlWidget({ tipo, valor, sensor }: { tipo: string; valor?: number | string; sensor?: any }) {
+function SensorControlWidget({ tipo, valor, sensor, haStates, onToggle }: { tipo: string; valor?: number | string; sensor?: any; haStates?: Record<string,string>; onToggle?: any }) {
   switch (tipo) {
     case 'air-conditioner':
       return <AirConditionerControl />;
     case 'light':
-      return <LightControl
-        entityId={sensor?.entityId}
-        haState={valor as string}
+      return <LightControl 
+        entityId={sensor?.entityId} 
+        haStates={haStates} 
         nombre={sensor?.nombre}
+        onToggle={onToggle}
       />;
     case 'camera':
       return <RealTimeCamera />;
     case 'valve':
-      return <WaterValveControl />;
+      return <WaterValveControl 
+        entityId={sensor?.entityId}
+        haStates={haStates}
+        nombre={sensor?.nombre}
+        onToggle={onToggle}
+      />;
     case 'temperature':
       return <TemperatureControl valorReal={valor} />;
     case 'humidity':
@@ -120,12 +119,16 @@ function SensorCard({
   sensor,
   onDelete,
   index,
-  isOperador
+  isOperador,
+  haStates,
+  onToggle
 }: {
   sensor: SensorFormData;
   onDelete: (id: string) => void;
   index: number;
   isOperador?: boolean;
+  haStates?: Record<string, string>;
+  onToggle?: (entity: string, turnOn: boolean) => void;
 }) {
   const meta = SENSOR_TYPE_META[sensor.tipo];
   if (!meta) return null;
@@ -191,7 +194,7 @@ function SensorCard({
 
       {/* Widget del control real */}
       <div className="p-2">
-        <SensorControlWidget tipo={sensor.tipo} valor={sensor.valor} sensor={sensor} />
+        <SensorControlWidget tipo={sensor.tipo} valor={sensor.valor} sensor={sensor} haStates={haStates} onToggle={onToggle} />
       </div>
     </motion.div>
   );
@@ -206,6 +209,7 @@ const Sensors = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const { haStates, sendHACommand } = useHomeAssistant();
 
   /* Cargar sensores y switches desde Home Assistant al montar el componente */
   useEffect(() => {
@@ -233,7 +237,7 @@ const Sensors = () => {
           id: device.entityId,
           nombre: device.nombre,
           descripcion: `Switch ${device.nombre} - Estado: ${device.estado}`,
-          tipo: 'light',
+          tipo: device.tipo === 'switch' ? 'valve' : 'light',
           estado: device.estado === 'on' ? 'activo' : 'inactivo',
           ubicacion: device.ubicacion,
           valor: device.estado,
@@ -482,6 +486,8 @@ const Sensors = () => {
                           onDelete={handleDeleteSensor}
                           index={i}
                           isOperador={isOperador}
+                          haStates={haStates}
+                          onToggle={sendHACommand}
                         />
                       ))}
                     </AnimatePresence>
@@ -522,6 +528,8 @@ const Sensors = () => {
                           onDelete={handleDeleteSensor}
                           index={i}
                           isOperador={isOperador}
+                          haStates={haStates}
+                          onToggle={sendHACommand}
                         />
                       ))}
                     </AnimatePresence>

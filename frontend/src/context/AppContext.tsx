@@ -14,11 +14,6 @@ interface AppContextType {
     user: User | null;
     login: (userData: User) => void;
     logout: () => void;
-    // Funciones de componentes
-    laboratoryComponents: ComponentData[];
-    addComponent: (component: { type: string; name?: string; [key: string]: unknown }) => void;
-    removeComponent: (id: string) => void;
-    updateComponentOrder: (list: ComponentData[]) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -29,9 +24,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         const savedUser = localStorage.getItem('user');
         return savedUser ? JSON.parse(savedUser) : null;
     });
-
-    // Estado de Componentes
-    const [laboratoryComponents, setLaboratoryComponents] = useState<ComponentData[]>([]);
 
     const login = (userData: User) => {
         localStorage.setItem('user', JSON.stringify(userData));
@@ -44,20 +36,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setUser(null);
     };
 
-    const addComponent = (comp: { type: string; name?: string; [key: string]: unknown }) => {
-        const newComponent: ComponentData = {
-            ...comp,
-            id: (comp.id as string) || `${comp.type}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-            type: comp.type,
-        };
-        setLaboratoryComponents(prev => [...prev, newComponent]);
-    };
-
-    const removeComponent = (id: string) => setLaboratoryComponents(prev => prev.filter(c => c.id !== id));
-    const updateComponentOrder = (list: ComponentData[]) => setLaboratoryComponents(list);
-
     return (
-        <AppContext.Provider value={{ user, login, logout, laboratoryComponents, addComponent, removeComponent, updateComponentOrder }}>
+        <AppContext.Provider value={{ user, login, logout }}>
             {children}
         </AppContext.Provider>
     );
