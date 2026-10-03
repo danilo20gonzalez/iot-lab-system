@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { prenderSwitch, apagarSwitch, obtenerSensores, obtenerSwitches,obtenerBombas } from "../services/homeAssistantService";
+import { prenderSwitch, apagarSwitch, obtenerSensores, obtenerSwitches, obtenerBombas } from "../services/homeAssistantService";
 import axios from "axios";
 
 export const encenderLuz = async (req: Request, res: Response) => {
@@ -67,10 +67,11 @@ export const getCameraStream = async (req: Request, res: Response) => {
       },
     });
 
-    if (response.headers['content-type']) {
-      res.set('Content-Type', response.headers['content-type']);
+    const contentType = response.headers['content-type'];
+    if (contentType) {
+      res.set('Content-Type', String(contentType));
     }
-    
+
     response.data.pipe(res);
   } catch (error: any) {
     console.error(`[HA Camera Proxy Error] al solicitar ${entityId}:`, error.message);
