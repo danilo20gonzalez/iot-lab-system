@@ -1,4 +1,3 @@
-// Dashboard.tsx
 import { useState, useEffect } from "react";
 import {
   Activity,
@@ -6,7 +5,6 @@ import {
   Building2,
   Thermometer,
   AlertTriangle,
-  Clock,
   Settings,
   Cpu
 } from 'lucide-react';
@@ -37,14 +35,6 @@ interface SystemStats {
   dataAccuracy: number;
 }
 
-interface RecentActivity {
-  id: number;
-  type: 'sensor' | 'user' | 'system' | 'alert';
-  message: string;
-  time: string;
-  lab?: string;
-}
-
 export default function Dashboard() {
   const { user } = useAppContext();
   const navigate = useNavigate();
@@ -60,7 +50,6 @@ export default function Dashboard() {
   });
 
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
 
   // Carga inicial de datos del sistema (stats, actividades)
   useEffect(() => {
@@ -68,9 +57,6 @@ export default function Dashboard() {
       try {
         const statsRes = await api.get('/dashboard/stats');
         setSystemStats(statsRes.data);
-
-        const activitiesRes = await api.get('/dashboard/activities');
-        setRecentActivities(activitiesRes.data);
 
       } catch (error) {
         console.error('Error al cargar datos del sistema:', error);
@@ -133,14 +119,6 @@ export default function Dashboard() {
     }
   };
 
-  // const getPriorityColor = (priority: string) => {
-  //   switch (priority) {
-  //     case 'high': return 'bg-red-100 text-red-800 border-red-200';
-  //     case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-  //     case 'low': return 'bg-green-100 text-green-800 border-green-200';
-  //     default: return 'bg-gray-100 text-gray-800 border-gray-200';
-  //   }
-  // };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -171,6 +149,7 @@ export default function Dashboard() {
               value={systemStats.totalLabs}
               subtitle={`${systemStats.activeLabs} activos`}
               icon={Building2}
+              iconColor="#059669"
             />
 
             <SummaryCard
@@ -178,42 +157,28 @@ export default function Dashboard() {
               value={systemStats.activeSensors}
               subtitle="monitoreando"
               icon={Thermometer}
+              iconColor="#059669"
             />
             <SummaryCard
               title="Accionadores"
               value={systemStats.totalDevices}
               subtitle="conectados"
               icon={Cpu}
+              iconColor="#059669"
             />
-            {/* <SummaryCard
-              title="Automatización"
-              value={systemStats.automationEnabled}
-              subtitle="laboratorios"
-              icon={Zap}
-            /> */}
-            {/* <SummaryCard
-              title="Disponibilidad"
-              value={systemStats.systemUptime}
-              subtitle="uptime"
-              icon={CheckCircle}
-            /> */}
-            {/* <SummaryCard
-              title="Precisión"
-              value={`${systemStats.dataAccuracy}%`}
-              subtitle="de datos"
-              icon={Shield}
-            /> */}
             <SummaryCard
               title="Alertas"
               value={alerts.length}
               subtitle="activas"
               icon={AlertTriangle}
+              iconColor="#f59e0b"
             />
             <SummaryCard
               title="Usuarios"
               value={systemStats.totalUsers}
               subtitle="activos"
               icon={Users}
+              iconColor="#059669"
             />
           </div>
 
@@ -243,44 +208,7 @@ export default function Dashboard() {
                   ))}
                 </div>
               </div>
-              {/* Actividad Reciente */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900">Actividad Reciente</h2>
-                  <button className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">Ver todo</button>
-                </div>
-                <div className="space-y-4">
-                  {recentActivities.length > 0 ? (
-                    recentActivities.map((activity) => (
-                      <div key={activity.id} className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                        <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center shrink-0">
-                          {getActivityIcon(activity.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-900 font-medium">{activity.message}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs text-gray-500 flex items-center gap-1">
-                              <Clock size={12} />
-                              {activity.time}
-                            </span>
-                            {activity.lab && (
-                              <span className="text-xs text-emerald-600 font-medium px-2 py-0.5 bg-emerald-50 rounded-full">
-                                {activity.lab}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-gray-500 text-sm">No hay actividad reciente</p>
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
-
             {/* Columna Derecha: Alertas */}
             <div className="lg:col-span-1">
               <AlertsPanel alerts={alerts} />

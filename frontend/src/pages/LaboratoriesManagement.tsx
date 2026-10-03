@@ -197,7 +197,7 @@ export default function LaboratoriesManagement() {
                         <p className="text-gray-600">Administra los laboratorios y su configuración</p>
                     </div>
 
-                    {/* Stats */}
+                    {/* Stats
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                         {statCards.map((stat, idx) => (
                             <div key={idx} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 flex items-center gap-3 hover:shadow-md transition-shadow">
@@ -210,7 +210,7 @@ export default function LaboratoriesManagement() {
                                 </div>
                             </div>
                         ))}
-                    </div>
+                    </div> */}
 
                     {/* Controls */}
                     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">

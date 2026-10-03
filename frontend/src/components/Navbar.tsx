@@ -34,7 +34,7 @@ export default function Navbar() {
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
 
   const navLinks = [
-    { name: 'Dashboard', path: '/dashboard' },
+    { name: 'Principal', path: '/dashboard' },
     ...(!isOperador ? [{ name: 'Laboratorios', path: '/laboratories-management' }] : []),
     { name: 'Sensores', path: '/sensors' },
   ];
@@ -124,12 +124,12 @@ export default function Navbar() {
               </div>
               <div>
                 <h1 className="text-xl font-black text-white tracking-tight filter drop-shadow-lg">
-                  LabControl Pro
+                  Agora Uniamazonia
                 </h1>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
                   <span className="text-xs font-semibold text-white tracking-wider z-10">
-                    UNIVERSIDAD DE LA AMAZONIA
+                    Universidad de la Amazonia
                   </span>
                 </div>
               </div>
