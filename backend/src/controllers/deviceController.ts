@@ -141,7 +141,9 @@ export const createEspacioTrabajoDevice = async (req: Request, res: Response) =>
 // DELETE device from Espacio Trabajo
 export const deleteEspacioTrabajoDevice = async (req: Request, res: Response) => {
   try {
-    const { type, id } = req.params;
+    const type = req.params.type as string;
+    const id = req.params.id as string;
+
     if (['valve', 'light', 'fan'].includes(type)) {
       await pool.query('DELETE FROM actuador WHERE ID_ACTUADOR = ?', [id]);
     } else if (['temperature', 'humidity', 'ph'].includes(type)) {
