@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import Navbar from "../components/Navbar";
 import ProjectCard from "../components/ProjectCard";
 import ComponentPanel from "../components/ComponentPanel";
 import WaterValveControl from "../components/deviceControl/WaterValveControl";
@@ -239,7 +238,6 @@ const Projects = () => {
   };
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
       <div className="max-w-7xl mx-auto p-6" style={{ zoom: 0.8 }}>
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-3xl font-bold text-gray-900">Control del Modulo {moduloState?.nombre || "Nombre del modulo"}</h1>

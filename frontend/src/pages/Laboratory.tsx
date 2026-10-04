@@ -1,7 +1,6 @@
 // src/pages/Laboratory.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import Navbar from "../components/Navbar";
 import ComponentPanel from "../components/ComponentPanel";
 import AirConditionerControl from "../components/deviceControl/AirConditionerControl";
 import LightControl from "../components/deviceControl/LightControl";
@@ -278,8 +277,6 @@ const renderComponent = (component: ComponentData) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-
       <div className="max-w-7xl mx-auto p-6" style={{ zoom: 0.8 }}>
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-3xl font-bold text-gray-900">Control del Laboratorio {selectedLabName}</h1>
@@ -343,7 +340,7 @@ const renderComponent = (component: ComponentData) => {
 
         {/* Sección de tarjetas de laboratorios */}
         <div className="p-4 flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3 mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
             <div className="w-1 h-8 bg-gradient-to-b from-emerald-600 to-green-700 rounded-full"></div>
             Módulos Disponibles</h1>
 

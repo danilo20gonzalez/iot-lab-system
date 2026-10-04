@@ -26,7 +26,7 @@ export default function Login() {
       const { token, user } = response.data;
       localStorage.setItem("token", token);
       login(user);
-      navigate("/dashboard");
+      navigate("/");
     } catch (error) {
       setIsLoading(false);
       alert("Usuario o contraseña incorrectos");
