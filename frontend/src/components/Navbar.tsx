@@ -6,8 +6,7 @@ import {
   Settings,
   LogOut,
   Menu,
-  X,
-  FileText,
+  X
 } from "lucide-react";
 import {
   useState,
@@ -147,7 +146,7 @@ export default function Navbar() {
             <div className="flex items-center gap-4 flex-shrink-0">
               <div
                 className="flex items-center gap-3 cursor-pointer group"
-                onClick={() => handleNavigation("/dashboard")}
+                onClick={() => handleNavigation("/")}
               >
                 <div className="relative h-10 w-10">
                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl shadow-lg"></div>
@@ -260,7 +259,7 @@ export default function Navbar() {
               <div className="flex items-center gap-3">
                 <div
                   className="flex items-center gap-2 cursor-pointer"
-                  onClick={() => handleNavigation("/dashboard")}
+                  onClick={() => handleNavigation("/")}
                 >
                   <div className="relative h-8 w-8">
                     <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg"></div>
@@ -392,14 +391,6 @@ export default function Navbar() {
               </button>
             )}
 
-            <button
-              className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200 cursor-pointer"
-              onClick={() => {}}
-            >
-              <Activity size={18} className="text-emerald-400" />
-              <span className="font-medium text-sm">Componentes</span>
-            </button>
-
             {!isOperador && (
               <button
                 className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200 cursor-pointer"
@@ -409,14 +400,6 @@ export default function Navbar() {
                 <span className="font-medium text-sm">Configuración</span>
               </button>
             )}
-
-            <button
-              className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-transparent hover:border-gray-600 transition-all duration-200 cursor-pointer"
-              onClick={() => window.open("/docs", "_blank")}
-            >
-              <FileText size={18} className="text-emerald-400" />
-              <span className="font-medium text-sm">Documentación</span>
-            </button>
 
             {/* Separador */}
             <div className="border-t border-gray-700 my-2"></div>
@@ -459,7 +442,7 @@ export default function Navbar() {
             <div className="grid grid-cols-2 gap-2">
               <button
                 className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200 cursor-pointer"
-                onClick={() => handleNavigation("/dashboard")}
+                onClick={() => handleNavigation("/")}
               >
                 <Activity size={16} className="text-emerald-400" />
                 <span className="text-sm font-medium">Dashboard</span>
@@ -471,14 +454,6 @@ export default function Navbar() {
               >
                 <Activity size={16} className="text-emerald-400" />
                 <span className="text-sm font-medium">Laboratorios</span>
-              </button>
-
-              <button
-                className="flex items-center gap-2 p-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg border border-gray-600 transition-all duration-200 cursor-pointer"
-                onClick={() => {}}
-              >
-                <Activity size={16} className="text-emerald-400" />
-                <span className="text-sm font-medium">Componentes</span>
               </button>
 
               {isAdmin && (
