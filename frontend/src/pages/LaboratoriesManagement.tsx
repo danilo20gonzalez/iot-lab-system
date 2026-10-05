@@ -70,7 +70,6 @@ export default function LaboratoriesManagement() {
   }, [isOperador, navigate]);
 
   useEffect(() => {
-    // Cargar laboratorios desde API
     const fetchLaboratories = async () => {
       try {
         const response = await api.get("/getLaboratorios");
@@ -112,8 +111,6 @@ export default function LaboratoriesManagement() {
   }) => {
     try {
       const response = await api.post("createLaboratorio", labData);
-      // La API actualmente no maneja los sensores del lado del servidor en createLaboratorio,
-      // pero podemos agregarlos al estado local para visualizarlos
       const newLab = {
         ...response.data.laboratorio,
         sensors: labData.sensors || [],
@@ -191,177 +188,175 @@ export default function LaboratoriesManagement() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div>
-        <div className="max-w-7xl mx-auto p-6">
-          {/* Header */}
-          <div className="mb-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <h1 className="text-3xl font-bold text-gray-900">
-                Gestión Global de los Laboratorios
-              </h1>
-              {isAdmin && (
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer"
-                >
-                  <Plus size={20} />
-                  Nuevo Laboratorio
-                </button>
-              )}
-            </div>
-            <p className="text-gray-600">
-              Administra los laboratorios y su configuración
-            </p>
-          </div>
-
-          {/* Controls */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
-            <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
-              {/* Search */}
-              <div className="relative flex-1 w-full lg:max-w-md">
-                <Search
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={20}
-                />
-                <input
-                  type="text"
-                  placeholder="Buscar laboratorios por código, nombre o descripción..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* Filters and View Controls */}
-              <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-                <div className="flex gap-2">
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as any)}
-                    className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  >
-                    <option value="all">Todos los estados</option>
-                    <option value="active">Activo</option>
-                    <option value="maintenance">Mantenimiento</option>
-                    <option value="inactive">Inactivo</option>
-                  </select>
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setViewMode("grid")}
-                    className={`p-3 border rounded-lg transition-all duration-200 ${
-                      viewMode === "grid"
-                        ? "bg-emerald-100 border-emerald-300 text-emerald-700"
-                        : "bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200"
-                    }`}
-                  >
-                    Grid
-                  </button>
-                  <button
-                    onClick={() => setViewMode("list")}
-                    className={`p-3 border rounded-lg transition-all duration-200 ${
-                      viewMode === "list"
-                        ? "bg-emerald-100 border-emerald-300 text-emerald-700"
-                        : "bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200"
-                    }`}
-                  >
-                    Lista
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Laboratories Grid/List */}
-          {viewMode === "grid" ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
-              {filteredLabs.map((lab) => (
-                <LabCard
-                  key={lab.id}
-                  id={lab.id}
-                  code={lab.code}
-                  name={lab.name}
-                  activeSensors={lab.activeSensors}
-                  associatedUsers={lab.associatedUsers}
-                  status={
-                    lab.status === "active"
-                      ? "activo"
-                      : lab.status === "maintenance"
-                        ? "mantenimiento"
-                        : "mantenimiento"
-                  }
-                  automationStatus={lab.automationStatus}
-                  isZoneDisabled={lab.isZoneDisabled}
-                  sensors={lab.sensors || []}
-                  onEdit={() => handleEditLab(lab)}
-                  onDelete={isAdmin ? () => handleDeleteLab(lab.id) : undefined}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                      Laboratorio
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                      Estado
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                      Usuarios
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                      Acciones
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredLabs.map((lab) => (
-                    <LabTableRow
-                      key={lab.id}
-                      lab={lab}
-                      onEdit={handleEditLab}
-                      onDelete={handleDeleteLab}
-                      isAdmin={isAdmin}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* Empty State */}
-          {filteredLabs.length === 0 && (
-            <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed border-gray-300">
-              <Building2 size={48} className="mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No se encontraron laboratorios
-              </h3>
-              <p className="text-gray-500 mb-4">
-                Intenta ajustar los filtros de búsqueda o crear un nuevo
-                laboratorio
-              </p>
-              <button
-                onClick={() => {
-                  setSearchTerm("");
-                  setStatusFilter("all");
-                }}
-                className="text-emerald-600 hover:text-emerald-700 font-medium mr-4"
-              >
-                Limpiar filtros
-              </button>
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Gestión Global de los Laboratorios
+            </h1>
+            {isAdmin && (
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="text-emerald-600 hover:text-emerald-700 font-medium"
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer"
               >
-                Crear primer laboratorio
+                <Plus size={20} />
+                Nuevo Laboratorio
               </button>
-            </div>
-          )}
+            )}
+          </div>
+          <p className="text-gray-600 mt-1">
+            Administra los laboratorios y su configuración
+          </p>
         </div>
+
+        {/* Controls */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
+          <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
+            {/* Search */}
+            <div className="relative flex-1 w-full lg:max-w-md">
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={20}
+              />
+              <input
+                type="text"
+                placeholder="Buscar laboratorios por código, nombre o descripción..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Filters and View Controls */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+              <div className="flex gap-2">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as any)}
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                >
+                  <option value="all">Todos los estados</option>
+                  <option value="active">Activo</option>
+                  <option value="maintenance">Mantenimiento</option>
+                  <option value="inactive">Inactivo</option>
+                </select>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`p-3 border rounded-lg transition-all duration-200 ${
+                    viewMode === "grid"
+                      ? "bg-emerald-100 border-emerald-300 text-emerald-700"
+                      : "bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  Grid
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`p-3 border rounded-lg transition-all duration-200 ${
+                    viewMode === "list"
+                      ? "bg-emerald-100 border-emerald-300 text-emerald-700"
+                      : "bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  Lista
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Laboratories Grid/List */}
+        {viewMode === "grid" ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
+            {filteredLabs.map((lab) => (
+              <LabCard
+                key={lab.id}
+                id={lab.id}
+                code={lab.code}
+                name={lab.name}
+                activeSensors={lab.activeSensors}
+                associatedUsers={lab.associatedUsers}
+                status={
+                  lab.status === "active"
+                    ? "activo"
+                    : lab.status === "maintenance"
+                      ? "mantenimiento"
+                      : "mantenimiento"
+                }
+                automationStatus={lab.automationStatus}
+                isZoneDisabled={lab.isZoneDisabled}
+                sensors={lab.sensors || []}
+                onEdit={() => handleEditLab(lab)}
+                onDelete={isAdmin ? () => handleDeleteLab(lab.id) : undefined}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                    Laboratorio
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                    Estado
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                    Usuarios
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredLabs.map((lab) => (
+                  <LabTableRow
+                    key={lab.id}
+                    lab={lab}
+                    onEdit={handleEditLab}
+                    onDelete={handleDeleteLab}
+                    isAdmin={isAdmin}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {filteredLabs.length === 0 && (
+          <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed border-gray-300">
+            <Building2 size={48} className="mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No se encontraron laboratorios
+            </h3>
+            <p className="text-gray-500 mb-4">
+              Intenta ajustar los filtros de búsqueda o crear un nuevo
+              laboratorio
+            </p>
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setStatusFilter("all");
+              }}
+              className="text-emerald-600 hover:text-emerald-700 font-medium mr-4"
+            >
+              Limpiar filtros
+            </button>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="text-emerald-600 hover:text-emerald-700 font-medium"
+            >
+              Crear primer laboratorio
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Modal para crear laboratorio */}
@@ -384,7 +379,7 @@ export default function LaboratoriesManagement() {
   );
 }
 
-// Componente Fila para vista lista (inline, específico de esta página)
+// Componente Fila para vista lista
 function LabTableRow({
   lab,
   onEdit,
@@ -420,7 +415,9 @@ function LabTableRow({
       </td>
       <td className="px-6 py-4">
         <span
-          className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(lab.status)}`}
+          className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+            lab.status,
+          )}`}
         >
           {getStatusText(lab.status)}
         </span>

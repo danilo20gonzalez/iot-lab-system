@@ -51,7 +51,7 @@ export default function Navbar() {
   });
 
   const navLinks = [
-    { name: "Dashboard", path: "/", match: ["/"] },
+    { name: "Princial", path: "/", match: ["/"] },
     ...(!isOperador
       ? [
           {
@@ -160,12 +160,12 @@ export default function Navbar() {
               </div>
               <div>
                 <h1 className="text-xl font-black text-white tracking-tight filter drop-shadow-lg">
-                  LabControl Pro
+                  Agora Uniamazonia
                 </h1>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
                   <span className="text-xs font-semibold text-white tracking-wider z-10">
-                    UNIVERSIDAD DE LA AMAZONIA
+                    Universidad de la Amazonia
                   </span>
                 </div>
               </div>

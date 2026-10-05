@@ -43,7 +43,7 @@ export default function Login() {
       {/* 3. Capa de Partículas (Fondo) */}
       <div className="absolute inset-0 z-0">
         <Particles
-          particleColors={["#367c29", "#0bb116"]} // Colores acordes a tu marca
+          particleColors={["#10b981", "#10b981"]} // Colores acordes a tu marca
           particleCount={500}
           particleSpread={12}
           speed={0.15}
@@ -60,13 +60,15 @@ export default function Login() {
         {/* Logo y título */}
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-[#367c29] rounded-2xl shadow-lg">
+            <div className="p-3 bg-[#059669] rounded-2xl shadow-lg">
               <Activity size={40} className="text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-[#367c29]">LabControl Pro</h1>
+          <h1 className="text-3xl font-bold text-[#059669]">
+            Agora Uniamazonia
+          </h1>
           <p className="text-gray-600 mt-2">
-            Sistema de gestión de laboratorios
+            Sistema de Gestión de Laboratorios
           </p>
         </div>
 
@@ -95,7 +97,7 @@ export default function Login() {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#367c29] focus:border-transparent transition-all duration-200"
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#059669] focus:border-transparent transition-all duration-200"
                   placeholder="Ingresa tu usuario"
                 />
               </div>
@@ -119,7 +121,7 @@ export default function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#367c29] focus:border-transparent transition-all duration-200"
+                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#059669] focus:border-transparent transition-all duration-200"
                   placeholder="Ingresa tu contraseña"
                 />
                 <button
@@ -139,7 +141,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#367c29] text-white py-3 px-4 rounded-xl font-medium hover:bg-[#2a6a21] transition-all duration-200 disabled:opacity-50"
+              className="w-full bg-[#059669] text-white py-3 px-4 rounded-xl font-medium hover:bg-[#024530] transition-all duration-200 disabled:opacity-50"
             >
               {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
             </button>
@@ -148,7 +150,7 @@ export default function Login() {
 
         {/* Footer */}
         <div className="text-center text-gray-500 text-sm">
-          <p>© 2026 LabControl Pro. Todos los derechos reservados.</p>
+          <p>© 2026 Agora Uniamazonia. Todos los derechos reservados.</p>
         </div>
       </div>
     </div>
