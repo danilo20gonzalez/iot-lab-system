@@ -1,11 +1,12 @@
-import axios from 'axios';
-import { apiUrl } from '../../config';
+import axios from "axios";
+import { apiUrl } from "../../config";
 import { Activity, Eye, EyeOff, User, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useAppContext } from '../context/AppContext';
+import { useAppContext } from "../context/AppContext";
 // 1. Importa el componente Particles
-import Particles from '../components/Particles';
+import Particles from "../components/Particles";
+import { toast } from "sonner";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -29,14 +30,16 @@ export default function Login() {
       navigate("/");
     } catch (error) {
       setIsLoading(false);
-      alert("Usuario o contraseña incorrectos");
+      // alert("Usuario o contraseña incorrectos");
+      toast.error("Usuario o contraseña incorrectos", {
+        position: "top-center",
+      });
     }
   };
 
   return (
     // 2. Agregamos 'relative' y 'overflow-hidden' al contenedor principal
     <div className="relative min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-4 overflow-hidden">
-
       {/* 3. Capa de Partículas (Fondo) */}
       <div className="absolute inset-0 z-0">
         <Particles
@@ -61,10 +64,10 @@ export default function Login() {
               <Activity size={40} className="text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-[#367c29]">
-            LabControl Pro
-          </h1>
-          <p className="text-gray-600 mt-2">Sistema de gestión de laboratorios</p>
+          <h1 className="text-3xl font-bold text-[#367c29]">LabControl Pro</h1>
+          <p className="text-gray-600 mt-2">
+            Sistema de gestión de laboratorios
+          </p>
         </div>
 
         {/* Formulario */}
@@ -76,7 +79,10 @@ export default function Login() {
           <div className="space-y-6">
             {/* Usuario */}
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Usuario
               </label>
               <div className="relative">
@@ -97,7 +103,10 @@ export default function Login() {
 
             {/* Contraseña */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Contraseña
               </label>
               <div className="relative">
@@ -118,7 +127,11 @@ export default function Login() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
-                  {showPassword ? <EyeOff size={20} className="text-gray-400" /> : <Eye size={20} className="text-gray-400" />}
+                  {showPassword ? (
+                    <EyeOff size={20} className="text-gray-400" />
+                  ) : (
+                    <Eye size={20} className="text-gray-400" />
+                  )}
                 </button>
               </div>
             </div>
